@@ -28,7 +28,10 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
    na górze/dole heksa) i pokrywa całą Polskę (496 heksów). Żeby zagrać w
    mniejszym składzie, usuń wpisy z `PLAYER_SETUP` w
    `game_map_controller.gd` (patrz "Decyzje projektowe" niżej).
-4. **Sterowanie** (dotyczy aktualnie kontrolowanego gracza — patrz etykieta
+4. **HUD** (lewy górny róg): kto jest kontrolowany, punkty ruchu, prestiż i
+   **wszystkie posiadane surowce** (gaz/miedź/węgiel/drewno/żywność/nikiel/
+   uran naraz, nie tylko drewno jak wcześniej).
+5. **Sterowanie** (dotyczy aktualnie kontrolowanego gracza — patrz etykieta
    "Kontrolujesz" w lewym górnym rogu):
    - **Lewy klik na własnego ludzika** → zaznacza go: lekko się powiększa i
      podświetla pierścieniem (rozmiar/kolor/grubość tweakowalne w
@@ -75,7 +78,7 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
      zmieniając, który gracz jest akurat kontrolowany. Kontrola gracza i
      przeliczenie rundy to dwie całkowicie niezależne rzeczy (sekcja 8 GDD
      dopuszcza "na przemian LUB jednocześnie").
-5. Dla testu niższego poziomu (bez UI/kamery/grafiki) nadal działa
+6. Dla testu niższego poziomu (bez UI/kamery/grafiki) nadal działa
    `scenes/main_test.tscn` (F6 na tej scenie) — smoke test Fazy 0-1 (dane,
    aneksacja, wydobycie lasu, tura) **plus** Faz 6-9 (drugi gracz, blokada
    ruchu przez `HexPathfinder`, przejęcie terytorium, kara za strefę
@@ -88,8 +91,8 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
 godot_project/
 ├── project.godot            # main_scene = scenes/main.tscn, autoloady
 ├── autoloads/
-│   ├── map_data.gd           # wczytuje data/map_data.json, sąsiedzi, auto-tworzy
-│   │                          # placeholder Building na heksach z zasobem
+│   ├── map_data.gd           # wczytuje data/map_data.json, sąsiedzi, dołącza
+│   │                          # REALNE budynki z pola "building" w JSON
 │   ├── game_manager.gd       # gracze, aneksacja, naprawa, wydobycie lasu,
 │   │                          # przejęcia, kara za strefy chronione, Karta Miasta
 │   └── turn_manager.gd       # kolejność graczy, przeliczenie rundy
@@ -132,6 +135,25 @@ użyj go ponownie, gdy dodasz kolejne fragmenty KML dla reszty Polski:
 ```
 python3 convert_kml_to_json.py nowa_mapa.kml godot_project/data/map_data.json
 ```
+
+### Budynki - "znajdź i napraw" (sekcja 2.3/3 GDD)
+
+Konwerter rozpoznaje w etykietach KML realne obiekty gospodarcze (gazoport,
+huta, fabryka, zakłady, elektrownia, rafineria, kopalnia, stocznia, złoża...)
+i zapisuje je jako pole `"building"` przy każdym heksie w `map_data.json` -
+`{"name": "<etykieta z KML>", "produces_resource": "<zasób albo none>"}`.
+KAŻDY heks z rozpoznanym zasobem (włącznie ze zwykłym "obszar rolniczy" ->
+food, sekcja 6 GDD: "każdy posiadany heks z zasobem daje stały dochód")
+dostaje budynek; heksy z etykietą wskazującą na obiekt przemysłowy, ale bez
+dopasowanego surowca (np. "LG chem - fabryka baterii") też dostają budynek -
+da się go znaleźć/naprawić, tylko na razie nic nie produkuje (otwarte
+pytanie GDD o przetwarzaniu surowiec→produkt, sekcja 6/11).
+
+`map_data.gd` (`_attach_building`) czyta to pole wprost - koniec z placeholderowym
+"COPPER (placeholder)"; budynek na mapie ma teraz swoją prawdziwą nazwę z KML
+(np. "Huta miedzi Głogów KGHM"). Wszystkie budynki startują uszkodzone
+(`building_damaged = true`) - trzeba je zaanektować i naprawić, żeby zaczęły
+generować surowiec (`GameBalance.BUILDING_RESOURCE_INCOME_PER_TURN` na rundę).
 
 ## Orientacja siatki: flat-top, offset "even-q"
 
@@ -258,6 +280,37 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   heksów, zgodnie z sekcją 7 GDD. Koszty budynków celowo rozsiane po różnych
   typach zasobów (gaz, miedź, węgiel, drewno, żywność), żeby skompletowanie
   Karty wymagało kontroli wielu regionów.
+- **Obrazek ludzika** (`Ludzik.sprite_texture`, `Texture2D`) - ustaw w
+  edytorze (zaznacz węzeł Ludzik w `main.tscn` -> Inspector -> Sprite
+  Texture) albo z kodu (`ludzik.sprite_texture = load("res://...png")`).
+  Bez ustawionego obrazka rysowane jest domyślne kółko w kolorze `color`
+  (jak dotąd) - obie ścieżki współistnieją, nic nie trzeba było przepisywać.
+  `PLAYER_SETUP` w `game_map_controller.gd` przyjmuje też opcjonalny klucz
+  `"sprite"` (ścieżka `res://...`), więc można od razu przypisać różne
+  obrazki wszystkim 6 dynamicznie tworzonym graczom przez same dane, bez
+  dotykania kodu - działa tylko dla plików, które faktycznie istnieją
+  (`ResourceLoader.exists()`), więc nie psuje niczego, dopóki nie dodasz
+  własnej grafiki do projektu.
+- **Budynki na mapie czytane z KML, nie zgadywane z typu zasobu** (update).
+  `tools/convert_kml_to_json.py` ma teraz `classify_building()`, które
+  rozpoznaje w etykiecie realny obiekt gospodarczy (gazoport, huta, fabryka,
+  kopalnia, elektrownia, rafineria, stocznia, złoża) niezależnie od tego,
+  czy trafił już w `RESOURCE_KEYWORDS`. `map_data.gd` (`_attach_building`)
+  czyta gotowe pole `"building"` z JSON zamiast (jak wcześniej) doklejać
+  identyczny placeholder do każdego heksa z jakimkolwiek zasobem - budynek
+  ma teraz swoją prawdziwą nazwę z KML. Zregenerowano też istniejący
+  `data/map_data.json` tą samą logiką (bez KML - prosto z już zapisanych
+  etykiet `label_raw`), więc efekt jest widoczny od razu, bez ponownego
+  eksportu z Google Earth: 440 z 496 heksów ma teraz budynek.
+- **Wydobycie lasu NAPRAWIONE - drewno faktycznie się wyczerpywało w
+  nieskończoność** (bug, nie feature). `harvest_forest()` liczyło
+  `wood_gained` na podstawie `hex.resource_level`, ale nigdy go nie
+  pomniejszało o wydobytą ilość - pole zawsze zostawało na ~100% (albo
+  regenerowało się z powrotem do 100%, zanim ktokolwiek zdążył to zauważyć),
+  więc dało się zbierać to samo drewno co turę bez ograniczeń. Brakującą
+  linię (`hex.resource_level -= wood_gained`) dodano w `game_manager.gd` -
+  teraz pole faktycznie się wyczerpuje i regeneruje wg wzoru z sekcji 6.1
+  GDD, zgodnie z zamierzonym mechanizmem zrównoważonego wydobycia.
 
 ## Uproszczenia i rzeczy do zweryfikowania dalej
 
@@ -272,11 +325,19 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   regularne pole heksów, tylko poprawnie rozciągnięte. Świadomy kompromis,
   żeby nie psuć kafelkowania siatki (potrzebnego do sąsiedztwa/ruchu).
 - **Koszt naprawy budynków na mapie = 0** (`required_resources` puste w
-  placeholderowym `Building` tworzonym automatycznie w `map_data.gd`). To
-  celowe uproszczenie, dopóki nie ustalimy treści/kosztów konkretnych
-  budynków surowcowych — repair działa więc już teraz "za darmo", tylko żeby
-  przetestować przepływ aneksacja → naprawa → dochód. Budynki Karty Miasta
-  (Faza 8) MAJĄ już zdefiniowane, niezerowe koszty (`city_buildings_data.gd`).
+  `Building` tworzonym automatycznie przez `map_data.gd` z pola "building" w
+  JSON). To celowe uproszczenie, dopóki nie ustalimy kosztów naprawy per typ
+  budynku — repair działa więc już teraz "za darmo", tylko żeby przetestować
+  przepływ aneksacja → naprawa → dochód. Budynki Karty Miasta (Faza 8) MAJĄ
+  już zdefiniowane, niezerowe koszty (`city_buildings_data.gd`).
+- **Budynki przemysłowe bez dopasowanego surowca nic nie produkują** (np.
+  "Elektrownia Opole", "Rafineria Orlen Płock" - konwerter je rozpoznaje i
+  tworzy im budynek do znalezienia/naprawienia, ale `produces_resource` zostaje
+  "none", więc dochód po naprawie wynosi zero). To świadomie zostawione otwarte
+  - GDD (sekcja 6/11) nie rozstrzygnął, czy/jak surowce mają być przetwarzane
+  w budynkach przemysłowych na "zaawansowane produkty"; zgadywanie konkretnego
+  surowca z samej nazwy (np. "elektrownia" -> węgiel? gaz? atom?) byłoby
+  zgadywaniem, nie danymi z KML.
 - **Koszt ścieżki w `HexPathfinder` przez `AStar2D.weight_scale`** to
   przybliżenie (Godot liczy koszt krawędzi na podstawie dystansu i
   weight_scale OBU połączonych punktów, nie tylko punktu docelowego). Od

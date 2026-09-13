@@ -35,7 +35,11 @@ const VISION_RADIUS = GameBalance.VISION_RADIUS
 
 ## Gracze startowi hotseat - id, nazwa, miasto, heks bazowy, kolor pionka.
 ## Wszystkie 6 miast z sekcji 7 GDD - usuń wpisy stąd, żeby zagrać w mniejszym
-## składzie (reszta kodu nie zakłada konkretnej liczby graczy).
+## składzie (reszta kodu nie zakłada konkretnej liczby graczy). Opcjonalny
+## klucz "sprite" (ścieżka res://...) podmienia domyślne kółko na obrazek -
+## patrz Ludzik.sprite_texture w ludzik.gd. Bez tego klucza (jak niżej,
+## dopóki nie dodasz własnych plików graficznych) rysowane jest kółko w
+## kolorze `color`.
 const PLAYER_SETUP = [
 	{"id": 1, "name": "Gracz 1", "city": "Wrocław", "start_hex": "H18", "color": Color(0.9, 0.2, 0.2)},
 	{"id": 2, "name": "Gracz 2", "city": "Szczecin", "start_hex": "A7", "color": Color(0.2, 0.4, 0.9)},
@@ -51,6 +55,7 @@ const PLAYER_SETUP = [
 @onready var turn_label: Label = $UI/TurnLabel
 @onready var mp_label: Label = $UI/MPLabel
 @onready var prestige_label: Label = $UI/PrestigeLabel
+@onready var resources_label: Label = $UI/ResourcesLabel
 @onready var hex_info_label: Label = $UI/ActionPanel/VBox/HexInfoLabel
 @onready var annex_button: Button = $UI/ActionPanel/VBox/AnnexButton
 @onready var takeover_button: Button = $UI/ActionPanel/VBox/TakeoverButton
@@ -124,6 +129,8 @@ func _setup_players() -> void:
 
 		ludzik.player_id = player.player_id
 		ludzik.color = setup["color"]
+		if setup.has("sprite") and ResourceLoader.exists(setup["sprite"]):
+			ludzik.sprite_texture = load(setup["sprite"])
 		player_ludziks[player.player_id] = [ludzik]
 
 		var start_hex_id: String = setup["start_hex"]
@@ -215,7 +222,7 @@ func _on_player_turn_started(player_id: int) -> void:
 
 	hex_map_view.queue_redraw()
 	_update_mp_label()
-	_update_prestige_label()
+	_update_stats_labels()
 	_refresh_action_panel()
 
 
@@ -224,7 +231,7 @@ func _on_round_ended(round_number: int) -> void:
 		for l in player_ludziks[pid]:
 			l.reset_movement_points()
 	_update_mp_label()
-	_update_prestige_label()
+	_update_stats_labels()
 	info_label.text = "Runda zakończona. Rozpoczyna się runda %d." % round_number
 
 
@@ -398,7 +405,7 @@ func _on_takeover_pressed() -> void:
 		_reveal_around(hex_id, active_player.player_id)
 		info_label.text = "Przejęto %s (koszt: -%d prestiżu)." % [hex_id, result["cost"]]
 		hex_map_view.queue_redraw()
-		_update_prestige_label()
+		_update_stats_labels()
 	else:
 		var reason_text = {
 			"no_owner": "pole nie ma właściciela - użyj Aneksacji.",
@@ -416,7 +423,7 @@ func _on_repair_pressed() -> void:
 		info_label.text = "Naprawiono budynek na %s. Zacznie generować zasoby od kolejnej rundy." % hex_id
 		if result.get("prestige_penalty", 0) > 0:
 			info_label.text += " Strefa chroniona: kara prestiżowa -%d." % result["prestige_penalty"]
-			_update_prestige_label()
+			_update_stats_labels()
 	else:
 		info_label.text = "Nie udało się naprawić budynku na %s (%s)." % [hex_id, result["reason"]]
 	_refresh_action_panel()
@@ -438,7 +445,7 @@ func _on_harvest_pressed() -> void:
 		if result["prestige_penalty"] > 0:
 			msg += " Kara prestiżowa: -%d (przekroczono próg 60%%)." % result["prestige_penalty"]
 		info_label.text = msg
-		_update_prestige_label()
+		_update_stats_labels()
 		hex_map_view.queue_redraw()
 	else:
 		info_label.text = "Nie udało się wydobyć drewna z %s (%s)." % [hex_id, result["reason"]]
@@ -452,7 +459,7 @@ func _on_city_card_pressed() -> void:
 
 
 func _on_city_building_unlocked() -> void:
-	_update_prestige_label()
+	_update_stats_labels()
 
 
 ## --- Gracz aktywny i runda (rozdzielone - patrz turn_manager.gd) ---
@@ -521,9 +528,14 @@ func _update_mp_label() -> void:
 		mp_label.text = "Punkty ruchu: %d / %d" % [ludzik.movement_points_current, ludzik.movement_points_max]
 
 
-func _update_prestige_label() -> void:
-	prestige_label.text = "Prestiż: %d | Drewno: %.0f | Runda: %d" % [
-		active_player.prestige,
-		active_player.get_resource_amount(HexData.ResourceType.WOOD),
-		TurnManager.round_number,
-	]
+## Prestiż + runda w jednej etykiecie, WSZYSTKIE zasoby gracza w drugiej
+## (update - wcześniej pokazywało tylko drewno, reszta zdobytych surowców
+## była niewidoczna w UI mimo że gracz faktycznie je posiadał).
+func _update_stats_labels() -> void:
+	prestige_label.text = "Prestiż: %d | Runda: %d" % [active_player.prestige, TurnManager.round_number]
+
+	var parts: Array[String] = []
+	for res_type in HexData.RESOURCE_DISPLAY_NAMES:
+		var amount = active_player.get_resource_amount(res_type)
+		parts.append("%s: %.0f" % [HexData.RESOURCE_DISPLAY_NAMES[res_type], amount])
+	resources_label.text = "Surowce: " + " | ".join(parts)

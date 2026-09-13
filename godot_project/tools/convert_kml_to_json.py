@@ -14,6 +14,17 @@ To bezpośrednio odzwierciedla siatkę, którą autor już ręcznie ustalił,
 rozmieszczając pinezki w Google Earth (kolejne litery -> wschód,
 kolejne numery -> południe).
 
+Budynki (sekcja 2.3, 3 GDD): cel gry to m.in. "znajdowanie budynków na
+mapie, żeby je naprawić i dostawać materiały" - więc oprócz terenu/zasobu
+każdy heks jest też sprawdzany pod kątem etykiety wskazującej na realny
+obiekt gospodarczy (gazoport, huta, fabryka, kopalnia, elektrownia,
+rafineria, stocznia, złoża...). Building.produces_resource dziedziczy
+klasyfikację `resource` tego samego heksa - jeśli etykieta nie pasuje do
+żadnego znanego surowca (np. "fabryka baterii"), budynek i tak trafia do
+JSON (można go odkryć/naprawić), ale na razie nic nie produkuje - dopóki
+GDD nie rozstrzygnie otwartego pytania o przetwarzanie surowiec->produkt
+(sekcja 6/11 GDD).
+
 Użycie:
     python3 convert_kml_to_json.py wejscie.kml wyjscie.json
 """
@@ -46,7 +57,16 @@ RESOURCE_KEYWORDS = [
     ("food", ["obszar rolniczy", "rolnicz"]),
 ]
 
-ID_PATTERN = re.compile(r"^\s*([A-Za-z]+)\s*(\d+)")
+# Etykiety realnych obiektów gospodarczych (sekcja 2.3 GDD: "Zasoby
+# strategiczne" + "Przemysł/przetwórstwo") - odróżnione od terenu/zasobu,
+# bo np. "LG chem - fabryka baterii" albo "Elektrownia Opole" nie mają w
+# nazwie żadnego surowca z RESOURCE_KEYWORDS, a mimo to są budynkami do
+# znalezienia/naprawienia. Celowo NIE obejmuje zamków/kościołów/kopców -
+# to atrakcje/UNESCO (osobne źródło prestiżu wg GDD), nie budynki gospodarcze.
+BUILDING_KEYWORDS = [
+    "gazoport", "huta", "hut ", "fabryk", "zakład", "zaklad", "elektrowni",
+    "elektrownia", "rafineri", "kopalni", "kopalnia", "stoczni", "złoż", "zloz",
+]
 
 
 def classify_terrain(label: str) -> str:
@@ -67,6 +87,30 @@ def classify_resource(label: str) -> str:
     return "none"
 
 
+def classify_building(label: str, resource: str):
+    """Zwraca opis budynku (albo None, jeśli etykieta nie wskazuje na żaden
+    realny obiekt gospodarczy). `resource` to już wcześniej sklasyfikowany
+    zasób TEGO SAMEGO heksa - budynek go po prostu dziedziczy jako to, co
+    produkuje po naprawieniu (patrz docstring modułu)."""
+    lower = label.lower()
+    has_building_keyword = any(kw in lower for kw in BUILDING_KEYWORDS)
+
+    # Heks z rozpoznanym surowcem ZAWSZE dostaje budynek (miejsce wydobycia/
+    # gospodarstwo), nawet jeśli etykieta nie zawiera żadnego ze słów z
+    # BUILDING_KEYWORDS - to dotyczy też "food" (obszar rolniczy): sekcja 6
+    # GDD mówi wprost, że KAŻDY posiadany heks z zasobem daje stały dochód,
+    # a to wymaga repairowalnego budynku, nie tylko klasycznych fabryk/kopalń.
+    if resource != "none":
+        name = label if label else "Miejsce wydobycia (%s)" % resource
+        return {"name": name, "produces_resource": resource}
+
+    if has_building_keyword:
+        name = label if label else "Nieoznaczony obiekt gospodarczy"
+        return {"name": name, "produces_resource": resource}
+
+    return None
+
+
 def hex_id_to_axial(hex_id: str):
     match = ID_PATTERN.match(hex_id)
     if not match:
@@ -81,6 +125,9 @@ def hex_id_to_axial(hex_id: str):
     q -= 1
     r = int(number) - 1
     return q, r
+
+
+ID_PATTERN = re.compile(r"^\s*([A-Za-z]+)\s*(\d+)")
 
 
 def parse_kml(path: str):
@@ -123,6 +170,7 @@ def parse_kml(path: str):
 
         terrain = classify_terrain(label if label else raw_name)
         resource = classify_resource(label if label else raw_name)
+        building = classify_building(label if label else raw_name, resource)
 
         hex_entry = {
             "id": hex_id,
@@ -134,6 +182,7 @@ def parse_kml(path: str):
             "resource": resource,
             "resource_level": 100.0,
             "label_raw": label,
+            "building": building,
         }
 
         duplicates[hex_id].append(hex_entry)
@@ -168,7 +217,8 @@ def main():
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
 
-    print(f"Zapisano {len(final_hexes)} heksów do {out_path}")
+    building_count = sum(1 for h in final_hexes if h["building"] is not None)
+    print(f"Zapisano {len(final_hexes)} heksów do {out_path} ({building_count} z budynkiem)")
 
     if conflicts:
         print("\n⚠️  KONFLIKTY ID (ten sam identyfikator hexa użyty >1 raz w KML):")

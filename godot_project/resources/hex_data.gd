@@ -44,6 +44,19 @@ const RESOURCE_FROM_STRING = {
 	"uranium": ResourceType.URANIUM,
 }
 
+## Polskie nazwy zasobów do UI (panel surowców gracza, koszty budynków w
+## Karcie Miasta...) - NONE celowo pominięte, nie ma sensu pokazywać go
+## graczowi. Kolejność kluczy = kolejność wyświetlania.
+const RESOURCE_DISPLAY_NAMES = {
+	ResourceType.GAS: "Gaz",
+	ResourceType.COPPER: "Miedź",
+	ResourceType.COAL: "Węgiel",
+	ResourceType.WOOD: "Drewno",
+	ResourceType.FOOD: "Żywność",
+	ResourceType.NICKEL: "Nikiel",
+	ResourceType.URANIUM: "Uran",
+}
+
 ## Koszt ruchu terenowego w punktach ruchu (sekcja 2.4 GDD)
 const MOVEMENT_COST = {
 	TerrainType.UNKNOWN: 1,

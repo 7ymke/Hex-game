@@ -12,8 +12,18 @@ extends Node2D
 ## game_map_controller.gd; ten skrypt odpowiada za wygląd, stan lokalny
 ## (MP, zaznaczenie, aktualny heks) i płynną animację ruchu.
 
+const CIRCLE_RADIUS = 14.0
+const SELECTION_RING_MARGIN = 6.0
+
 @export var player_id: int = -1
 @export var color: Color = Color(0.9, 0.2, 0.2)
+
+## Opcjonalny obrazek pionka - ustaw w edytorze (Inspector -> Sprite Texture)
+## albo z kodu (`ludzik.sprite_texture = load("res://...png")`, patrz też
+## klucz "sprite" w PLAYER_SETUP w game_map_controller.gd). Bez ustawionego
+## obrazka rysowane jest domyślne kółko w kolorze `color` (jak dotąd).
+@export var sprite_texture: Texture2D = null
+
 @export var move_speed_px_per_sec: float = GameBalance.LUDZIK_MOVE_SPEED_PX_PER_SEC
 @export var movement_points_max: int = GameBalance.LUDZIK_MOVEMENT_POINTS_MAX
 
@@ -38,13 +48,34 @@ func _ready() -> void:
 
 
 func _draw() -> void:
-	draw_circle(Vector2.ZERO, 14.0, color)
-	draw_arc(Vector2.ZERO, 14.0, 0.0, TAU, 32, Color.BLACK, 2.0)
+	var visual_radius = CIRCLE_RADIUS
+	if sprite_texture != null:
+		visual_radius = _draw_sprite()
+	else:
+		draw_circle(Vector2.ZERO, CIRCLE_RADIUS, color)
+		draw_arc(Vector2.ZERO, CIRCLE_RADIUS, 0.0, TAU, 32, Color.BLACK, 2.0)
+
 	if selected:
 		draw_arc(
-			Vector2.ZERO, 20.0, 0.0, TAU, 32,
+			Vector2.ZERO, visual_radius + SELECTION_RING_MARGIN, 0.0, TAU, 32,
 			GameBalance.LUDZIK_SELECTED_HIGHLIGHT_COLOR, GameBalance.LUDZIK_SELECTED_HIGHLIGHT_WIDTH
 		)
+
+
+## Rysuje `sprite_texture` wyśrodkowany na ludziku, przeskalowany do
+## GameBalance.LUDZIK_SPRITE_DIAMETER (niezależnie od oryginalnego rozmiaru
+## pliku obrazka). Zwraca efektywny promień - do dopasowania pierścienia
+## zaznaczenia, żeby ładnie otaczał obrazek, nie tylko domyślne kółko.
+func _draw_sprite() -> float:
+	var tex_size = sprite_texture.get_size()
+	if tex_size.x <= 0.0 or tex_size.y <= 0.0:
+		return CIRCLE_RADIUS
+
+	var diameter = GameBalance.LUDZIK_SPRITE_DIAMETER
+	var scale_factor = diameter / max(tex_size.x, tex_size.y)
+	var draw_size = tex_size * scale_factor
+	draw_texture_rect(sprite_texture, Rect2(-draw_size / 2.0, draw_size), false)
+	return draw_size.length() / 2.0
 
 
 ## Zaznaczenie: lekkie powiększenie + pierścień podświetlenia, oba tweakowalne

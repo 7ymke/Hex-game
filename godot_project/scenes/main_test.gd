@@ -41,6 +41,10 @@ func _ready() -> void:
 		print("Zasoby drewna gracza: ", player.get_resource_amount(HexData.ResourceType.WOOD))
 
 		var hex_after: HexData = MapData.get_hex(forest_hex_id)
+		print(
+			"Poziom zasobu %s po dwóch wydobyciach: %.1f%% (powinno być WYRAŹNIE poniżej 100%% - wydobycie musi wyczerpywać pole, nie tylko naliczać karę)"
+			% [forest_hex_id, hex_after.resource_level]
+		)
 		print("Pole %s generuje prestiż? %s (powinno być false po przekroczeniu)" % [forest_hex_id, hex_after.generates_prestige])
 
 		# Przeliczenie rundy - sprawdzenie regeneracji

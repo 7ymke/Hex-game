@@ -91,5 +91,5 @@ static func _format_costs(costs: Dictionary) -> String:
 		return "brak"
 	var parts: Array[String] = []
 	for res_type in costs:
-		parts.append("%s: %.0f" % [HexData.ResourceType.keys()[res_type], costs[res_type]])
+		parts.append("%s: %.0f" % [HexData.RESOURCE_DISPLAY_NAMES.get(res_type, "?"), costs[res_type]])
 	return ", ".join(parts)

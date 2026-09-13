@@ -9,7 +9,11 @@
       "terrain": "agricultural",
       "resource": "gas",
       "resource_level": 100.0,
-      "label_raw": "Gazoport w Świnoujściu"
+      "label_raw": "Gazoport w Świnoujściu",
+      "building": {
+        "name": "Gazoport w Świnoujściu",
+        "produces_resource": "gas"
+      }
     },
     {
       "id": "A6",
@@ -20,7 +24,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "- obszar rolniczy"
+      "label_raw": "- obszar rolniczy",
+      "building": {
+        "name": "- obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "A7",
@@ -31,7 +39,8 @@
       "terrain": "city",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "MIASTO BAZA - SZCZECIN"
+      "label_raw": "MIASTO BAZA - SZCZECIN",
+      "building": null
     },
     {
       "id": "A8",
@@ -42,7 +51,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Park Krajobrazowy Dolnej Odry"
+      "label_raw": "Park Krajobrazowy Dolnej Odry",
+      "building": null
     },
     {
       "id": "A9",
@@ -53,7 +63,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "A11",
@@ -64,7 +78,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "A14",
@@ -75,7 +93,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Park Mużakowski (UNESCO)"
+      "label_raw": "Park Mużakowski (UNESCO)",
+      "building": null
     },
     {
       "id": "A13",
@@ -86,7 +105,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "B5",
@@ -97,7 +120,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Woliński Park Narodowy"
+      "label_raw": "Woliński Park Narodowy",
+      "building": null
     },
     {
       "id": "B6",
@@ -108,7 +132,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": ""
+      "label_raw": "",
+      "building": null
     },
     {
       "id": "B7",
@@ -119,7 +144,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "ROL"
+      "label_raw": "ROL",
+      "building": null
     },
     {
       "id": "B8",
@@ -130,7 +156,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": ""
+      "label_raw": "",
+      "building": null
     },
     {
       "id": "B9",
@@ -141,7 +168,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": ""
+      "label_raw": "",
+      "building": null
     },
     {
       "id": "B10",
@@ -152,7 +180,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": ""
+      "label_raw": "",
+      "building": null
     },
     {
       "id": "B11",
@@ -163,7 +192,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": ""
+      "label_raw": "",
+      "building": null
     },
     {
       "id": "B12",
@@ -174,7 +204,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": ""
+      "label_raw": "",
+      "building": null
     },
     {
       "id": "B13",
@@ -185,7 +216,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": ""
+      "label_raw": "",
+      "building": null
     },
     {
       "id": "B14",
@@ -196,7 +228,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": ""
+      "label_raw": "",
+      "building": null
     },
     {
       "id": "B15",
@@ -207,7 +240,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": ""
+      "label_raw": "",
+      "building": null
     },
     {
       "id": "B16",
@@ -218,7 +252,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": ""
+      "label_raw": "",
+      "building": null
     },
     {
       "id": "B17",
@@ -229,7 +264,11 @@
       "terrain": "agricultural",
       "resource": "coal",
       "resource_level": 100.0,
-      "label_raw": "złoża węgla"
+      "label_raw": "złoża węgla",
+      "building": {
+        "name": "złoża węgla",
+        "produces_resource": "coal"
+      }
     },
     {
       "id": "E17",
@@ -240,7 +279,11 @@
       "terrain": "agricultural",
       "resource": "copper",
       "resource_level": 100.0,
-      "label_raw": "Złoża miedzi"
+      "label_raw": "Złoża miedzi",
+      "building": {
+        "name": "Złoża miedzi",
+        "produces_resource": "copper"
+      }
     },
     {
       "id": "C5",
@@ -251,7 +294,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "A10",
@@ -262,7 +309,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Park Narodowy Ujście Warty"
+      "label_raw": "Park Narodowy Ujście Warty",
+      "building": null
     },
     {
       "id": "F20",
@@ -273,7 +321,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "PN GÓR STOŁOWYCH"
+      "label_raw": "PN GÓR STOŁOWYCH",
+      "building": null
     },
     {
       "id": "E19",
@@ -284,7 +333,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Błędne Skały (atrakcja turystyczna)"
+      "label_raw": "Błędne Skały (atrakcja turystyczna)",
+      "building": null
     },
     {
       "id": "G21",
@@ -295,7 +345,11 @@
       "terrain": "agricultural",
       "resource": "uranium",
       "resource_level": 100.0,
-      "label_raw": "Kopalnia uranu w Kletnie (nieczynna)"
+      "label_raw": "Kopalnia uranu w Kletnie (nieczynna)",
+      "building": {
+        "name": "Kopalnia uranu w Kletnie (nieczynna)",
+        "produces_resource": "uranium"
+      }
     },
     {
       "id": "G20",
@@ -306,7 +360,11 @@
       "terrain": "agricultural",
       "resource": "nickel",
       "resource_level": 100.0,
-      "label_raw": "Kopalnia niklu w Szklarach (nieczynna)"
+      "label_raw": "Kopalnia niklu w Szklarach (nieczynna)",
+      "building": {
+        "name": "Kopalnia niklu w Szklarach (nieczynna)",
+        "produces_resource": "nickel"
+      }
     },
     {
       "id": "H20",
@@ -317,7 +375,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "Obszar rolniczy"
+      "label_raw": "Obszar rolniczy",
+      "building": {
+        "name": "Obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "D17",
@@ -328,7 +390,11 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Zakłady Ceramiczne w Bolesławcu"
+      "label_raw": "Zakłady Ceramiczne w Bolesławcu",
+      "building": {
+        "name": "Zakłady Ceramiczne w Bolesławcu",
+        "produces_resource": "none"
+      }
     },
     {
       "id": "F18",
@@ -339,7 +405,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "UNESCO - Kościół Pokoju w Świdnicy"
+      "label_raw": "UNESCO - Kościół Pokoju w Świdnicy",
+      "building": null
     },
     {
       "id": "D20",
@@ -350,7 +417,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Karkonoski Park Narodowy"
+      "label_raw": "Karkonoski Park Narodowy",
+      "building": null
     },
     {
       "id": "C18",
@@ -361,7 +429,8 @@
       "terrain": "forest",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Lasy"
+      "label_raw": "Lasy",
+      "building": null
     },
     {
       "id": "C15",
@@ -372,7 +441,8 @@
       "terrain": "forest",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "LAS"
+      "label_raw": "LAS",
+      "building": null
     },
     {
       "id": "C16",
@@ -383,7 +453,8 @@
       "terrain": "forest",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "LAS"
+      "label_raw": "LAS",
+      "building": null
     },
     {
       "id": "C17",
@@ -394,7 +465,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "Obszar rolniczy"
+      "label_raw": "Obszar rolniczy",
+      "building": {
+        "name": "Obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "D16",
@@ -405,7 +480,8 @@
       "terrain": "forest",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "LAS"
+      "label_raw": "LAS",
+      "building": null
     },
     {
       "id": "D18",
@@ -416,7 +492,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Jelenia Góra (Kotlina JG)"
+      "label_raw": "Jelenia Góra (Kotlina JG)",
+      "building": null
     },
     {
       "id": "D15",
@@ -427,7 +504,11 @@
       "terrain": "agricultural",
       "resource": "copper",
       "resource_level": 100.0,
-      "label_raw": "Huta miedzi Głogów KGHM"
+      "label_raw": "Huta miedzi Głogów KGHM",
+      "building": {
+        "name": "Huta miedzi Głogów KGHM",
+        "produces_resource": "copper"
+      }
     },
     {
       "id": "E18",
@@ -438,7 +519,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "UNESCO Kościół Pokoju w Jaworze"
+      "label_raw": "UNESCO Kościół Pokoju w Jaworze",
+      "building": null
     },
     {
       "id": "E20",
@@ -449,7 +531,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Wałbrzych"
+      "label_raw": "Wałbrzych",
+      "building": null
     },
     {
       "id": "F19",
@@ -460,7 +543,11 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Złoża węla kamiennego Nowa Ruda (nieczynna kopalnia)"
+      "label_raw": "Złoża węla kamiennego Nowa Ruda (nieczynna kopalnia)",
+      "building": {
+        "name": "Złoża węla kamiennego Nowa Ruda (nieczynna kopalnia)",
+        "produces_resource": "none"
+      }
     },
     {
       "id": "F21",
@@ -471,7 +558,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "F17",
@@ -482,7 +573,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "F16",
@@ -493,7 +588,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "Obszar rolniczy"
+      "label_raw": "Obszar rolniczy",
+      "building": {
+        "name": "Obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "F15",
@@ -504,7 +603,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "Obszar rolniczy"
+      "label_raw": "Obszar rolniczy",
+      "building": {
+        "name": "Obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "F14",
@@ -515,7 +618,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "G19",
@@ -526,7 +633,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszaer rolniczy"
+      "label_raw": "obszaer rolniczy",
+      "building": {
+        "name": "obszaer rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "G18",
@@ -537,7 +648,11 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "LG chem - fabryka baterii"
+      "label_raw": "LG chem - fabryka baterii",
+      "building": {
+        "name": "LG chem - fabryka baterii",
+        "produces_resource": "none"
+      }
     },
     {
       "id": "G17",
@@ -548,7 +663,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "Obszar rolniczy"
+      "label_raw": "Obszar rolniczy",
+      "building": {
+        "name": "Obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "G16",
@@ -559,7 +678,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H16",
@@ -570,7 +693,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H17",
@@ -581,7 +708,8 @@
       "terrain": "forest",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "las"
+      "label_raw": "las",
+      "building": null
     },
     {
       "id": "H18",
@@ -592,7 +720,8 @@
       "terrain": "city",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "MIASTO BAZA - WROCŁAW"
+      "label_raw": "MIASTO BAZA - WROCŁAW",
+      "building": null
     },
     {
       "id": "H19",
@@ -603,7 +732,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H21",
@@ -614,7 +747,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I17",
@@ -625,7 +762,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I18",
@@ -636,7 +777,8 @@
       "terrain": "forest",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "LAS"
+      "label_raw": "LAS",
+      "building": null
     },
     {
       "id": "I19",
@@ -647,7 +789,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "obszar roniczy"
+      "label_raw": "obszar roniczy",
+      "building": null
     },
     {
       "id": "I20",
@@ -658,7 +801,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I21",
@@ -669,7 +816,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I22",
@@ -680,7 +831,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J17",
@@ -691,7 +846,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J18",
@@ -702,7 +861,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R12",
@@ -713,7 +876,8 @@
       "terrain": "city",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "MIASTO BAZA - WARSZAWA"
+      "label_raw": "MIASTO BAZA - WARSZAWA",
+      "building": null
     },
     {
       "id": "O22",
@@ -724,7 +888,8 @@
       "terrain": "city",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "MIASTO BAZA - KRAKÓW"
+      "label_raw": "MIASTO BAZA - KRAKÓW",
+      "building": null
     },
     {
       "id": "L3",
@@ -735,7 +900,8 @@
       "terrain": "city",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "MIASTO BAZA - GDAŃSK"
+      "label_raw": "MIASTO BAZA - GDAŃSK",
+      "building": null
     },
     {
       "id": "G12",
@@ -746,7 +912,8 @@
       "terrain": "city",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "MIASTO BAZA - POZNAŃ"
+      "label_raw": "MIASTO BAZA - POZNAŃ",
+      "building": null
     },
     {
       "id": "N24",
@@ -757,7 +924,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Babiogórski Park Narodowy"
+      "label_raw": "Babiogórski Park Narodowy",
+      "building": null
     },
     {
       "id": "Y10",
@@ -768,7 +936,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Białowieski Park Narodowy"
+      "label_raw": "Białowieski Park Narodowy",
+      "building": null
     },
     {
       "id": "V6",
@@ -779,7 +948,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Biebrzański Park Narodowy"
+      "label_raw": "Biebrzański Park Narodowy",
+      "building": null
     },
     {
       "id": "V27",
@@ -790,7 +960,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Bieszczadzki Park Narodowy"
+      "label_raw": "Bieszczadzki Park Narodowy",
+      "building": null
     },
     {
       "id": "J6",
@@ -801,7 +972,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Park Narodowy Bory Tucholskie"
+      "label_raw": "Park Narodowy Bory Tucholskie",
+      "building": null
     },
     {
       "id": "E8",
@@ -812,7 +984,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Drawieński Park Narodowy"
+      "label_raw": "Drawieński Park Narodowy",
+      "building": null
     },
     {
       "id": "P25",
@@ -823,7 +996,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Gorczański Park Narodowy"
+      "label_raw": "Gorczański Park Narodowy",
+      "building": null
     },
     {
       "id": "Q12",
@@ -834,7 +1008,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Kampinoski Park Narodowy"
+      "label_raw": "Kampinoski Park Narodowy",
+      "building": null
     },
     {
       "id": "S25",
@@ -845,7 +1020,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Magurski Park Narodowy"
+      "label_raw": "Magurski Park Narodowy",
+      "building": null
     },
     {
       "id": "V9",
@@ -856,7 +1032,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Narwiański Park Narodowy"
+      "label_raw": "Narwiański Park Narodowy",
+      "building": null
     },
     {
       "id": "N21",
@@ -867,7 +1044,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Ojcowski Park Narodowy"
+      "label_raw": "Ojcowski Park Narodowy",
+      "building": null
     },
     {
       "id": "O24",
@@ -878,7 +1056,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Pieniński Park Narodowy"
+      "label_raw": "Pieniński Park Narodowy",
+      "building": null
     },
     {
       "id": "W16",
@@ -889,7 +1068,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Poleski Park Narodowy"
+      "label_raw": "Poleski Park Narodowy",
+      "building": null
     },
     {
       "id": "W20",
@@ -900,7 +1080,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Roztoczański Park Narodowy"
+      "label_raw": "Roztoczański Park Narodowy",
+      "building": null
     },
     {
       "id": "I1",
@@ -911,7 +1092,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Słowiński Park Narodowy"
+      "label_raw": "Słowiński Park Narodowy",
+      "building": null
     },
     {
       "id": "R18",
@@ -922,7 +1104,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Świętokrzyski Park Narodowy"
+      "label_raw": "Świętokrzyski Park Narodowy",
+      "building": null
     },
     {
       "id": "O26",
@@ -933,7 +1116,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Tatrzański Park Narodowy"
+      "label_raw": "Tatrzański Park Narodowy",
+      "building": null
     },
     {
       "id": "F11",
@@ -944,7 +1128,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Wielkopolski Park Narodowy"
+      "label_raw": "Wielkopolski Park Narodowy",
+      "building": null
     },
     {
       "id": "W4",
@@ -955,7 +1140,8 @@
       "terrain": "protected_area",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Wigierski Park Narodowy"
+      "label_raw": "Wigierski Park Narodowy",
+      "building": null
     },
     {
       "id": "M17",
@@ -966,7 +1152,11 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Kopalnia i elektrownia Bełchatów"
+      "label_raw": "Kopalnia i elektrownia Bełchatów",
+      "building": {
+        "name": "Kopalnia i elektrownia Bełchatów",
+        "produces_resource": "none"
+      }
     },
     {
       "id": "O23",
@@ -977,7 +1167,11 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Kopalnia soli Wieliczka (UNESCO)"
+      "label_raw": "Kopalnia soli Wieliczka (UNESCO)",
+      "building": {
+        "name": "Kopalnia soli Wieliczka (UNESCO)",
+        "produces_resource": "none"
+      }
     },
     {
       "id": "N11",
@@ -988,7 +1182,11 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Rafineria Orlen Płock"
+      "label_raw": "Rafineria Orlen Płock",
+      "building": {
+        "name": "Rafineria Orlen Płock",
+        "produces_resource": "none"
+      }
     },
     {
       "id": "M21",
@@ -999,7 +1197,11 @@
       "terrain": "agricultural",
       "resource": "coal",
       "resource_level": 100.0,
-      "label_raw": "Górnośląskie kopalnie węgla (Katowice)"
+      "label_raw": "Górnośląskie kopalnie węgla (Katowice)",
+      "building": {
+        "name": "Górnośląskie kopalnie węgla (Katowice)",
+        "produces_resource": "coal"
+      }
     },
     {
       "id": "T16",
@@ -1010,7 +1212,11 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Zakłady Azotowe Puławy"
+      "label_raw": "Zakłady Azotowe Puławy",
+      "building": {
+        "name": "Zakłady Azotowe Puławy",
+        "produces_resource": "none"
+      }
     },
     {
       "id": "A4",
@@ -1021,7 +1227,11 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Zakłady chemiczne Police"
+      "label_raw": "Zakłady chemiczne Police",
+      "building": {
+        "name": "Zakłady chemiczne Police",
+        "produces_resource": "none"
+      }
     },
     {
       "id": "J19",
@@ -1032,7 +1242,11 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "Elektrownia Opole"
+      "label_raw": "Elektrownia Opole",
+      "building": {
+        "name": "Elektrownia Opole",
+        "produces_resource": "none"
+      }
     },
     {
       "id": "M4",
@@ -1043,7 +1257,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "UNESCO Zamek w Malborku"
+      "label_raw": "UNESCO Zamek w Malborku",
+      "building": null
     },
     {
       "id": "N23",
@@ -1054,7 +1269,8 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "UNESCO Kalwaria Zebrzydowska"
+      "label_raw": "UNESCO Kalwaria Zebrzydowska",
+      "building": null
     },
     {
       "id": "L21",
@@ -1065,7 +1281,11 @@
       "terrain": "agricultural",
       "resource": "none",
       "resource_level": 100.0,
-      "label_raw": "UNESCO Kopalnia w Tarnowskich Górach"
+      "label_raw": "UNESCO Kopalnia w Tarnowskich Górach",
+      "building": {
+        "name": "UNESCO Kopalnia w Tarnowskich Górach",
+        "produces_resource": "none"
+      }
     },
     {
       "id": "C4",
@@ -1076,7 +1296,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "C6",
@@ -1087,7 +1311,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "C7",
@@ -1098,7 +1326,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "C8",
@@ -1109,7 +1341,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "C9",
@@ -1120,7 +1356,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "C10",
@@ -1131,7 +1371,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "C11",
@@ -1142,7 +1386,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "C12",
@@ -1153,7 +1401,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "C13",
@@ -1164,7 +1416,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "C14",
@@ -1175,7 +1431,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "D4",
@@ -1186,7 +1446,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "D5",
@@ -1197,7 +1461,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "D6",
@@ -1208,7 +1476,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "D7",
@@ -1219,7 +1491,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "D8",
@@ -1230,7 +1506,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "D9",
@@ -1241,7 +1521,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "D10",
@@ -1252,7 +1536,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "D11",
@@ -1263,7 +1551,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "D12",
@@ -1274,7 +1566,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "D13",
@@ -1285,7 +1581,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "D14",
@@ -1296,7 +1596,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "D19",
@@ -1307,7 +1611,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "E3",
@@ -1318,7 +1626,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "E4",
@@ -1329,7 +1641,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "E5",
@@ -1340,7 +1656,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "E6",
@@ -1351,7 +1671,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "E7",
@@ -1362,7 +1686,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "E9",
@@ -1373,7 +1701,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "E10",
@@ -1384,7 +1716,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "E11",
@@ -1395,7 +1731,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "E12",
@@ -1406,7 +1746,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "E13",
@@ -1417,7 +1761,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "E14",
@@ -1428,7 +1776,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "E15",
@@ -1439,7 +1791,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "E16",
@@ -1450,7 +1806,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "F3",
@@ -1461,7 +1821,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "F4",
@@ -1472,7 +1836,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "F5",
@@ -1483,7 +1851,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "F6",
@@ -1494,7 +1866,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "F7",
@@ -1505,7 +1881,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "F8",
@@ -1516,7 +1896,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "F9",
@@ -1527,7 +1911,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "F10",
@@ -1538,7 +1926,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "F12",
@@ -1549,7 +1941,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "F13",
@@ -1560,7 +1956,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "G2",
@@ -1571,7 +1971,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "G3",
@@ -1582,7 +1986,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "G4",
@@ -1593,7 +2001,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "G5",
@@ -1604,7 +2016,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "G6",
@@ -1615,7 +2031,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "G7",
@@ -1626,7 +2046,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "G8",
@@ -1637,7 +2061,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "G9",
@@ -1648,7 +2076,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "G10",
@@ -1659,7 +2091,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "G11",
@@ -1670,7 +2106,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "G13",
@@ -1681,7 +2121,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "G14",
@@ -1692,7 +2136,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "G15",
@@ -1703,7 +2151,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H2",
@@ -1714,7 +2166,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H3",
@@ -1725,7 +2181,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H4",
@@ -1736,7 +2196,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H5",
@@ -1747,7 +2211,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H6",
@@ -1758,7 +2226,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H7",
@@ -1769,7 +2241,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H8",
@@ -1780,7 +2256,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H9",
@@ -1791,7 +2271,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H10",
@@ -1802,7 +2286,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H11",
@@ -1813,7 +2301,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H12",
@@ -1824,7 +2316,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H13",
@@ -1835,7 +2331,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H14",
@@ -1846,7 +2346,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "H15",
@@ -1857,7 +2361,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I2",
@@ -1868,7 +2376,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I3",
@@ -1879,7 +2391,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I4",
@@ -1890,7 +2406,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I5",
@@ -1901,7 +2421,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I6",
@@ -1912,7 +2436,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I7",
@@ -1923,7 +2451,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I8",
@@ -1934,7 +2466,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I9",
@@ -1945,7 +2481,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I10",
@@ -1956,7 +2496,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I11",
@@ -1967,7 +2511,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I12",
@@ -1978,7 +2526,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I13",
@@ -1989,7 +2541,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I14",
@@ -2000,7 +2556,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I15",
@@ -2011,7 +2571,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "I16",
@@ -2022,7 +2586,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J1",
@@ -2033,7 +2601,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J2",
@@ -2044,7 +2616,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J3",
@@ -2055,7 +2631,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J4",
@@ -2066,7 +2646,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J5",
@@ -2077,7 +2661,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J7",
@@ -2088,7 +2676,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J8",
@@ -2099,7 +2691,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J9",
@@ -2110,7 +2706,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J10",
@@ -2121,7 +2721,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J11",
@@ -2132,7 +2736,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J12",
@@ -2143,7 +2751,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J13",
@@ -2154,7 +2766,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J14",
@@ -2165,7 +2781,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J15",
@@ -2176,7 +2796,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J16",
@@ -2187,7 +2811,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J20",
@@ -2198,7 +2826,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J21",
@@ -2209,7 +2841,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J22",
@@ -2220,7 +2856,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "J23",
@@ -2231,7 +2871,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K1",
@@ -2242,7 +2886,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K2",
@@ -2253,7 +2901,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K3",
@@ -2264,7 +2916,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K4",
@@ -2275,7 +2931,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K5",
@@ -2286,7 +2946,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K6",
@@ -2297,7 +2961,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K7",
@@ -2308,7 +2976,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K8",
@@ -2319,7 +2991,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K9",
@@ -2330,7 +3006,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K10",
@@ -2341,7 +3021,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K11",
@@ -2352,7 +3036,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K12",
@@ -2363,7 +3051,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K13",
@@ -2374,7 +3066,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K14",
@@ -2385,7 +3081,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K15",
@@ -2396,7 +3096,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K16",
@@ -2407,7 +3111,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K17",
@@ -2418,7 +3126,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K18",
@@ -2429,7 +3141,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K19",
@@ -2440,7 +3156,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K20",
@@ -2451,7 +3171,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K21",
@@ -2462,7 +3186,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K22",
@@ -2473,7 +3201,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "K23",
@@ -2484,7 +3216,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L2",
@@ -2495,7 +3231,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L4",
@@ -2506,7 +3246,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L5",
@@ -2517,7 +3261,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L6",
@@ -2528,7 +3276,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L7",
@@ -2539,7 +3291,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L8",
@@ -2550,7 +3306,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L9",
@@ -2561,7 +3321,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L10",
@@ -2572,7 +3336,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L11",
@@ -2583,7 +3351,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L12",
@@ -2594,7 +3366,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L13",
@@ -2605,7 +3381,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L14",
@@ -2616,7 +3396,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L15",
@@ -2627,7 +3411,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L16",
@@ -2638,7 +3426,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L17",
@@ -2649,7 +3441,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L18",
@@ -2660,7 +3456,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L19",
@@ -2671,7 +3471,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L20",
@@ -2682,7 +3486,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L22",
@@ -2693,7 +3501,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L23",
@@ -2704,7 +3516,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "L24",
@@ -2715,7 +3531,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M3",
@@ -2726,7 +3546,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M5",
@@ -2737,7 +3561,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M6",
@@ -2748,7 +3576,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M7",
@@ -2759,7 +3591,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M8",
@@ -2770,7 +3606,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M9",
@@ -2781,7 +3621,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M10",
@@ -2792,7 +3636,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M11",
@@ -2803,7 +3651,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M12",
@@ -2814,7 +3666,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M13",
@@ -2825,7 +3681,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M14",
@@ -2836,7 +3696,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M15",
@@ -2847,7 +3711,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M16",
@@ -2858,7 +3726,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M18",
@@ -2869,7 +3741,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M19",
@@ -2880,7 +3756,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M20",
@@ -2891,7 +3771,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M22",
@@ -2902,7 +3786,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M23",
@@ -2913,7 +3801,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M24",
@@ -2924,7 +3816,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "M25",
@@ -2935,7 +3831,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N3",
@@ -2946,7 +3846,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N4",
@@ -2957,7 +3861,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N5",
@@ -2968,7 +3876,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N6",
@@ -2979,7 +3891,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N7",
@@ -2990,7 +3906,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N8",
@@ -3001,7 +3921,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N9",
@@ -3012,7 +3936,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N10",
@@ -3023,7 +3951,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N12",
@@ -3034,7 +3966,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N13",
@@ -3045,7 +3981,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N14",
@@ -3056,7 +3996,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N15",
@@ -3067,7 +4011,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N16",
@@ -3078,7 +4026,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N17",
@@ -3089,7 +4041,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N18",
@@ -3100,7 +4056,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N19",
@@ -3111,7 +4071,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N20",
@@ -3122,7 +4086,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N22",
@@ -3133,7 +4101,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "N25",
@@ -3144,7 +4116,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O3",
@@ -3155,7 +4131,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O4",
@@ -3166,7 +4146,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O5",
@@ -3177,7 +4161,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O6",
@@ -3188,7 +4176,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O7",
@@ -3199,7 +4191,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O8",
@@ -3210,7 +4206,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O9",
@@ -3221,7 +4221,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O10",
@@ -3232,7 +4236,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O11",
@@ -3243,7 +4251,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O12",
@@ -3254,7 +4266,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O13",
@@ -3265,7 +4281,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O14",
@@ -3276,7 +4296,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O15",
@@ -3287,7 +4311,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O16",
@@ -3298,7 +4326,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O17",
@@ -3309,7 +4341,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O18",
@@ -3320,7 +4356,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O19",
@@ -3331,7 +4371,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O20",
@@ -3342,7 +4386,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O21",
@@ -3353,7 +4401,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "O25",
@@ -3364,7 +4416,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P3",
@@ -3375,7 +4431,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P4",
@@ -3386,7 +4446,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P5",
@@ -3397,7 +4461,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P6",
@@ -3408,7 +4476,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P7",
@@ -3419,7 +4491,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P8",
@@ -3430,7 +4506,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P9",
@@ -3441,7 +4521,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P10",
@@ -3452,7 +4536,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P11",
@@ -3463,7 +4551,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P12",
@@ -3474,7 +4566,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P13",
@@ -3485,7 +4581,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P14",
@@ -3496,7 +4596,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P15",
@@ -3507,7 +4611,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P16",
@@ -3518,7 +4626,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P17",
@@ -3529,7 +4641,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P18",
@@ -3540,7 +4656,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P19",
@@ -3551,7 +4671,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P20",
@@ -3562,7 +4686,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P21",
@@ -3573,7 +4701,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P22",
@@ -3584,7 +4716,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P23",
@@ -3595,7 +4731,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "P24",
@@ -3606,7 +4746,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q3",
@@ -3617,7 +4761,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q4",
@@ -3628,7 +4776,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q5",
@@ -3639,7 +4791,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q6",
@@ -3650,7 +4806,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q7",
@@ -3661,7 +4821,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q8",
@@ -3672,7 +4836,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q9",
@@ -3683,7 +4851,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q10",
@@ -3694,7 +4866,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q11",
@@ -3705,7 +4881,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q13",
@@ -3716,7 +4896,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q14",
@@ -3727,7 +4911,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q15",
@@ -3738,7 +4926,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q16",
@@ -3749,7 +4941,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q17",
@@ -3760,7 +4956,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q18",
@@ -3771,7 +4971,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q19",
@@ -3782,7 +4986,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q20",
@@ -3793,7 +5001,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q21",
@@ -3804,7 +5016,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q22",
@@ -3815,7 +5031,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q23",
@@ -3826,7 +5046,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q24",
@@ -3837,7 +5061,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "Q25",
@@ -3848,7 +5076,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R3",
@@ -3859,7 +5091,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R4",
@@ -3870,7 +5106,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R5",
@@ -3881,7 +5121,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R6",
@@ -3892,7 +5136,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R7",
@@ -3903,7 +5151,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R8",
@@ -3914,7 +5166,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R9",
@@ -3925,7 +5181,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R10",
@@ -3936,7 +5196,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R11",
@@ -3947,7 +5211,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R13",
@@ -3958,7 +5226,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R14",
@@ -3969,7 +5241,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R15",
@@ -3980,7 +5256,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R16",
@@ -3991,7 +5271,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R17",
@@ -4002,7 +5286,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R19",
@@ -4013,7 +5301,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R20",
@@ -4024,7 +5316,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R21",
@@ -4035,7 +5331,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R22",
@@ -4046,7 +5346,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R23",
@@ -4057,7 +5361,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R24",
@@ -4068,7 +5376,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "R25",
@@ -4079,7 +5391,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S3",
@@ -4090,7 +5406,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S4",
@@ -4101,7 +5421,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S5",
@@ -4112,7 +5436,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S6",
@@ -4123,7 +5451,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S7",
@@ -4134,7 +5466,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S8",
@@ -4145,7 +5481,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S9",
@@ -4156,7 +5496,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S10",
@@ -4167,7 +5511,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S11",
@@ -4178,7 +5526,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S12",
@@ -4189,7 +5541,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S13",
@@ -4200,7 +5556,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S14",
@@ -4211,7 +5571,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S15",
@@ -4222,7 +5586,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S16",
@@ -4233,7 +5601,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S17",
@@ -4244,7 +5616,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S18",
@@ -4255,7 +5631,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S19",
@@ -4266,7 +5646,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S20",
@@ -4277,7 +5661,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S21",
@@ -4288,7 +5676,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S22",
@@ -4299,7 +5691,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S23",
@@ -4310,7 +5706,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S24",
@@ -4321,7 +5721,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "S26",
@@ -4332,7 +5736,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T3",
@@ -4343,7 +5751,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T4",
@@ -4354,7 +5766,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T5",
@@ -4365,7 +5781,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T6",
@@ -4376,7 +5796,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T7",
@@ -4387,7 +5811,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T8",
@@ -4398,7 +5826,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T9",
@@ -4409,7 +5841,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T10",
@@ -4420,7 +5856,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T11",
@@ -4431,7 +5871,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T12",
@@ -4442,7 +5886,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T13",
@@ -4453,7 +5901,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T14",
@@ -4464,7 +5916,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T15",
@@ -4475,7 +5931,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T17",
@@ -4486,7 +5946,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T18",
@@ -4497,7 +5961,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T19",
@@ -4508,7 +5976,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T20",
@@ -4519,7 +5991,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T21",
@@ -4530,7 +6006,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T22",
@@ -4541,7 +6021,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T23",
@@ -4552,7 +6036,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T24",
@@ -4563,7 +6051,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T25",
@@ -4574,7 +6066,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "T26",
@@ -4585,7 +6081,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U3",
@@ -4596,7 +6096,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U4",
@@ -4607,7 +6111,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U5",
@@ -4618,7 +6126,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U6",
@@ -4629,7 +6141,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U7",
@@ -4640,7 +6156,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U8",
@@ -4651,7 +6171,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U9",
@@ -4662,7 +6186,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U10",
@@ -4673,7 +6201,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U11",
@@ -4684,7 +6216,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U12",
@@ -4695,7 +6231,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U13",
@@ -4706,7 +6246,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U14",
@@ -4717,7 +6261,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U15",
@@ -4728,7 +6276,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U16",
@@ -4739,7 +6291,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U17",
@@ -4750,7 +6306,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U18",
@@ -4761,7 +6321,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U19",
@@ -4772,7 +6336,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U20",
@@ -4783,7 +6351,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U21",
@@ -4794,7 +6366,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U22",
@@ -4805,7 +6381,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U23",
@@ -4816,7 +6396,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U24",
@@ -4827,7 +6411,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U25",
@@ -4838,7 +6426,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "U26",
@@ -4849,7 +6441,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V3",
@@ -4860,7 +6456,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V4",
@@ -4871,7 +6471,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V5",
@@ -4882,7 +6486,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V7",
@@ -4893,7 +6501,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V8",
@@ -4904,7 +6516,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V10",
@@ -4915,7 +6531,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V11",
@@ -4926,7 +6546,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V12",
@@ -4937,7 +6561,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V13",
@@ -4948,7 +6576,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V14",
@@ -4959,7 +6591,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V15",
@@ -4970,7 +6606,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V16",
@@ -4981,7 +6621,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V17",
@@ -4992,7 +6636,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V18",
@@ -5003,7 +6651,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V19",
@@ -5014,7 +6666,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V20",
@@ -5025,7 +6681,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V21",
@@ -5036,7 +6696,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V22",
@@ -5047,7 +6711,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V23",
@@ -5058,7 +6726,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V24",
@@ -5069,7 +6741,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V25",
@@ -5080,7 +6756,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "V26",
@@ -5091,7 +6771,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W5",
@@ -5102,7 +6786,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W6",
@@ -5113,7 +6801,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W7",
@@ -5124,7 +6816,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W8",
@@ -5135,7 +6831,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W9",
@@ -5146,7 +6846,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W10",
@@ -5157,7 +6861,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W11",
@@ -5168,7 +6876,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W12",
@@ -5179,7 +6891,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W13",
@@ -5190,7 +6906,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W14",
@@ -5201,7 +6921,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W15",
@@ -5212,7 +6936,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W17",
@@ -5223,7 +6951,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W18",
@@ -5234,7 +6966,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W19",
@@ -5245,7 +6981,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W21",
@@ -5256,7 +6996,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W22",
@@ -5267,7 +7011,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "W23",
@@ -5278,7 +7026,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "X5",
@@ -5289,7 +7041,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "X6",
@@ -5300,7 +7056,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "X7",
@@ -5311,7 +7071,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "X8",
@@ -5322,7 +7086,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "X9",
@@ -5333,7 +7101,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "X10",
@@ -5344,7 +7116,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "X11",
@@ -5355,7 +7131,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "X12",
@@ -5366,7 +7146,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "X13",
@@ -5377,7 +7161,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "X14",
@@ -5388,7 +7176,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "X15",
@@ -5399,7 +7191,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "X16",
@@ -5410,7 +7206,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "X17",
@@ -5421,7 +7221,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "X18",
@@ -5432,7 +7236,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "X19",
@@ -5443,7 +7251,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     },
     {
       "id": "X20",
@@ -5454,7 +7266,11 @@
       "terrain": "agricultural",
       "resource": "food",
       "resource_level": 100.0,
-      "label_raw": "obszar rolniczy"
+      "label_raw": "obszar rolniczy",
+      "building": {
+        "name": "obszar rolniczy",
+        "produces_resource": "food"
+      }
     }
   ]
 }

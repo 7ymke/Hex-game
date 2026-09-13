@@ -74,7 +74,12 @@ func harvest_forest(hex_id: String, player_id: int, harvest_percent: float) -> D
 	harvest_percent = clampf(harvest_percent, 0.0, 100.0)
 
 	# Surowiec: zawsze wydawany wg wyboru gracza, niezależnie od kary.
+	# WAŻNE: wydobyta ilość schodzi z resource_level pola (sekcja 6.1 GDD -
+	# "ile drewna jest obecnie DOSTĘPNE do wydobycia") - bez tego odjęcia las
+	# nigdy by się nie wyczerpywał i dawałby to samo drewno w nieskończoność,
+	# niezależnie od regeneracji w turn_manager.gd.
 	var wood_gained: float = hex.resource_level * (harvest_percent / 100.0)
+	hex.resource_level -= wood_gained
 	player.add_resource(HexData.ResourceType.WOOD, wood_gained)
 
 	# Prestiż: kara i wyłączenie generowania TYLKO przy przekroczeniu progu.
