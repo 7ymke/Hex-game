@@ -13,12 +13,12 @@ func _ready() -> void:
 	player.starting_city = "Wrocław"
 	GameManager.register_player(player)
 
-	# Aneksacja heksa bazowego Wrocławia (H14 wg konwencji z KML)
-	if MapData.get_hex("H14") != null:
-		var result = GameManager.annex_hex("H14", 1)
-		print("Aneksacja H14 (Wrocław): ", result)
+	# Aneksacja heksa bazowego Wrocławia (H18 wg konwencji z KML)
+	if MapData.get_hex("H18") != null:
+		var result = GameManager.annex_hex("H18", 1)
+		print("Aneksacja H18 (Wrocław): ", result)
 	else:
-		print("UWAGA: nie znaleziono heksa H14 - sprawdź dane mapy.")
+		print("UWAGA: nie znaleziono heksa H18 - sprawdź dane mapy.")
 
 	# Znajdź pierwszy dostępny heks leśny i przetestuj oba warianty wydobycia
 	var forest_hex_id = ""
@@ -77,8 +77,8 @@ func _test_phase_6_to_9(player: PlayerData) -> void:
 	player2.starting_city = "Szczecin"
 	GameManager.register_player(player2)
 
-	if MapData.get_hex("A3") != null:
-		print("Aneksacja A3 (Szczecin) dla gracza 2: ", GameManager.annex_hex("A3", 2))
+	if MapData.get_hex("A7") != null:
+		print("Aneksacja A7 (Szczecin) dla gracza 2: ", GameManager.annex_hex("A7", 2))
 
 	TurnManager.setup_player_order([1, 2])
 	print(
@@ -107,46 +107,46 @@ func _test_phase_6_to_9(player: PlayerData) -> void:
 	)
 
 	# --- Faza 9: blokada ruchu przez broniącego ludzika (sekcja 3 GDD) ---
-	# H14 (Wrocław) ma sześciu sąsiadów w obecnych danych, w tym H13 - użyty
+	# H18 (Wrocław) ma sześciu sąsiadów w obecnych danych, w tym H17 - użyty
 	# tu jako "zajęty przez broniącego ludzika" heks.
 	var pathfinder = HexPathfinder.new()
-	pathfinder.build(["H13"])
-	var blocked_target = pathfinder.find_path("H14", "H13")
+	pathfinder.build(["H17"])
+	var blocked_target = pathfinder.find_path("H18", "H17")
 	print(
-		"Trasa H14->H13 gdy H13 jest bronione: %s (oczekiwano pustej listy)" % [blocked_target]
+		"Trasa H18->H17 gdy H17 jest bronione: %s (oczekiwano pustej listy)" % [blocked_target]
 	)
-	var reroutable = pathfinder.find_path("H14", "G14")
-	print("Trasa H14->G14 mimo blokady H13 (inny sąsiad, powinna istnieć): ", reroutable)
+	var reroutable = pathfinder.find_path("H18", "G17")
+	print("Trasa H18->G17 mimo blokady H17 (inny sąsiad, powinna istnieć): ", reroutable)
 
 	# --- Faza 9: przejęcie terytorium ---
-	if MapData.get_hex("H15") != null:
-		GameManager.annex_hex("H15", 1)
+	if MapData.get_hex("H19") != null:
+		GameManager.annex_hex("H19", 1)
 
 		# Wyrównaj prestiż obu graczy (niezależnie od kar naliczonych wcześniej
 		# w teście Fazy 0-1), żeby jednoznacznie pokazać odrzucenie próby przy
 		# prestiżu ataku <= prestiżu obrony (sekcja 5 GDD: musi być ŚCIŚLE większy).
 		player2.modify_prestige(player.prestige - player2.prestige)
-		var equal_prestige_attempt = GameManager.attempt_takeover("H15", 2)
+		var equal_prestige_attempt = GameManager.attempt_takeover("H19", 2)
 		print(
-			"Próba przejęcia H15 przy równym prestiżu (%d vs %d): %s"
+			"Próba przejęcia H19 przy równym prestiżu (%d vs %d): %s"
 			% [player2.prestige, player.prestige, equal_prestige_attempt]
 		)
 
 		player2.modify_prestige(50)  # gracz 2 ma teraz przewagę prestiżową
-		var winning_attempt = GameManager.attempt_takeover("H15", 2)
+		var winning_attempt = GameManager.attempt_takeover("H19", 2)
 		print(
-			"Próba przejęcia H15 z przewagą prestiżową (%d vs %d): %s"
+			"Próba przejęcia H19 z przewagą prestiżową (%d vs %d): %s"
 			% [player2.prestige, player.prestige, winning_attempt]
 		)
-		print("Właściciel H15 po przejęciu: ", MapData.get_hex("H15").owner_id, " (oczekiwano 2)")
+		print("Właściciel H19 po przejęciu: ", MapData.get_hex("H19").owner_id, " (oczekiwano 2)")
 
 	# --- Faza 7 (zaktualizowane): aneksacja strefy chronionej NIE karze już
 	# prestiżem - kara pojawia się dopiero przy budowie/naprawie budynku na
 	# takim terenie (repair_building). ---
-	if MapData.get_hex("B1") != null:
+	if MapData.get_hex("A8") != null:
 		var prestige_before_annex = player2.prestige
-		var protected_annex_result = GameManager.annex_hex("B1", 2)
-		print("Aneksacja B1 (Woliński PN, strefa chroniona) - BEZ kary: ", protected_annex_result)
+		var protected_annex_result = GameManager.annex_hex("A8", 2)
+		print("Aneksacja A8 (Park Krajobrazowy Dolnej Odry, strefa chroniona) - BEZ kary: ", protected_annex_result)
 		print(
 			"Prestiż gracza 2 przed/po aneksacji: %d -> %d (oczekiwano BEZ zmian)"
 			% [prestige_before_annex, player2.prestige]
@@ -158,13 +158,13 @@ func _test_phase_6_to_9(player: PlayerData) -> void:
 		var synthetic_building = Building.new()
 		synthetic_building.building_name = "Testowa infrastruktura (symulacja)"
 		synthetic_building.required_resources = {}
-		var protected_hex: HexData = MapData.get_hex("B1")
+		var protected_hex: HexData = MapData.get_hex("A8")
 		protected_hex.building = synthetic_building
 		protected_hex.building_damaged = true
 
 		var prestige_before_repair = player2.prestige
-		var repair_result = GameManager.repair_building("B1", 2)
-		print("Naprawa/budowa na strefie chronionej B1: ", repair_result)
+		var repair_result = GameManager.repair_building("A8", 2)
+		print("Naprawa/budowa na strefie chronionej A8: ", repair_result)
 		print(
 			"Prestiż gracza 2 przed/po naprawie: %d -> %d (oczekiwana kara)"
 			% [prestige_before_repair, player2.prestige]

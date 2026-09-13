@@ -21,10 +21,12 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
 1. Otwórz folder `godot_project/` w Godot 4.2.2 (Import → wskaż `project.godot`).
 2. Naciśnij **F5** (Run Project) — scena `scenes/main.tscn` jest ustawiona jako
    główna, więc powinna wystartować od razu.
-3. Gra hotseat, **2 graczy**: Gracz 1 startuje we Wrocławiu (`H14`), Gracz 2
-   w Szczecinie (`A3`) — każdy widzi tylko odkryty przez siebie fragment mapy
+3. Gra hotseat, **2 graczy**: Gracz 1 startuje we Wrocławiu (`H18`), Gracz 2
+   w Szczecinie (`A7`) — każdy widzi tylko odkryty przez siebie fragment mapy
    (osobna mgła wojny per gracz). Siatka jest **flat-top** (płaski bok na
-   górze/dole heksa).
+   górze/dole heksa) i pokrywa już CAŁĄ Polskę (496 heksów, wszystkie 6 miast
+   startowych z sekcji 7 GDD) — na razie grywalne hotseat na 2 graczy, patrz
+   sekcja "Decyzje projektowe" niżej o dodaniu pozostałych 4.
 4. **Sterowanie** (dotyczy aktualnie kontrolowanego gracza — patrz etykieta
    "Kontrolujesz" w lewym górnym rogu):
    - **Lewy klik na własnego ludzika** → zaznacza go: lekko się powiększa i
@@ -135,38 +137,33 @@ python3 convert_kml_to_json.py nowa_mapa.kml godot_project/data/map_data.json
 Heksy mają płaski bok na górze/dole (nie ostry wierzchołek). Kolumny parzyste
 (A, C, E, G, I...) są przesunięte w dół o pół heksa względem nieparzystych —
 efekt: przy tym samym numerze wiersza, kolejna litera kolumny renderuje się
-**wyżej** (np. H14 leży nad G14). Matematyka w `hex_grid_utils.gd` jest
+**wyżej** (np. H18 leży nad G18). Matematyka w `hex_grid_utils.gd` jest
 zweryfikowana (round-trip piksel↔heks i odległości sąsiadów) skryptem
 pomocniczym w Pythonie, bez uruchamiania samego Godota.
 
-## ⚠️ Znaleziony problem w danych źródłowych KML
+## ✅ Mapa Polski jest już kompletna (496 heksów)
 
-Konwerter wykrył, że w Twoim pliku KML trzy identyfikatory heksów są użyte
-**dwukrotnie**, dla zupełnie różnych miejsc:
-
-- `D12` → "Złoża miedzi" (16.057, 51.318) ORAZ "LAS" (15.696, 51.445)
-- `D13` → "Zakłady Ceramiczne w Bolesławcu" ORAZ "UNESCO Kościół Pokoju w Jaworze"
-- `D14` → "Karkonoski Park Narodowy" ORAZ "Jelenia Góra (Kotlina JG)"
-
-W obecnym `map_data.json` oba warianty zostały zachowane pod sufiksami
-`_conflict2` (np. `D12_conflict2`), żeby żadne dane się nie zgubiły — ale to
-**tymczasowe obejście**. Popraw numerację w Google Earth (każdy heks = jeden,
-unikalny identyfikator) i wygeneruj JSON ponownie.
-
-Pominięty został też Placemark "Wałbrzych" — nie ma w nazwie identyfikatora
-hexa (`A1`, `D12` itp.), więc nie dało się go przypisać do siatki. Dodaj mu
-prefiks z odpowiednim ID, jeśli ma być osobnym heksem.
+`data/map_data.json` to teraz pełna mapa całej Polski (poprzednio: wycinek
+63 heksów obejmujący tylko Pomorze Zachodnie + Dolny Śląsk). Wcześniejsza
+wersja KML miała trzy zduplikowane identyfikatory heksów (`D12`, `D13`,
+`D14`, każdy użyty dla dwóch różnych miejsc) i pomijała Placemark
+"Wałbrzych" (brak identyfikatora w nazwie) — **oba problemy są w tej wersji
+naprawione**: zero duplikatów ID w `map_data.json`, a Wałbrzych ma teraz
+własny heks (`E20`). Zawiera wszystkie 6 miast startowych z sekcji 7 GDD
+jako heksy typu `city`: Wrocław (`H18`), Szczecin (`A7`), Warszawa (`R12`),
+Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
-- **Drugi gracz startuje w Szczecinie (`A3`).** Obecny wycinek KML (63 heksy,
-  trasa Świnoujście→Szczecin→Dolny Śląsk) ma tylko jeden heks oznaczony
-  faktycznym typem terenu `city` (Wrocław, `H14`) — ale `A3` ma w danych
-  etykietę "Szczecin", więc to naturalny, prawdziwy drugi punkt startowy do
-  testu hotseat/PvP, zanim KML obejmie resztę miast z sekcji 7 GDD (Warszawa,
-  Kraków, Gdańsk...). Dodaj kolejnych graczy w `PLAYER_SETUP`
-  (`game_map_controller.gd`) i kolejne miasta w `city_buildings_data.gd`, gdy
-  KML urośnie do pełnej skali 6 graczy.
+- **Hotseat na razie testowany na 2 z 6 dostępnych miast.** Mapa (patrz wyżej)
+  ma już WSZYSTKIE 6 miast startowych z sekcji 7 GDD jako realne heksy typu
+  `city` - `PLAYER_SETUP` w `game_map_controller.gd` używa na razie tylko
+  dwóch (Wrocław `H18`, Szczecin `A7`), żeby trzymać hotseat testowalny na
+  jednym ekranie. Dodanie graczy 3-6 (Warszawa `R12`, Kraków `O22`, Gdańsk
+  `L3`, Poznań `G12`) to już tylko dopisanie wpisów do `PLAYER_SETUP` (id,
+  nazwa, miasto, heks startowy, kolor) i odpowiadających im budynków w
+  `city_buildings_data.gd` - żadnych zmian w logice ruchu/akcji/tur nie
+  wymaga (już są napisane generycznie dla dowolnej liczby graczy).
 - **Kara za strefę chronioną nalicza się przy budowie/naprawie, NIE przy
   aneksacji** (update). Pierwsza wersja karała już samo przejęcie własności
   heksa chronionego - to się okazało zbyt agresywne (samo "zaklepanie" pola
@@ -255,9 +252,9 @@ prefiks z odpowiednim ID, jeśli ma być osobnym heksem.
 - Klasyfikacja terenu/zasobu w konwerterze KML→JSON działa na słowach
   kluczowych — dla nietypowych etykiet (fabryki, atrakcje UNESCO) może
   wymagać ręcznej korekty w JSON albo rozbudowy listy słów kluczowych.
-- Siatka obejmuje na razie tylko heksy z dostarczonego wycinka KML (63 sztuk),
-  nie całą Polskę — więc i multiplayer docelowo na 6 graczy (Faza 10) poczeka
-  na resztę danych.
+- Siatka obejmuje już całą Polskę (496 heksów, wszystkie 6 miast startowych)
+  — multiplayer docelowo na 6 graczy (Faza 10) czeka teraz tylko na warstwę
+  sieciową, nie na dane mapy.
 - **Ludziki obu graczy są zawsze widoczne**, niezależnie od mgły wojny
   aktywnego gracza (rysują się jako zwykłe węzły `Node2D` nad warstwą mgły).
   W hotseat na jednym ekranie to nieszkodliwe uproszczenie — obaj gracze i tak

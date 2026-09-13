@@ -3,11 +3,13 @@ extends Node2D
 ## pathfindingiem i mgłą, zaznaczanie/odznaczanie ludzików, wybór aktywnego
 ## gracza wprost z listy, Karta Miasta i przejęcie terytorium PvP.
 ##
-## Hotseat: 2 graczy na jednym ekranie. Gracz 1 startuje we Wrocławiu (H14,
-## jedyny heks oznaczony jako "city" w obecnym wycinku KML), gracz 2 w
-## Szczecinie (A3 - oznaczony w danych jako miasto etykietą, ale nie osobnym
-## typem terenu; wystarczające dla testu multiplayer/PvP, dopóki KML nie
-## obejmie reszty Polski z kolejnymi miastami startowymi).
+## Hotseat: 2 graczy na jednym ekranie. Gracz 1 startuje we Wrocławiu (H18),
+## gracz 2 w Szczecinie (A7). Pełna mapa Polski (data/map_data.json) ma już
+## WSZYSTKIE 6 miast startowych z sekcji 7 GDD jako realne heksy typu "city"
+## (Wrocław H18, Szczecin A7, Warszawa R12, Kraków O22, Gdańsk L3, Poznań
+## G12) - dopisanie graczy 3-6 do PLAYER_SETUP niżej (+ kolorów, + danych w
+## city_buildings_data.gd) wystarczy, żeby dojść do pełnej skali multiplayer
+## z sekcji 7 GDD; na razie hotseat testujemy na 2 graczach.
 ##
 ## Model danych `player_ludziks: player_id -> Array[Ludzik]` (zamiast
 ## pojedynczego węzła na gracza) jest tak zaprojektowany, żeby przyszły
@@ -31,8 +33,8 @@ const VISION_RADIUS = GameBalance.VISION_RADIUS
 
 ## Gracze startowi hotseat - id, nazwa, miasto, heks bazowy, kolor pionka.
 const PLAYER_SETUP = [
-	{"id": 1, "name": "Gracz 1", "city": "Wrocław", "start_hex": "H14", "color": Color(0.9, 0.2, 0.2)},
-	{"id": 2, "name": "Gracz 2", "city": "Szczecin", "start_hex": "A3", "color": Color(0.2, 0.4, 0.9)},
+	{"id": 1, "name": "Gracz 1", "city": "Wrocław", "start_hex": "H18", "color": Color(0.9, 0.2, 0.2)},
+	{"id": 2, "name": "Gracz 2", "city": "Szczecin", "start_hex": "A7", "color": Color(0.2, 0.4, 0.9)},
 ]
 
 @onready var hex_map_view: HexMapView = $HexMapView
