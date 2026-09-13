@@ -31,8 +31,10 @@ func change_prestige(player_id: int, delta: int) -> void:
 
 
 ## Aneksacja - sekcja 2.2/3 GDD: wejście na pole i aneksacja to osobne czynności,
-## to wywołanie reprezentuje samą akcję aneksacji (już stojąc na polu, albo -
-## po update z Fazy 6+ - w zasięgu GameBalance.ACTION_RANGE od ludzika).
+## to wywołanie reprezentuje samą akcję aneksacji, wykonywaną stojąc na polu
+## (w przeciwieństwie do reszty akcji na polu, które po update działają z
+## dowolnej odległości na już zaanektowanym terenie - patrz
+## game_map_controller.gd, sekcja "akcje na polu").
 ##
 ## Koszt w punktach ruchu (sekcja 2.2 GDD) jest sprawdzany i pobierany PRZED
 ## wywołaniem tej funkcji, na poziomie game_map_controller.gd - stamtąd, bo

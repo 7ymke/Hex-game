@@ -100,11 +100,10 @@ text = "Wydobądź drewno"
 [node name="CityCardButton" type="Button" parent="UI/ActionPanel/VBox"]
 text = "Karta Miasta"
 
-[node name="SwitchPlayerButton" type="Button" parent="UI/ActionPanel/VBox"]
-text = "Zmiana gracza"
+[node name="PlayerSelector" type="OptionButton" parent="UI/ActionPanel/VBox"]
 
-[node name="EndTurnButton" type="Button" parent="UI/ActionPanel/VBox"]
-text = "Zakończ turę"
+[node name="EndRoundButton" type="Button" parent="UI/ActionPanel/VBox"]
+text = "Zakończ rundę"
 
 [node name="CityCardPanel" type="CanvasLayer" parent="."]
 layer = 10

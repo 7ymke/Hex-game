@@ -45,7 +45,7 @@ func _ready() -> void:
 
 		# Przeliczenie rundy - sprawdzenie regeneracji
 		TurnManager.setup_player_order([1])
-		TurnManager._end_round()
+		TurnManager.end_round()
 		print("--- Po przeliczeniu rundy ---")
 		print("Poziom zasobu %s po regeneracji: %.1f%%" % [forest_hex_id, hex_after.resource_level])
 		print("Pole generuje prestiż po regeneracji? ", hex_after.generates_prestige)
@@ -69,7 +69,8 @@ func _ready() -> void:
 func _test_phase_6_to_9(player: PlayerData) -> void:
 	print("=== Test Faz 6-9: tury wielu graczy, blokada, przejęcie, Karta Miasta ===")
 
-	# --- Faza 6 (update): drugi gracz + kolejność tur oparta o gotowość ---
+	# --- Faza 6 (update): drugi gracz + wybór aktywnego gracza wprost,
+	# niezależny od przeliczenia rundy (patrz turn_manager.gd) ---
 	var player2 = PlayerData.new()
 	player2.player_id = 2
 	player2.player_name = "Gracz 2 testowy"
@@ -83,24 +84,25 @@ func _test_phase_6_to_9(player: PlayerData) -> void:
 	print(
 		"Aktywny gracz po setup_player_order: %d (oczekiwano 1)" % TurnManager.get_current_player_id()
 	)
-	TurnManager.end_turn_for_current_player()  # gracz 1 kończy turę, nie jest jeszcze gotowa cała runda
+
+	TurnManager.switch_to_player(2)
 	print(
-		"Aktywny gracz po end_turn_for_current_player (gracz 1 gotowy): %d (oczekiwano 2)"
+		"Aktywny gracz po switch_to_player(2) (wybór wprost, nie cykl): %d (oczekiwano 2)"
 		% TurnManager.get_current_player_id()
 	)
-	print("Gotowych graczy: %d/2 (oczekiwano 1/2)" % TurnManager.ready_count())
-
 	TurnManager.switch_to_player(1)
 	print(
-		"Aktywny gracz po ręcznej zmianie (Zmiana gracza) z powrotem na 1: %d"
+		"Aktywny gracz po switch_to_player(1) z powrotem: %d (oczekiwano 1)"
 		% TurnManager.get_current_player_id()
 	)
+
 	var round_before = TurnManager.round_number
-	TurnManager.end_turn_for_current_player()  # gracz 1 znów "gotowy" - bez zmiany, wciąż czekamy na gracza 2
-	TurnManager.switch_to_player(2)
-	TurnManager.end_turn_for_current_player()  # gracz 2 gotowy -> wszyscy gotowi -> koniec rundy
+	TurnManager.end_round()  # nie zmienia aktywnego gracza, tylko przelicza rundę
 	print(
-		"Runda po tym, jak WSZYSCY gracze skończyli turę: %d -> %d (oczekiwano +1)"
+		"Aktywny gracz po end_round (bez zmiany, oczekiwano 1): %d" % TurnManager.get_current_player_id()
+	)
+	print(
+		"Runda po end_round: %d -> %d (oczekiwano +1)"
 		% [round_before, TurnManager.round_number]
 	)
 

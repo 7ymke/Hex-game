@@ -18,14 +18,20 @@ const HEX_SIZE = 40.0
 const LUDZIK_MOVE_SPEED_PX_PER_SEC = 220.0
 ## Promień widzenia (w "skokach" heksów) odsłaniany podczas ruchu - sekcja 2.2 GDD.
 const VISION_RADIUS = 2
-## Promień (w heksach), w jakim ludzik może wykonywać akcje na polu (aneksacja,
-## naprawa, wydobycie, przejęcie) BEZ konieczności stania dokładnie na polu.
-const ACTION_RANGE = 1
+
+## Zaznaczenie ludzika (klik na własnego ludzika) -----------------------------
+## O ile większy (mnożnik skali) jest zaznaczony ludzik.
+const LUDZIK_SELECTED_SCALE = 1.3
+## Kolor pierścienia podświetlenia wokół zaznaczonego ludzika.
+const LUDZIK_SELECTED_HIGHLIGHT_COLOR = Color(1.0, 0.95, 0.3, 1.0)
+## Grubość pierścienia podświetlenia (px).
+const LUDZIK_SELECTED_HIGHLIGHT_WIDTH = 4.0
 
 ## Punkty ruchu (MP) - teraz własność ludzika, nie gracza (Faza 6+ update).
 const LUDZIK_MOVEMENT_POINTS_MAX = 5
 ## Koszt aneksacji w punktach ruchu - sekcja 2.2/3 GDD ("Aneksacja - płatna
-## akcja, koszt: punkty ruchu").
+## akcja, koszt: punkty ruchu"). Aneksacja wymaga stania DOKŁADNIE na polu
+## (w przeciwieństwie do reszty akcji na polu - patrz game_map_controller.gd).
 const ANNEX_MP_COST = 2
 
 ## Las - zrównoważone wydobycie (sekcja 6.1 GDD) ----------------------------

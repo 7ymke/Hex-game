@@ -100,16 +100,3 @@ static func offset_neighbors(col: int, row: int) -> Array[Vector2i]:
 	for d in axial_dirs:
 		result.append(axial_to_offset(axial.x + d.x, axial.y + d.y))
 	return result
-
-
-## Odległość w "skokach" heksów między dwoma polami podanymi w naszych
-## współrzędnych offset (col, row) - potrzebne do sprawdzania zasięgu akcji
-## (GameBalance.ACTION_RANGE: aneksacja/naprawa/wydobycie/przejęcie bez
-## konieczności stania dokładnie na polu). Standardowa formuła odległości
-## na siatce heksagonalnej, liczona we współrzędnych axial/cube.
-static func offset_distance(col_a: int, row_a: int, col_b: int, row_b: int) -> int:
-	var axial_a = offset_to_axial(col_a, row_a)
-	var axial_b = offset_to_axial(col_b, row_b)
-	var dq = axial_a.x - axial_b.x
-	var dr = axial_a.y - axial_b.y
-	return int((abs(dq) + abs(dr) + abs(dq + dr)) / 2)

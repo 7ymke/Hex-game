@@ -1,8 +1,7 @@
 extends Node2D
 ## Fazy 4-9 planu implementacji (+ dalsze poprawki): płynny ruch ludzika z
-## pathfindingiem i mgłą, akcje na polu działające w zasięgu (nie tylko stojąc
-## dokładnie na polu), zaznaczanie/odznaczanie ludzików, pełna struktura tur
-## wielu graczy oparta o gotowość, Karta Miasta i przejęcie terytorium PvP.
+## pathfindingiem i mgłą, zaznaczanie/odznaczanie ludzików, wybór aktywnego
+## gracza wprost z listy, Karta Miasta i przejęcie terytorium PvP.
 ##
 ## Hotseat: 2 graczy na jednym ekranie. Gracz 1 startuje we Wrocławiu (H14,
 ## jedyny heks oznaczony jako "city" w obecnym wycinku KML), gracz 2 w
@@ -13,8 +12,20 @@ extends Node2D
 ## Model danych `player_ludziks: player_id -> Array[Ludzik]` (zamiast
 ## pojedynczego węzła na gracza) jest tak zaprojektowany, żeby przyszły
 ## upgrade "więcej ludzików" sprowadzał się do dopisania nowego Ludzika do
-## tej tablicy - cała reszta (zaznaczanie, blokady ruchu, zasięg akcji)
-## już iteruje po tablicach, nie zakłada dokładnie jednego elementu.
+## tej tablicy - cała reszta (zaznaczanie, blokady ruchu) już iteruje po
+## tablicach, nie zakłada dokładnie jednego elementu.
+##
+## Zasięg akcji (update): aneksacja WYMAGA stania dokładnie na polu (płaci
+## punkty ruchu ludzika, który tam stoi) - to jedyna akcja tak ograniczona.
+## Naprawa, wydobycie i przejęcie działają na dowolnym polu należącym do
+## odpowiedniego gracza (już zaanektowanym - swoim albo cudzym), niezależnie
+## od tego, gdzie akurat stoją ludziki - "zarządzanie zdalne" własnym/wrogim
+## terytorium, bez potrzeby fizycznej obecności.
+##
+## Kontrola gracza i przeliczenie rundy są teraz całkowicie rozdzielone:
+## "Zmiana gracza" (OptionButton) wybiera KONKRETNEGO gracza wprost z listy,
+## "Zakończ rundę" przelicza rundę niezależnie od tego, kto jest kontrolowany
+## - patrz turn_manager.gd.
 
 const VISION_RADIUS = GameBalance.VISION_RADIUS
 
@@ -38,8 +49,8 @@ const PLAYER_SETUP = [
 @onready var harvest_value_label: Label = $UI/ActionPanel/VBox/HarvestRow/HarvestValueLabel
 @onready var harvest_button: Button = $UI/ActionPanel/VBox/HarvestButton
 @onready var city_card_button: Button = $UI/ActionPanel/VBox/CityCardButton
-@onready var switch_player_button: Button = $UI/ActionPanel/VBox/SwitchPlayerButton
-@onready var end_turn_button: Button = $UI/ActionPanel/VBox/EndTurnButton
+@onready var player_selector: OptionButton = $UI/ActionPanel/VBox/PlayerSelector
+@onready var end_round_button: Button = $UI/ActionPanel/VBox/EndRoundButton
 
 var players: Array[PlayerData] = []
 var player_ludziks: Dictionary = {}  # player_id(int) -> Array[Ludzik]
@@ -53,6 +64,7 @@ var pathfinder = HexPathfinder.new()
 
 func _ready() -> void:
 	_setup_players()
+	_populate_player_selector()
 	pathfinder.build()
 
 	hex_map_view.hex_clicked.connect(_on_hex_clicked)
@@ -64,8 +76,8 @@ func _ready() -> void:
 	harvest_button.pressed.connect(_on_harvest_pressed)
 	harvest_slider.value_changed.connect(_on_harvest_slider_changed)
 	city_card_button.pressed.connect(_on_city_card_pressed)
-	switch_player_button.pressed.connect(_on_switch_player_pressed)
-	end_turn_button.pressed.connect(_on_end_turn_pressed)
+	player_selector.item_selected.connect(_on_player_selected)
+	end_round_button.pressed.connect(_on_end_round_pressed)
 	city_card_panel.building_unlocked.connect(_on_city_building_unlocked)
 
 	TurnManager.player_turn_started.connect(_on_player_turn_started)
@@ -114,6 +126,13 @@ func _setup_players() -> void:
 		_reveal_around(start_hex_id, player.player_id)
 
 
+## Item ID w OptionButton = player_id, żeby wybór nie zależał od kolejności.
+func _populate_player_selector() -> void:
+	player_selector.clear()
+	for p in players:
+		player_selector.add_item("%s (%s)" % [p.player_name, p.starting_city], p.player_id)
+
+
 func _primary_ludzik_for(player_id: int) -> Ludzik:
 	var list: Array = player_ludziks.get(player_id, [])
 	return list[0] if not list.is_empty() else null
@@ -124,34 +143,6 @@ func _find_own_ludzik_at(hex_id: String) -> Ludzik:
 		if l.current_hex_id == hex_id:
 			return l
 	return null
-
-
-## Zwraca ludzika aktywnego gracza, który może wykonać akcję na `hex_id`
-## (w promieniu GameBalance.ACTION_RANGE) - preferując aktualnie zaznaczonego
-## ludzika, jeśli on sam się kwalifikuje, a w przeciwnym razie pierwszego
-## pasującego. Zwraca null, jeśli żaden ludzik gracza nie jest wystarczająco
-## blisko.
-func _own_ludzik_in_range(hex_id: String) -> Ludzik:
-	var hex = MapData.get_hex(hex_id)
-	if hex == null:
-		return null
-
-	if selected_ludzik != null and selected_ludzik.player_id == active_player.player_id:
-		if _hex_distance(hex_id, selected_ludzik.current_hex_id) <= GameBalance.ACTION_RANGE:
-			return selected_ludzik
-
-	for l in player_ludziks.get(active_player.player_id, []):
-		if _hex_distance(hex_id, l.current_hex_id) <= GameBalance.ACTION_RANGE:
-			return l
-	return null
-
-
-func _hex_distance(hex_id_a: String, hex_id_b: String) -> int:
-	var a = MapData.get_hex(hex_id_a)
-	var b = MapData.get_hex(hex_id_b)
-	if a == null or b == null:
-		return 9999
-	return HexGridUtils.offset_distance(a.axial_q, a.axial_r, b.axial_q, b.axial_r)
 
 
 ## Heksy aktualnie zajęte przez ludziki INNYCH graczy - sekcja 3 GDD,
@@ -200,12 +191,15 @@ func _on_player_turn_started(player_id: int) -> void:
 	hex_map_view.viewing_player_id = player_id
 	_set_selected_ludzik(null)
 
+	var selector_index = player_selector.get_item_index(player_id)
+	if selector_index != -1:
+		player_selector.select(selector_index)  # nie emituje item_selected
+
 	var primary = _primary_ludzik_for(player_id)
 	_set_selected_hex(primary.current_hex_id if primary != null else "")
 
-	turn_label.text = "Tura gracza: %s (%s) | Gotowi: %d/%d | Runda: %d" % [
-		active_player.player_name, active_player.starting_city,
-		TurnManager.ready_count(), players.size(), TurnManager.round_number
+	turn_label.text = "Kontrolujesz: %s (%s) | Runda: %d" % [
+		active_player.player_name, active_player.starting_city, TurnManager.round_number
 	]
 	info_label.text = "Kliknij ludzika, żeby go zaznaczyć/odznaczyć, potem kliknij pole, żeby go tam przesunąć."
 
@@ -215,11 +209,13 @@ func _on_player_turn_started(player_id: int) -> void:
 	_refresh_action_panel()
 
 
-func _on_round_ended(_round_number: int) -> void:
+func _on_round_ended(round_number: int) -> void:
 	for pid in player_ludziks:
 		for l in player_ludziks[pid]:
 			l.reset_movement_points()
 	_update_mp_label()
+	_update_prestige_label()
+	info_label.text = "Runda zakończona. Rozpoczyna się runda %d." % round_number
 
 
 func _on_hex_clicked(hex_id: String) -> void:
@@ -348,14 +344,15 @@ func _on_hex_hovered(hex_id: String) -> void:
 
 
 ## --- Akcje na polu (Faza 5, 8, 9) ---
-## Działają na `selected_hex_id`, o ile jakiś ludzik aktywnego gracza jest w
-## zasięgu GameBalance.ACTION_RANGE - niekoniecznie stojąc dokładnie na polu.
+## Działają na `selected_hex_id`. Aneksacja (jedyny wyjątek) wymaga, żeby
+## ludzik aktywnego gracza stał dokładnie na tym polu; reszta działa na
+## dowolnym, już zaanektowanym polu (swoim albo cudzym), z dowolnej odległości.
 
 func _on_annex_pressed() -> void:
 	var hex_id = selected_hex_id
-	var ludzik = _own_ludzik_in_range(hex_id)
+	var ludzik = _find_own_ludzik_at(hex_id)
 	if ludzik == null:
-		info_label.text = "Żaden twój ludzik nie jest wystarczająco blisko %s." % hex_id
+		info_label.text = "Musisz stać ludzikiem na polu %s, żeby je zaanektować." % hex_id
 		return
 
 	if not ludzik.spend_movement_points(GameBalance.ANNEX_MP_COST):
@@ -376,20 +373,12 @@ func _on_annex_pressed() -> void:
 	_refresh_action_panel()
 
 
-## Przejęcie terytorium (PvP) - sekcja 5 GDD / Faza 9. Dostępne tylko, gdy
-## jakiś ludzik aktywnego gracza jest blisko heksu należącego do innego
-## gracza - co (dzięki blokadzie ruchu w `_command_move`) jest w ogóle
-## możliwe wyłącznie wtedy, gdy broniący ludzik akurat go NIE patroluje.
+## Przejęcie terytorium (PvP) - sekcja 5 GDD / Faza 9. Działa z dowolnej
+## odległości, o ile broniący heks ludzik AKURAT go nie patroluje - to jedyny
+## mechanizm obrony terytorium (sekcja 3 GDD), zasięg go nie omija.
 func _on_takeover_pressed() -> void:
 	var hex_id = selected_hex_id
-	if _own_ludzik_in_range(hex_id) == null:
-		info_label.text = "Żaden twój ludzik nie jest wystarczająco blisko %s." % hex_id
-		return
 
-	# Zasięg akcji ("blisko") pozwala przejmować bez stania dokładnie na polu,
-	# ale "funkcja obronna" z sekcji 3 GDD musi zostać zachowana: jeśli
-	# broniący ludzik AKURAT stoi na tym heksie, przejęcie się nie udaje,
-	# niezależnie od zasięgu.
 	if _ludzik_at(hex_id) != null:
 		info_label.text = "Pole %s jest bronione przez stojącego na nim ludzika - nie można go przejąć." % hex_id
 		return
@@ -412,10 +401,6 @@ func _on_takeover_pressed() -> void:
 
 func _on_repair_pressed() -> void:
 	var hex_id = selected_hex_id
-	if _own_ludzik_in_range(hex_id) == null:
-		info_label.text = "Żaden twój ludzik nie jest wystarczająco blisko %s." % hex_id
-		return
-
 	var result = GameManager.repair_building(hex_id, active_player.player_id)
 	if result["success"]:
 		info_label.text = "Naprawiono budynek na %s. Zacznie generować zasoby od kolejnej rundy." % hex_id
@@ -431,16 +416,11 @@ func _on_harvest_slider_changed(value: float) -> void:
 	harvest_value_label.text = "%d%%" % int(value)
 
 
-## Wydobycie lasu (Faza 5, sekcja 6.1 GDD) - NIE wymaga stania dokładnie na
-## polu (update): wystarczy zaznaczyć pole leśne w zasięgu jednego z twoich
-## ludzików. Można też podejść ludzikiem i wejść na pole - obie ścieżki
-## finalnie sprowadzają się do tego samego sprawdzenia zasięgu.
+## Wydobycie lasu (Faza 5, sekcja 6.1 GDD) - działa na dowolnym, już
+## zaanektowanym polu leśnym gracza, z dowolnej odległości (patrz komentarz
+## na górze pliku); nie trzeba na nim stać.
 func _on_harvest_pressed() -> void:
 	var hex_id = selected_hex_id
-	if _own_ludzik_in_range(hex_id) == null:
-		info_label.text = "Żaden twój ludzik nie jest wystarczająco blisko %s." % hex_id
-		return
-
 	var percent = harvest_slider.value
 	var result = GameManager.harvest_forest(hex_id, active_player.player_id, percent)
 	if result["success"]:
@@ -465,14 +445,15 @@ func _on_city_building_unlocked() -> void:
 	_update_prestige_label()
 
 
-## --- Tura (Faza 6, oparta o gotowość - patrz turn_manager.gd) ---
+## --- Gracz aktywny i runda (rozdzielone - patrz turn_manager.gd) ---
 
-func _on_switch_player_pressed() -> void:
-	TurnManager.switch_to_next_player()
+func _on_player_selected(index: int) -> void:
+	var player_id = player_selector.get_item_id(index)
+	TurnManager.switch_to_player(player_id)
 
 
-func _on_end_turn_pressed() -> void:
-	TurnManager.end_turn_for_current_player()  # emit-uje player_turn_started -> odświeża cały UI
+func _on_end_round_pressed() -> void:
+	TurnManager.end_round()  # NIE zmienia, który gracz jest kontrolowany
 
 
 ## Aktualizuje panel akcji wg aktualnie ZAZNACZONEGO heksu (niekoniecznie
@@ -489,9 +470,6 @@ func _refresh_action_panel() -> void:
 		harvest_button.visible = false
 		return
 
-	var acting_ludzik = _own_ludzik_in_range(selected_hex_id)
-	var in_range = acting_ludzik != null
-
 	var owner_text = "gracz %d" % hex.owner_id if hex.owner_id != -1 else "niczyj"
 	var building_text = "brak"
 	if hex.building != null:
@@ -500,27 +478,27 @@ func _refresh_action_panel() -> void:
 			"USZKODZONY" if hex.building_damaged else "sprawny"
 		]
 
-	hex_info_label.text = "%s | %s\nteren: %s | właściciel: %s\nbudynek: %s\npoziom zasobu: %.0f%%%s" % [
+	hex_info_label.text = "%s | %s\nteren: %s | właściciel: %s\nbudynek: %s\npoziom zasobu: %.0f%%" % [
 		hex.hex_id, hex.label_raw, HexData.TerrainType.keys()[hex.terrain_type],
-		owner_text, building_text, hex.resource_level,
-		"" if in_range else "\n(za daleko na akcje - podejdź bliżej)"
+		owner_text, building_text, hex.resource_level
 	]
 
 	var is_owned_by_me = hex.owner_id == active_player.player_id
 	var is_owned_by_enemy = hex.owner_id != -1 and not is_owned_by_me
+	var standing_here = _find_own_ludzik_at(selected_hex_id) != null
 
-	annex_button.disabled = not (in_range and hex.owner_id == -1)
+	annex_button.disabled = not (standing_here and hex.owner_id == -1)
 
 	takeover_button.visible = is_owned_by_enemy
-	takeover_button.disabled = not (in_range and is_owned_by_enemy and _ludzik_at(selected_hex_id) == null)
+	takeover_button.disabled = not (is_owned_by_enemy and _ludzik_at(selected_hex_id) == null)
 
-	repair_button.disabled = not (in_range and is_owned_by_me and hex.building != null and hex.building_damaged)
+	repair_button.disabled = not (is_owned_by_me and hex.building != null and hex.building_damaged)
 
 	var is_forest = hex.is_forest()
 	harvest_slider.visible = is_forest
 	harvest_value_label.visible = is_forest
 	harvest_button.visible = is_forest
-	harvest_button.disabled = not (in_range and is_owned_by_me)
+	harvest_button.disabled = not is_owned_by_me
 
 
 func _update_mp_label() -> void:

@@ -41,13 +41,19 @@ func _draw() -> void:
 	draw_circle(Vector2.ZERO, 14.0, color)
 	draw_arc(Vector2.ZERO, 14.0, 0.0, TAU, 32, Color.BLACK, 2.0)
 	if selected:
-		draw_arc(Vector2.ZERO, 20.0, 0.0, TAU, 32, Color.WHITE, 3.0)
+		draw_arc(
+			Vector2.ZERO, 20.0, 0.0, TAU, 32,
+			GameBalance.LUDZIK_SELECTED_HIGHLIGHT_COLOR, GameBalance.LUDZIK_SELECTED_HIGHLIGHT_WIDTH
+		)
 
 
+## Zaznaczenie: lekkie powiększenie + pierścień podświetlenia, oba tweakowalne
+## w scripts/game_balance.gd (LUDZIK_SELECTED_SCALE / _HIGHLIGHT_COLOR / _WIDTH).
 func set_selected(value: bool) -> void:
 	if selected == value:
 		return
 	selected = value
+	scale = Vector2.ONE * GameBalance.LUDZIK_SELECTED_SCALE if selected else Vector2.ONE
 	queue_redraw()
 
 
