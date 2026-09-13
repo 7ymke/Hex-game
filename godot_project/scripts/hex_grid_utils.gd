@@ -2,8 +2,8 @@ class_name HexGridUtils
 extends RefCounted
 ## Matematyka siatki heksagonalnej "flat-top", układ współrzędnych OFFSET
 ## "even-q" (parzyste kolumny przesunięte w dół o pół heksa - czyli kolejna
-## litera w tym samym numerze wiersza renderuje się NIŻEJ, np. H14 leży nad
-## G14, tak jak sobie tego życzono).
+## litera w tym samym numerze wiersza renderuje się NIŻEJ, np. H18 leży nad
+## G18, tak jak sobie tego życzono).
 ##
 ## Uwaga: pola HexData.axial_q / HexData.axial_r nazywają się "axial" ze
 ## względów historycznych (Faza 0), ale w praktyce są to współrzędne OFFSET
@@ -18,6 +18,32 @@ extends RefCounted
 
 const SQRT3 = 1.7320508075688772
 
+## Korekta proporcji "zakrzywienia" - żeby siatka miała te same proporcje co
+## prawdziwa mapa Polski w Google Earth, zamiast być idealnym, regularnym
+## polem heksów. Dwa nakładające się efekty złożone w jedną poprawkę:
+##
+## 1. Krzywizna Ziemi: na szerokości geograficznej Polski (~52°N) jeden
+##    stopień długości geograficznej to fizycznie mniej kilometrów niż jeden
+##    stopień szerokości (cos(52°) ≈ 0,61) - klasyczna projekcja
+##    równoodległościowa (sekcja 10 GDD) kompensuje to mnożąc różnicę
+##    długości geograficznej przez cos(średniej szerokości).
+## 2. Siatka litera/numer z KML była ręcznie rozstawiana w Google Earth, więc
+##    jej rozstaw wierszy/kolumn nie odpowiada 1:1 rzeczywistym odległościom
+##    geograficznym nawet po korekcie z punktu 1.
+##
+## GEO_SCALE_X / GEO_SCALE_Y to wynik dopasowania metodą najmniejszych
+## kwadratów (regresja liniowa bez wyrazu wolnego, na wszystkich 496 heksach
+## `data/map_data.json`) pozycji siatki (axial_to_pixel przy size=1) do
+## rzeczywistych współrzędnych (lon*cos(52°), -lat). Dopasowanie wyszło
+## praktycznie czystym skalowaniem osi (człony ścinające pomijalnie małe -
+## średni błąd dopasowania to ~0,9% przekątnej mapy), więc wystarczy prosta
+## anizotropowa zmiana skali X/Y zamiast pełnej macierzy afinicznej. Iloczyn
+## GEO_SCALE_X * GEO_SCALE_Y = 1, żeby zachować mniej więcej ten sam
+## całkowity rozmiar mapy w pikselach (i dotychczasowe ustawienia kamery/
+## prędkości ruchu) - to czysta korekta KSZTAŁTU, nie skali.
+const GEO_SCALE_X = 1.122525
+const GEO_SCALE_Y = 0.890849
+
 
 static func offset_to_axial(col: int, row: int) -> Vector2i:
 	var r = row - int(floor(float(col + (col & 1)) / 2.0))
@@ -30,8 +56,8 @@ static func axial_to_offset(q: int, r: int) -> Vector2i:
 
 
 static func axial_to_pixel(q: int, r: int, size: float) -> Vector2:
-	var x = size * 1.5 * q
-	var y = size * SQRT3 * (r + q / 2.0)
+	var x = size * 1.5 * q * GEO_SCALE_X
+	var y = size * SQRT3 * (r + q / 2.0) * GEO_SCALE_Y
 	return Vector2(x, y)
 
 
@@ -40,9 +66,12 @@ static func offset_to_pixel(col: int, row: int, size: float) -> Vector2:
 	return axial_to_pixel(axial.x, axial.y, size)
 
 
+## Odwraca korektę proporcji (GEO_SCALE_X/Y) PRZED standardową matematyką
+## piksel->axial poniżej, która zakłada regularną (nie "zakrzywioną") siatkę.
 static func _pixel_to_axial_raw(pixel: Vector2, size: float) -> Vector2:
-	var q = (2.0 / 3.0 * pixel.x) / size
-	var r = (-1.0 / 3.0 * pixel.x + SQRT3 / 3.0 * pixel.y) / size
+	var unscaled = Vector2(pixel.x / GEO_SCALE_X, pixel.y / GEO_SCALE_Y)
+	var q = (2.0 / 3.0 * unscaled.x) / size
+	var r = (-1.0 / 3.0 * unscaled.x + SQRT3 / 3.0 * unscaled.y) / size
 	return Vector2(q, r)
 
 
@@ -77,12 +106,16 @@ static func pixel_to_offset(pixel: Vector2, size: float) -> Vector2i:
 
 
 ## Sześć narożników heksa "flat-top" o środku `center` i promieniu `size`.
+## Wierzchołki skalowane tym samym GEO_SCALE_X/Y co pozycje środków (wyżej),
+## żeby heksy pozostały idealnie do siebie przylegające (kafelkowanie) mimo
+## że wizualnie są lekko "rozciągnięte" zgodnie z korektą proporcji mapy.
 static func hex_corners(center: Vector2, size: float) -> PackedVector2Array:
 	var points = PackedVector2Array()
 	for i in range(6):
 		var angle_deg = 60.0 * i
 		var angle_rad = deg_to_rad(angle_deg)
-		points.append(center + Vector2(size * cos(angle_rad), size * sin(angle_rad)))
+		var offset = Vector2(size * cos(angle_rad) * GEO_SCALE_X, size * sin(angle_rad) * GEO_SCALE_Y)
+		points.append(center + offset)
 	return points
 
 

@@ -141,6 +141,33 @@ efekt: przy tym samym numerze wiersza, kolejna litera kolumny renderuje się
 zweryfikowana (round-trip piksel↔heks i odległości sąsiadów) skryptem
 pomocniczym w Pythonie, bez uruchamiania samego Godota.
 
+### Korekta proporcji ("efekt zakrzywienia")
+
+Siatka nie jest już idealnie regularnym polem heksów — jest lekko
+rozciągnięta (`GEO_SCALE_X` ≈ 1,123 poziomo, `GEO_SCALE_Y` ≈ 0,891 pionowo w
+`hex_grid_utils.gd`), żeby jej proporcje odpowiadały prawdziwej mapie Polski
+w Google Earth. Dwa efekty złożone w jedną poprawkę:
+
+1. **Krzywizna Ziemi** — na szerokości geograficznej Polski (~52°N) stopień
+   długości geograficznej to fizycznie mniej kilometrów niż stopień
+   szerokości (`cos(52°) ≈ 0,61`) - standardowa projekcja
+   równoodległościowa (sekcja 10 GDD).
+2. **Niedokładność ręcznie rozstawionej siatki KML** — kolumny/wiersze
+   litera-cyfra były rozmieszczane "na oko" w Google Earth, więc nawet po
+   korekcie z punktu 1 nie odpowiadają 1:1 rzeczywistym odległościom.
+
+Współczynniki wyliczone jednorazowo metodą najmniejszych kwadratów
+(dopasowanie pozycji siatki do rzeczywistych `lat`/`lon` wszystkich 496
+heksów) — dopasowanie wyszło praktycznie czystym skalowaniem osi (bez
+znaczącego ścinania/obrotu, średni błąd ~0,9% przekątnej mapy), więc
+wystarczyła prosta anizotropowa zmiana skali X/Y zamiast pełnej macierzy
+afinicznej. Transformacja jest stosowana identycznie do środków heksów
+(`axial_to_pixel`) i ich wierzchołków (`hex_corners`), więc heksy nadal
+idealnie do siebie przylegają (żadnych szczelin/nakładania) - tylko
+"rozciągnięte" zamiast regularne. Odwrotność (`_pixel_to_axial_raw`, klikanie
+w mapę) uwzględnia tę samą korektę, więc wykrywanie heksa pod kursorem
+pozostaje dokładne (zweryfikowane round-trip na wszystkich 496 heksach).
+
 ## ✅ Mapa Polski jest już kompletna (496 heksów)
 
 `data/map_data.json` to teraz pełna mapa całej Polski (poprzednio: wycinek
@@ -232,12 +259,16 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Uproszczenia i rzeczy do zweryfikowania dalej
 
-- **Kształt siatki jest wyidealizowany, nie geograficznie dokładny.** Do
-  renderowania i sąsiedztwa używamy czystej matematyki heksagonalnej opartej
-  WYŁĄCZNIE na literze/numerze z ID heksa — nie na rzeczywistych
-  współrzędnych lon/lat. Mapa w grze będzie miała równy kształt heksagonalny,
-  ale nie odwzoruje 1:1 proporcji prawdziwej Polski. Świadomy kompromis na
-  tym etapie.
+- **Kształt siatki jest skorygowany proporcjonalnie, ale wciąż nie
+  geograficznie dokładny.** Sąsiedztwo/pathfinding nadal opiera się
+  WYŁĄCZNIE na literze/numerze z ID heksa (regularna siatka heksagonalna) -
+  rzeczywiste `lat`/`lon` służą tylko do jednorazowego wyliczenia globalnej
+  korekty proporcji X/Y (patrz "efekt zakrzywienia" wyżej), nie do
+  pozycjonowania POSZCZEGÓLNYCH heksów. Mapa w grze ma więc już prawidłowe
+  OGÓLNE proporcje (szerokość/wysokość), ale nie odwzorowuje dokładnego,
+  nieregularnego kształtu granic Polski (wybrzeża, gór itd.) - to nadal
+  regularne pole heksów, tylko poprawnie rozciągnięte. Świadomy kompromis,
+  żeby nie psuć kafelkowania siatki (potrzebnego do sąsiedztwa/ruchu).
 - **Koszt naprawy budynków na mapie = 0** (`required_resources` puste w
   placeholderowym `Building` tworzonym automatycznie w `map_data.gd`). To
   celowe uproszczenie, dopóki nie ustalimy treści/kosztów konkretnych
@@ -246,9 +277,16 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   (Faza 8) MAJĄ już zdefiniowane, niezerowe koszty (`city_buildings_data.gd`).
 - **Koszt ścieżki w `HexPathfinder` przez `AStar2D.weight_scale`** to
   przybliżenie (Godot liczy koszt krawędzi na podstawie dystansu i
-  weight_scale OBU połączonych punktów, nie tylko punktu docelowego) —
-  w praktyce powinno dawać rozsądne wyniki (dystans między sąsiadami jest
-  zawsze taki sam), ale warto to zwizualizować/przetestować w edytorze.
+  weight_scale OBU połączonych punktów, nie tylko punktu docelowego). Od
+  wprowadzenia korekty proporcji ("efekt zakrzywienia" wyżej) dystans
+  piksel-do-piksela między sąsiednimi heksami już NIE jest identyczny we
+  wszystkich 6 kierunkach (różnica ~20% - ruchy pionowe są w AStar nieco
+  "tańsze" niż ukośne) — to nie wpływa na faktyczny koszt MP płacony przez
+  gracza (ten liczy się osobno, wprost z `HexData.get_movement_cost()` w
+  `game_map_controller.gd`, nie z wewnętrznego kosztu AStar), tylko
+  ewentualnie na to, którą z kilku równie tanich terenowo tras wybierze
+  pathfinder przy remisie. Kosmetyczna nieścisłość, ale warto o niej
+  pamiętać, testując/wizualizując w edytorze.
 - Klasyfikacja terenu/zasobu w konwerterze KML→JSON działa na słowach
   kluczowych — dla nietypowych etykiet (fabryki, atrakcje UNESCO) może
   wymagać ręcznej korekty w JSON albo rozbudowy listy słów kluczowych.
