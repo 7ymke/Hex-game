@@ -13,13 +13,14 @@ config_version=5
 config/name="Heksagonalna Strategia Ekonomiczna - Polska"
 config/features=PackedStringArray("4.2", "GL Compatibility")
 config/icon="res://icon.svg"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/start_screen.tscn"
 
 [autoload]
 
 MapData="*res://autoloads/map_data.gd"
 GameManager="*res://autoloads/game_manager.gd"
 TurnManager="*res://autoloads/turn_manager.gd"
+GameSetup="*res://autoloads/game_setup.gd"
 
 [rendering]
 

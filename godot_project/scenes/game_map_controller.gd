@@ -7,11 +7,15 @@ extends Node2D
 ## 6 graczy jednocześnie na jednej mapie, każdy w innym mieście startowym").
 ## Pełna mapa Polski (data/map_data.json) ma wszystkie 6 miast startowych
 ## jako realne heksy typu "city": Wrocław (H18), Szczecin (A7), Warszawa
-## (R12), Kraków (O22), Gdańsk (L3), Poznań (G12) - PLAYER_SETUP niżej
-## rejestruje wszystkich naraz. Dodanie kolejnego gracza w przyszłości (np.
-## po rozszerzeniu mapy o nowe miasto) to tylko nowy wpis tutaj + budynki w
-## city_buildings_data.gd - reszta (ruch, mgła, tury, PvP) jest już
-## napisana generycznie dla dowolnej liczby graczy.
+## (R12), Kraków (O22), Gdańsk (L3), Poznań (G12) - PLAYER_SETUP niżej (alias
+## na scripts/player_setup.gd -> PlayerSetup.LIST, współdzielone z ekranem
+## startowym) je opisuje. `_setup_players()` rejestruje tylko te wybrane na
+## ekranie startowym (scenes/start_screen.gd, GameSetup.selected_player_ids)
+## - pusta lista (np. przy uruchomieniu main.tscn wprost, z pominięciem
+## ekranu startowego) oznacza "wszystkich". Dodanie kolejnego gracza w
+## przyszłości (np. po rozszerzeniu mapy o nowe miasto) to tylko nowy wpis w
+## PlayerSetup.LIST + budynki w city_buildings_data.gd - reszta (ruch, mgła,
+## tury, PvP) jest już napisana generycznie dla dowolnej liczby graczy.
 ##
 ## Model danych `player_ludziks: player_id -> Array[Ludzik]` (zamiast
 ## pojedynczego węzła na gracza) jest tak zaprojektowany, żeby przyszły
@@ -34,20 +38,12 @@ extends Node2D
 const VISION_RADIUS = GameBalance.VISION_RADIUS
 
 ## Gracze startowi hotseat - id, nazwa, miasto, heks bazowy, kolor pionka.
-## Wszystkie 6 miast z sekcji 7 GDD - usuń wpisy stąd, żeby zagrać w mniejszym
-## składzie (reszta kodu nie zakłada konkretnej liczby graczy). Opcjonalny
-## klucz "sprite" (ścieżka res://...) podmienia domyślne kółko na obrazek -
-## patrz Ludzik.sprite_texture w ludzik.gd. Bez tego klucza (jak niżej,
-## dopóki nie dodasz własnych plików graficznych) rysowane jest kółko w
-## kolorze `color`.
-const PLAYER_SETUP = [
-	{"id": 1, "name": "Gracz 1", "city": "Wrocław", "start_hex": "H18", "color": Color(0.9, 0.2, 0.2)},
-	{"id": 2, "name": "Gracz 2", "city": "Szczecin", "start_hex": "A7", "color": Color(0.2, 0.4, 0.9)},
-	{"id": 3, "name": "Gracz 3", "city": "Warszawa", "start_hex": "R12", "color": Color(0.2, 0.75, 0.3)},
-	{"id": 4, "name": "Gracz 4", "city": "Kraków", "start_hex": "O22", "color": Color(0.95, 0.6, 0.1)},
-	{"id": 5, "name": "Gracz 5", "city": "Gdańsk", "start_hex": "L3", "color": Color(0.6, 0.25, 0.85)},
-	{"id": 6, "name": "Gracz 6", "city": "Poznań", "start_hex": "G12", "color": Color(0.1, 0.75, 0.75)},
-]
+## Pełna lista (wszystkie 6 miast z sekcji 7 GDD) żyje w
+## scripts/player_setup.gd, żeby scenes/start_screen.gd mógł z niej budować
+## checkboxy bez duplikowania danych. Który skład faktycznie gra decyduje
+## ekran startowy (patrz komentarz wyżej), NIE trzeba już ręcznie usuwać
+## wpisów stąd, żeby zagrać w mniejszym składzie.
+const PLAYER_SETUP = PlayerSetup.LIST
 
 @onready var hex_map_view: HexMapView = $HexMapView
 @onready var city_card_panel: CityCardPanel = $CityCardPanel
@@ -106,23 +102,33 @@ func _ready() -> void:
 	_on_harvest_slider_changed(harvest_slider.value)
 
 
-## Tworzy graczy, ich ludziki i aneksuje im heks startowy.
+## Tworzy graczy, ich ludziki i aneksuje im heks startowy. Uwzględnia tylko
+## miasta wybrane na ekranie startowym (GameSetup.selected_player_ids,
+## ustawione przez scenes/start_screen.gd) - pusta lista (np. przy
+## uruchomieniu main.tscn bezpośrednio, z pominięciem ekranu startowego)
+## oznacza "wszystkie", tak jak dotychczas.
 func _setup_players() -> void:
 	var existing_ludzik: Ludzik = $Ludzik
+	var existing_ludzik_used = false
+	var allowed_ids: Array = GameSetup.selected_player_ids
 
 	for i in range(PLAYER_SETUP.size()):
 		var setup: Dictionary = PLAYER_SETUP[i]
+		if not allowed_ids.is_empty() and not allowed_ids.has(setup["id"]):
+			continue
 
 		var player = PlayerData.new()
 		player.player_id = setup["id"]
 		player.player_name = setup["name"]
 		player.starting_city = setup["city"]
+		player.color = setup["color"]
 		GameManager.register_player(player)
 		players.append(player)
 
 		var ludzik: Ludzik
-		if i == 0:
+		if not existing_ludzik_used:
 			ludzik = existing_ludzik  # scena już ma jeden węzeł Ludzik gotowy
+			existing_ludzik_used = true
 		else:
 			ludzik = Ludzik.new()
 			add_child(ludzik)
@@ -503,7 +509,13 @@ func _on_end_round_pressed() -> void:
 
 
 ## Aktualizuje panel akcji wg aktualnie ZAZNACZONEGO heksu (niekoniecznie
-## tego, na którym stoi ludzik - patrz `selected_hex_id`).
+## tego, na którym stoi ludzik - patrz `selected_hex_id`). Tekst opisowy jest
+## bramkowany mgłą wojny (te same 3 poziomy co `_on_hex_hovered()` niżej) -
+## dopóki pole nie jest choć "seen", widać wyłącznie jego ID i typ terenu, bez
+## etykiety/właściciela/budynku/poziomu zasobu. Przyciski akcji NIE są tu
+## bramkowane - działają na prawdziwym stanie pola (żeby np. przejęcie
+## terenu przeciwnika było w ogóle możliwe), tylko opis tekstowy chroni
+## informację o tym, co się na nim znajduje.
 func _refresh_action_panel() -> void:
 	var hex = MapData.get_hex(selected_hex_id)
 	if hex == null:
@@ -516,18 +528,26 @@ func _refresh_action_panel() -> void:
 		harvest_button.visible = false
 		return
 
-	var owner_text = "gracz %d" % hex.owner_id if hex.owner_id != -1 else "niczyj"
-	var building_text = "brak"
-	if hex.building != null:
-		building_text = "%s (%s)" % [
-			hex.building.building_name,
-			"USZKODZONY" if hex.building_damaged else "sprawny"
-		]
-
-	hex_info_label.text = "%s | %s\nteren: %s | właściciel: %s\nbudynek: %s\npoziom zasobu: %.0f%%" % [
-		hex.hex_id, hex.label_raw, HexData.TerrainType.keys()[hex.terrain_type],
-		owner_text, building_text, hex.resource_level
-	]
+	var fog = hex.get_fog_state(active_player.player_id)
+	match fog:
+		"unexplored":
+			hex_info_label.text = "%s: nieodkryte pole." % hex.hex_id
+		"seen":
+			hex_info_label.text = "%s: teren %s (koszt ruchu %d) - nieznane zasoby/budynki." % [
+				hex.hex_id, HexData.TerrainType.keys()[hex.terrain_type], hex.get_movement_cost()
+			]
+		"annexed":
+			var owner_text = "gracz %d" % hex.owner_id if hex.owner_id != -1 else "niczyj"
+			var building_text = "brak"
+			if hex.building != null:
+				building_text = "%s (%s)" % [
+					hex.building.building_name,
+					"USZKODZONY" if hex.building_damaged else "sprawny"
+				]
+			hex_info_label.text = "%s | %s\nteren: %s | właściciel: %s\nbudynek: %s\npoziom zasobu: %.0f%%" % [
+				hex.hex_id, hex.label_raw, HexData.TerrainType.keys()[hex.terrain_type],
+				owner_text, building_text, hex.resource_level
+			]
 
 	var is_owned_by_me = hex.owner_id == active_player.player_id
 	var is_owned_by_enemy = hex.owner_id != -1 and not is_owned_by_me

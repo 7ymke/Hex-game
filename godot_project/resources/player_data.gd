@@ -9,6 +9,11 @@ extends Resource
 
 @export var prestige: int = 100
 
+## Kolor drużyny - ten sam co pionek Ludzika (patrz PLAYER_SETUP w
+## game_map_controller.gd), używany też do obrysowania posiadanych heksów na
+## mapie (hex_map_view.gd), żeby terytorium było widoczne bez klikania.
+@export var color: Color = Color.WHITE
+
 ## HexData.ResourceType(int) -> ilość(float). Osobne kategorie surowców (sekcja 6 GDD)
 ## - np. gaz i węgiel NIE są tą samą walutą, mimo podobnego zastosowania.
 @export var resources: Dictionary = {}

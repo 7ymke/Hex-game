@@ -19,19 +19,27 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
 ## Jak to uruchomić
 
 1. Otwórz folder `godot_project/` w Godot 4.2.2 (Import → wskaż `project.godot`).
-2. Naciśnij **F5** (Run Project) — scena `scenes/main.tscn` jest ustawiona jako
-   główna, więc powinna wystartować od razu.
-3. Gra hotseat, **6 graczy**, każdy w innym mieście startowym (sekcja 7 GDD):
-   Wrocław (`H18`), Szczecin (`A7`), Warszawa (`R12`), Kraków (`O22`), Gdańsk
-   (`L3`), Poznań (`G12`) — każdy widzi tylko odkryty przez siebie fragment
-   mapy (osobna mgła wojny per gracz). Siatka jest **flat-top** (płaski bok
-   na górze/dole heksa) i pokrywa całą Polskę (496 heksów). Żeby zagrać w
-   mniejszym składzie, usuń wpisy z `PLAYER_SETUP` w
-   `game_map_controller.gd` (patrz "Decyzje projektowe" niżej).
-4. **HUD** (lewy górny róg): kto jest kontrolowany, punkty ruchu, prestiż i
+2. Naciśnij **F5** (Run Project) — scena `scenes/start_screen.tscn` jest
+   ustawiona jako główna, więc powinna wystartować od razu.
+3. **Ekran startowy**: checkbox per miasto (wszystkie 6 z sekcji 7 GDD:
+   Wrocław `H18`, Szczecin `A7`, Warszawa `R12`, Kraków `O22`, Gdańsk `L3`,
+   Poznań `G12`, lista współdzielona ze scenę grywalną w
+   `scripts/player_setup.gd` -> `PlayerSetup.LIST`), domyślnie wszystkie
+   zaznaczone. Odznacz, których miast NIE chcesz w rozgrywce (min. 2 wymagane
+   - przycisk "Rozpocznij grę" jest zablokowany przy mniejszej liczbie), potem
+   kliknij **Rozpocznij grę** — wybór trafia do autoloadu `GameSetup`
+   (`selected_player_ids`), który `game_map_controller._setup_players()`
+   odczytuje przy starcie `scenes/main.tscn`. Uruchomienie `main.tscn`
+   bezpośrednio (np. F6 w edytorze, z pominięciem ekranu startowego) nadal
+   działa i rejestruje wszystkich 6 graczy, tak jak dotąd.
+4. Gra hotseat, każdy wybrany gracz w innym mieście startowym — widzi tylko
+   odkryty przez siebie fragment mapy (osobna mgła wojny per gracz). Siatka
+   jest **flat-top** (płaski bok na górze/dole heksa) i pokrywa całą Polskę
+   (496 heksów).
+5. **HUD** (lewy górny róg): kto jest kontrolowany, punkty ruchu, prestiż i
    **wszystkie posiadane surowce** (gaz/miedź/węgiel/drewno/żywność/nikiel/
    uran naraz, nie tylko drewno jak wcześniej).
-5. **Sterowanie** (dotyczy aktualnie kontrolowanego gracza — patrz etykieta
+6. **Sterowanie** (dotyczy aktualnie kontrolowanego gracza — patrz etykieta
    "Kontrolujesz" w lewym górnym rogu):
    - **Lewy klik na własnego ludzika** → zaznacza go: lekko się powiększa i
      podświetla pierścieniem (rozmiar/kolor/grubość tweakowalne w
@@ -52,7 +60,24 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
    - **Prawy przycisk myszy + przeciąganie** → przesuwanie widoku kamery.
    - **Scroll** → zoom.
    - Najedź myszą na heks, żeby zobaczyć w górnym lewym rogu, co o nim wiadomo
-     (nic / tylko typ terenu / pełne dane) — zgodnie z dwupoziomową mgłą wojny.
+     (nic / tylko typ terenu / pełne dane) — zgodnie z trójpoziomową mgłą
+     wojny. **Panel po kliknięciu (lewy dolny róg) pokazuje dokładnie tyle
+     samo** — dopóki pole jest "unexplored" widać wyłącznie jego ID (np.
+     `A13`), bez typu terenu ani niczego innego; od "seen" dochodzi typ
+     terenu i koszt ruchu; pełne dane (etykieta, właściciel, budynek, poziom
+     zasobu) dopiero po "annexed" (patrz `_refresh_action_panel()` w
+     `game_map_controller.gd`). Przyciski akcji same w sobie NIE są tak
+     bramkowane — działają na prawdziwym stanie pola niezależnie od mgły
+     (np. żeby przejęcie terenu przeciwnika było w ogóle możliwe), tylko
+     opis tekstowy chroni informację o tym, co się na nim znajduje.
+   - **Kolor drużyny wokół pola** — każdy heks, który został przez kogoś
+     zaanektowany, ma dookoła grubszą kolorową obwódkę w barwie właściciela
+     (ten sam kolor co jego pionek), widoczną od razu, jak tylko pole
+     przestaje być "unexplored" — ten sam próg co widoczność ludzika
+     przeciwnika (patrz niżej), więc terytorium wroga, które już
+     zwiadowałeś, jest widoczne na mapie bez klikania w każde pole z osobna.
+     Rysowana w `hex_map_view.gd` pod zwykłą/żółtą obwódką zaznaczenia, więc
+     obie są widoczne naraz.
    - Panel w lewym dolnym rogu pokazuje ZAZNACZONE pole i udostępnia akcje:
      - **Zaanektuj** — jedyna akcja wymagająca fizycznej obecności: działa
        TYLKO gdy jeden z twoich ludzików stoi dokładnie na zaznaczonym,
@@ -78,7 +103,7 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
      zmieniając, który gracz jest akurat kontrolowany. Kontrola gracza i
      przeliczenie rundy to dwie całkowicie niezależne rzeczy (sekcja 8 GDD
      dopuszcza "na przemian LUB jednocześnie").
-6. Dla testu niższego poziomu (bez UI/kamery/grafiki) nadal działa
+7. Dla testu niższego poziomu (bez UI/kamery/grafiki) nadal działa
    `scenes/main_test.tscn` (F6 na tej scenie) — smoke test Fazy 0-1 (dane,
    aneksacja, wydobycie lasu, tura) **plus** Faz 6-9 (drugi gracz, blokada
    ruchu przez `HexPathfinder`, przejęcie terytorium, kara za strefę
@@ -89,33 +114,41 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
 
 ```
 godot_project/
-├── project.godot            # main_scene = scenes/main.tscn, autoloady
+├── project.godot            # main_scene = scenes/start_screen.tscn, autoloady
 ├── autoloads/
 │   ├── map_data.gd           # wczytuje data/map_data.json, sąsiedzi, dołącza
 │   │                          # REALNE budynki z pola "building" w JSON
 │   ├── game_manager.gd       # gracze, aneksacja, naprawa, wydobycie lasu,
 │   │                          # przejęcia, kara za strefy chronione, Karta Miasta
-│   └── turn_manager.gd       # kolejność graczy, przeliczenie rundy
+│   ├── turn_manager.gd       # kolejność graczy, przeliczenie rundy
+│   └── game_setup.gd         # GameSetup: wybór miast z ekranu startowego,
+│                              # przekazany do game_map_controller.gd
 ├── resources/
 │   ├── hex_data.gd              # class_name HexData (Resource)
 │   ├── building.gd               # class_name Building (Resource)
-│   ├── player_data.gd            # class_name PlayerData (Resource)
+│   ├── player_data.gd            # class_name PlayerData (Resource) - w tym kolor drużyny
 │   └── city_buildings_data.gd    # statyczne dane Karty Miasta per miasto startowe
 ├── scripts/
 │   ├── game_balance.gd          # WSZYSTKIE stałe balansu w jednym miejscu -
 │   │                              # tu tweakuj prędkość ludzika, MP, wygląd
 │   │                              # zaznaczenia...
+│   ├── player_setup.gd          # PlayerSetup.LIST - lista miast/graczy,
+│   │                              # współdzielona przez start_screen.gd i
+│   │                              # game_map_controller.gd
 │   ├── hex_grid_utils.gd        # matematyka siatki - offset "even-q", flat-top
 │   └── hex_pathfinder.gd        # A* (AStar2D) po heksach, wg kosztu terenu,
 │                                  # z opcjonalną listą heksów wykluczonych (blokada PvP)
 ├── scenes/
+│   ├── start_screen.tscn / start_screen.gd  # ekran startowy - wybór, ile i
+│   │                              # które miasta grają (checkboxy, min. 2)
 │   ├── main.tscn                # scena grywalna (Fazy 2-9) - kamera, mapa,
-│   │                              # ludzik (+5 tworzonych w kodzie), UI, Karta Miasta
+│   │                              # ludzik (+ do 5 tworzonych w kodzie), UI, Karta Miasta
 │   ├── game_map_controller.gd   # orchestracja: ruch, mgła, akcje na polu,
 │   │                              # wybór gracza, PvP, Karta Miasta,
-│   │                              # zaznaczanie ludzików
+│   │                              # zaznaczanie ludzików, filtr GameSetup
 │   ├── hex_map_view.gd          # rysowanie siatki + mgła wojny + klikanie/hover
-│   │                              # + podświetlenie zaznaczonego pola
+│   │                              # + podświetlenie zaznaczonego pola + obwódka
+│   │                              # w kolorze drużyny-właściciela
 │   ├── camera_controller.gd     # pan (PPM) / zoom (scroll)
 │   ├── ludzik.gd                 # wizualny pionek gracza: płynny ruch (Tween),
 │   │                              # własne MP, zaznaczenie (skala + podświetlenie)
@@ -205,16 +238,49 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
-- **Hotseat na pełnych 6 graczach (sekcja 7 GDD).** `PLAYER_SETUP` w
-  `game_map_controller.gd` rejestruje wszystkich 6 graczy naraz (Wrocław
+- **Hotseat na pełnych 6 graczach (sekcja 7 GDD).** `PlayerSetup.LIST`
+  (`scripts/player_setup.gd`) opisuje wszystkich 6 możliwych graczy (Wrocław
   `H18`, Szczecin `A7`, Warszawa `R12`, Kraków `O22`, Gdańsk `L3`, Poznań
   `G12`), każdy z osobnym kolorem pionka i kompletem budynków Karty Miasta
   w `city_buildings_data.gd`. Cała logika ruchu/mgły/akcji/tur/PvP była od
   początku napisana generycznie (pętle po `players`/`player_ludziks`, bez
   założenia "dokładnie dwóch graczy"), więc przejście z 2 na 6 to była
-  wyłącznie kwestia dopisania DANYCH (wpisów w tych dwóch plikach) - żadnych
-  zmian w logice sterowania, ruchu, mgły, akcji na polu czy tur. Żeby zagrać
-  w mniejszym składzie, po prostu usuń wybrane wpisy z `PLAYER_SETUP`.
+  wyłącznie kwestia dopisania DANYCH - żadnych zmian w logice sterowania,
+  ruchu, mgły, akcji na polu czy tur. Który skład faktycznie gra wybiera się
+  teraz na ekranie startowym (patrz niżej), zamiast ręcznie edytować listę.
+- **Ekran startowy - wybór miast przed rozgrywką** (nowość). `scenes/start_screen.tscn`
+  jest teraz sceną główną (`project.godot` -> `run/main_scene`): checkbox per
+  miasto z `PlayerSetup.LIST`, wszystkie domyślnie zaznaczone, minimum 2
+  wymagane do startu. Wybór trafia do nowego autoloadu `GameSetup`
+  (`selected_player_ids: Array[int]`) - jedyny stan, który musi przeżyć
+  `change_scene_to_file()` do `main.tscn`. `game_map_controller._setup_players()`
+  filtruje `PLAYER_SETUP` (teraz alias na `PlayerSetup.LIST`) po tej liście;
+  pusta lista (uruchomienie `main.tscn` z pominięciem ekranu startowego, np.
+  F6 w edytorze) oznacza "wszyscy", więc stary sposób testowania nadal działa
+  bez zmian. Uwaga na indeksowanie węzła `$Ludzik` już obecnego w scenie -
+  przypisywany jest pierwszemu FAKTYCZNIE zarejestrowanemu graczowi (po
+  filtrze), nie pierwszemu wpisowi w `PLAYER_SETUP`, żeby nie zostawał
+  osierocony, gdy gracz #1 (Wrocław) nie zostanie wybrany.
+- **Mgła wojny bramkuje też panel po kliknięciu, nie tylko hover** (update).
+  `_refresh_action_panel()` w `game_map_controller.gd` używał wcześniej
+  zawsze pełnych danych pola (etykieta, właściciel, budynek, poziom zasobu)
+  niezależnie od tego, czy gracz w ogóle to pole odkrył - klikając
+  niezbadane pole, dało się poznać wszystko o nim od razu, z pominięciem
+  mgły wojny. Teraz stosuje dokładnie tę samą trójpoziomową logikę co
+  `_on_hex_hovered()` (przy hover): "unexplored" pokazuje tylko ID heksa,
+  "seen" dokłada typ terenu i koszt ruchu, "annexed" pokazuje wszystko.
+  Przyciski akcji celowo NIE są bramkowane tym samym mechanizmem (patrz
+  komentarz w kodzie) - to świadomy kompromis, żeby np. przejęcie terenu
+  przeciwnika pozostało możliwe bez wcześniejszego pełnego zbadania pola.
+- **Kolor drużyny wokół zaanektowanych pól** (nowość). `hex_map_view.gd`
+  (`_draw_hex()`) rysuje dodatkową, grubszą obwódkę (`OWNER_OUTLINE_WIDTH`)
+  w kolorze właściciela (`PlayerData.color`, ten sam co pionek) wokół
+  każdego heksa, który ma właściciela I nie jest już "unexplored" dla
+  oglądającego gracza - ten sam próg mgły co widoczność ludzika przeciwnika
+  (sekcja niżej), więc oba mechanizmy są ze sobą spójne. Kolor pobierany
+  przez `GameManager.get_player(hex.owner_id).color` - stąd nowe pole
+  `PlayerData.color`, ustawiane w `_setup_players()` z tego samego wpisu
+  `PLAYER_SETUP`, z którego już czerpał kolor pionek.
 - **Kara za strefę chronioną nalicza się przy budowie/naprawie, NIE przy
   aneksacji** (update). Pierwsza wersja karała już samo przejęcie własności
   heksa chronionego - to się okazało zbyt agresywne (samo "zaklepanie" pola

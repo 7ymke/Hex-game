@@ -1,10 +1,12 @@
 class_name HexMapView
 extends Node2D
 ## Faza 2 (wizualizacja) + Faza 3 (mgła wojny) planu implementacji.
-## Rysuje siatkę heksów kolorowaną wg typu terenu, z dwupoziomową mgłą wojny
+## Rysuje siatkę heksów kolorowaną wg typu terenu, z trójpoziomową mgłą wojny
 ## (sekcja 2.2 GDD): "unexplored" = całkiem zakryty, "seen" = widoczny typ
 ## terenu ale przyciemniony (bez szczegółów), "annexed" = w pełni odkryty
-## (etykieta z ID, później budynek/zasób).
+## (etykieta z ID, budynek/zasób). Heksy z właścicielem dostają dodatkowo
+## grubszą obwódkę w kolorze drużyny (widoczną od progu "seen" - ten sam co
+## widoczność ludzika przeciwnika w game_map_controller.gd).
 
 signal hex_clicked(hex_id: String)
 signal hex_hovered(hex_id: String)  # pusty string = kursor poza siatką
@@ -30,6 +32,7 @@ const FOG_UNEXPLORED = Color(0.08, 0.08, 0.08)
 const FOG_SEEN_OVERLAY = Color(0, 0, 0, 0.4)
 const OUTLINE_COLOR = Color(0, 0, 0, 0.5)
 const SELECTED_OUTLINE_COLOR = Color(1, 0.9, 0.2, 0.9)
+const OWNER_OUTLINE_WIDTH = 4.0
 
 
 func _draw() -> void:
@@ -53,6 +56,17 @@ func _draw_hex(hex: HexData) -> void:
 
 	var outline = corners.duplicate()
 	outline.append(corners[0])
+
+	# Kolor drużyny wokół pól, które przejęła - ten sam próg mgły co
+	# widoczność ludzika przeciwnika (fog != "unexplored", sekcja 2.2 GDD):
+	# wystarczy, że pole kiedyś znalazło się w zasięgu widzenia, nie trzeba
+	# go samemu zaanektować. Rysowany grubszą linią POD zwykłą/zaznaczoną
+	# obwódką, żeby obie były widoczne naraz.
+	if fog != "unexplored" and hex.owner_id != -1:
+		var owner = GameManager.get_player(hex.owner_id)
+		if owner != null:
+			draw_polyline(outline, owner.color, OWNER_OUTLINE_WIDTH)
+
 	var is_selected = hex.hex_id == selected_hex_id
 	draw_polyline(outline, SELECTED_OUTLINE_COLOR if is_selected else OUTLINE_COLOR, 3.0 if is_selected else 1.5)
 
