@@ -200,7 +200,7 @@ func _set_selected_ludzik(ludzik: Ludzik) -> void:
 func _set_selected_hex(hex_id: String) -> void:
 	selected_hex_id = hex_id
 	hex_map_view.selected_hex_id = hex_id
-	hex_map_view.queue_redraw()
+	_refresh_map_view()
 
 
 func _on_player_turn_started(player_id: int) -> void:
@@ -220,7 +220,7 @@ func _on_player_turn_started(player_id: int) -> void:
 	]
 	info_label.text = "Kliknij ludzika, żeby go zaznaczyć/odznaczyć, potem kliknij pole, żeby go tam przesunąć."
 
-	hex_map_view.queue_redraw()
+	_refresh_map_view()
 	_update_mp_label()
 	_update_stats_labels()
 	_refresh_action_panel()
@@ -290,7 +290,7 @@ func _move_along_path(ludzik: Ludzik, path: Array[String]) -> void:
 		await ludzik.animate_to_hex(next_hex_id)
 		_reveal_around(next_hex_id, ludzik.player_id)
 		_update_mp_label()
-		hex_map_view.queue_redraw()
+		_refresh_map_view()
 		i += 1
 
 	ludzik.is_moving = false
@@ -329,6 +329,35 @@ func _reveal_around(center_hex_id: String, player_id: int) -> void:
 			if hex != null and hex.get_fog_state(player_id) == "unexplored":
 				hex.set_fog_state(player_id, "seen")
 			queue.append(n)
+
+
+## Odświeża siatkę heksów I widoczność ludzików przeciwników - te dwie rzeczy
+## zawsze idą razem, bo obie zależą od tego samego stanu mgły wojny. Używaj
+## tego zamiast bezpośredniego hex_map_view.queue_redraw(), gdziekolwiek mgła,
+## widok gracza albo pozycja ludzika mogły się zmienić.
+func _refresh_map_view() -> void:
+	_update_ludzik_visibility()
+	hex_map_view.queue_redraw()
+
+
+## Ludzik przeciwnika jest widoczny TYLKO na polu, które aktywny (oglądający)
+## gracz już odkrył - fog_state != "unexplored". Nie trzeba go w pełni zbadać
+## ani zaanektować, wystarczy, że heks kiedyś znalazł się w promieniu
+## widzenia (VISION_RADIUS) jednego z Twoich ludzików - dokładnie ten sam
+## próg, co ujawnienie samego terenu (sekcja 2.2 GDD). Własne ludziki są
+## widoczne zawsze.
+func _update_ludzik_visibility() -> void:
+	if active_player == null:
+		return
+
+	for pid in player_ludziks:
+		var is_own = pid == active_player.player_id
+		for l in player_ludziks[pid]:
+			if is_own:
+				l.visible = true
+				continue
+			var hex = MapData.get_hex(l.current_hex_id)
+			l.visible = hex != null and hex.get_fog_state(active_player.player_id) != "unexplored"
 
 
 func _on_hex_hovered(hex_id: String) -> void:
@@ -381,7 +410,7 @@ func _on_annex_pressed() -> void:
 	if result["success"]:
 		_reveal_around(hex_id, active_player.player_id)  # "seen" -> "annexed" + ujawnia budynek
 		info_label.text = "Zaanektowano %s (koszt: %d MP)." % [hex_id, GameBalance.ANNEX_MP_COST]
-		hex_map_view.queue_redraw()
+		_refresh_map_view()
 	else:
 		ludzik.refund_movement_points(GameBalance.ANNEX_MP_COST)
 		info_label.text = "Nie udało się zaanektować %s (%s)." % [hex_id, result["reason"]]
@@ -404,7 +433,7 @@ func _on_takeover_pressed() -> void:
 	if result["success"]:
 		_reveal_around(hex_id, active_player.player_id)
 		info_label.text = "Przejęto %s (koszt: -%d prestiżu)." % [hex_id, result["cost"]]
-		hex_map_view.queue_redraw()
+		_refresh_map_view()
 		_update_stats_labels()
 	else:
 		var reason_text = {
@@ -446,7 +475,7 @@ func _on_harvest_pressed() -> void:
 			msg += " Kara prestiżowa: -%d (przekroczono próg 60%%)." % result["prestige_penalty"]
 		info_label.text = msg
 		_update_stats_labels()
-		hex_map_view.queue_redraw()
+		_refresh_map_view()
 	else:
 		info_label.text = "Nie udało się wydobyć drewna z %s (%s)." % [hex_id, result["reason"]]
 	_refresh_action_panel()

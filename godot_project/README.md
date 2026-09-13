@@ -357,14 +357,20 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   i hotseat gra już na pełnych 6 graczach — multiplayer SIECIOWY (Faza 10)
   czeka teraz tylko na warstwę sieciową (ENet), nie na dane mapy ani na
   logikę wielu graczy, która już istnieje i działa lokalnie.
-- **Ludziki wszystkich graczy są zawsze widoczne**, niezależnie od mgły
-  wojny aktywnego gracza (rysują się jako zwykłe węzły `Node2D` nad warstwą
-  mgły). W hotseat na jednym ekranie to nieszkodliwe uproszczenie — wszyscy
-  gracze i tak widzą ten sam monitor między turami, więc "ukrywanie pionka
-  przeciwnika" nie chroni żadnej realnej informacji. Nabierze znaczenia
-  dopiero przy prawdziwym multiplayerze sieciowym z osobnymi klientami
-  (Faza 10), gdzie wymagałoby też decyzji projektowej, czy pozycja ludzika
-  w ogóle powinna być tajna (GDD tego nie precyzuje).
+- **Ludzik przeciwnika widoczny tylko na odkrytym polu** (update - wcześniej
+  widoczny zawsze, niezależnie od mgły). `game_map_controller._update_ludzik_visibility()`
+  ustawia `Node2D.visible` każdego CUDZEGO ludzika wg fog_state aktywnego
+  (oglądającego) gracza na heksie, na którym ludzik akurat stoi - widoczny,
+  jeśli ten heks jest choćby "seen" (kiedyś znalazł się w promieniu widzenia
+  jednego z Twoich ludzików, `VISION_RADIUS`), nie dopiero po pełnym
+  zbadaniu/zaanektowaniu. Własne ludziki są widoczne zawsze. Wołane przez
+  nową `_refresh_map_view()` (zastąpiła bezpośrednie
+  `hex_map_view.queue_redraw()` wszędzie, gdzie mgła/widok/pozycja ludzika
+  mogły się zmienić), więc widoczność jest zawsze spójna z tym, co akurat
+  pokazuje mgła wojny na mapie. Nadal działa niezależnie od "funkcji
+  obronnej" (blokada ruchu, sekcja 3 GDD) - ta zostaje oparta o faktyczną
+  pozycję, nie o to, czy akurat ją widzisz, bo GDD nie warunkuje obrony
+  terytorium widocznością.
 - **Otwarte pytania z sekcji 11 GDD** wciąż nierozstrzygnięte (nie blokują
   Faz 0-9, ale wpłyną na balans): czy typ strefy chronionej (UNESCO vs zwykły
   PN) różnicuje karę prestiżową; czy surowce wymagają przetworzenia w
