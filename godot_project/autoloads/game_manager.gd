@@ -34,6 +34,13 @@ func change_prestige(player_id: int, delta: int) -> void:
 
 ## Aneksacja - sekcja 2.2/3 GDD: wejście na pole i aneksacja to osobne czynności,
 ## to wywołanie reprezentuje samą akcję aneksacji (już stojąc na polu).
+##
+## Strefy chronione (sekcja 4 GDD): w grze nie ma osobnej akcji "eksploatuj
+## strefę chronioną" - jedyny sposób, w jaki gracz faktycznie "zagospodarowuje"
+## taki heks, to go zaanektować. Aneksacja strefy chronionej jest więc
+## traktowana jako pełna (damage_scale = 1.0) eksploatacja i od razu nalicza
+## karę prestiżową przez damage_protected_area - zgodnie z zasadą "kara
+## skaluje się względem skali zniszczeń" z sekcji 4.
 func annex_hex(hex_id: String, player_id: int) -> Dictionary:
 	var hex := MapData.get_hex(hex_id)
 	if hex == null:
@@ -45,7 +52,13 @@ func annex_hex(hex_id: String, player_id: int) -> Dictionary:
 	hex.set_fog_state(player_id, "annexed")
 	hex_ownership_changed.emit(hex_id, player_id)
 
-	return {"success": true, "terrain": hex.terrain_type, "resource": hex.resource_type}
+	var result := {"success": true, "terrain": hex.terrain_type, "resource": hex.resource_type}
+
+	if hex.is_protected():
+		var penalty_result := damage_protected_area(hex_id, player_id, 1.0)
+		result["prestige_penalty"] = penalty_result.get("prestige_penalty", 0)
+
+	return result
 
 
 ## Wydobycie lasu - sekcja 6.1 GDD.
@@ -122,6 +135,27 @@ func attempt_takeover(hex_id: String, attacker_id: int) -> Dictionary:
 	hex_ownership_changed.emit(hex_id, attacker_id)
 
 	return {"success": true, "cost": cost, "previous_owner": previous_owner}
+
+
+## Odblokowanie budynku charakterystycznego w Karcie Miasta - sekcja 7 GDD.
+## Scentralizowane tu (a nie w UI Karty Miasta), żeby - tak jak inne akcje -
+## płatność zasobami i przyznanie prestiżu (sekcja 7: "główny fundament pod
+## przyszły warunek zwycięstwa - punkty prestiżu za skompletowane budynki")
+## przechodziły przez jedno miejsce.
+func unlock_city_building(player_id: int, building: Building) -> Dictionary:
+	var player := get_player(player_id)
+	if player == null or building == null:
+		return {"success": false, "reason": "invalid_player_or_building"}
+	if player.unlocked_city_buildings.has(building.building_name):
+		return {"success": false, "reason": "already_unlocked"}
+	if not player.pay_costs(building.required_resources):
+		return {"success": false, "reason": "cannot_afford"}
+
+	player.unlocked_city_buildings.append(building.building_name)
+	if building.prestige_value != 0:
+		change_prestige(player_id, building.prestige_value)
+
+	return {"success": true, "prestige_gained": building.prestige_value}
 
 
 ## Naprawa budynku - sekcja 3 GDD ("może go naprawić i sprawić, że będzie

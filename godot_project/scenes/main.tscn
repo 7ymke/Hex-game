@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://cmapmain0001"]
+[gd_scene load_steps=6 format=3 uid="uid://cmapmain0001"]
 
 [ext_resource type="Script" path="res://scenes/game_map_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scenes/camera_controller.gd" id="2"]
 [ext_resource type="Script" path="res://scenes/hex_map_view.gd" id="3"]
 [ext_resource type="Script" path="res://scenes/ludzik.gd" id="4"]
+[ext_resource type="Script" path="res://scenes/city_card_panel.gd" id="5"]
 
 [node name="GameMapController" type="Node2D"]
 script = ExtResource("1")
@@ -31,29 +32,38 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 16
 text = "Ładowanie..."
 
-[node name="MPLabel" type="Label" parent="UI"]
+[node name="TurnLabel" type="Label" parent="UI"]
 offset_left = 16.0
 offset_top = 44.0
-offset_right = 300.0
+offset_right = 500.0
 offset_bottom = 68.0
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 16
+text = "Tura gracza: -"
+
+[node name="MPLabel" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 72.0
+offset_right = 300.0
+offset_bottom = 96.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 16
 text = "Punkty ruchu: -"
 
 [node name="PrestigeLabel" type="Label" parent="UI"]
 offset_left = 16.0
-offset_top = 72.0
+offset_top = 100.0
 offset_right = 500.0
-offset_bottom = 96.0
+offset_bottom = 124.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 16
 text = "Prestiż: -"
 
 [node name="ActionPanel" type="PanelContainer" parent="UI"]
 offset_left = 16.0
-offset_top = 440.0
+offset_top = 420.0
 offset_right = 460.0
-offset_bottom = 630.0
+offset_bottom = 700.0
 
 [node name="VBox" type="VBoxContainer" parent="UI/ActionPanel"]
 theme_override_constants/separation = 6
@@ -64,6 +74,9 @@ text = "Wybierz pole."
 
 [node name="AnnexButton" type="Button" parent="UI/ActionPanel/VBox"]
 text = "Zaanektuj"
+
+[node name="TakeoverButton" type="Button" parent="UI/ActionPanel/VBox"]
+text = "Przejmij teren"
 
 [node name="RepairButton" type="Button" parent="UI/ActionPanel/VBox"]
 text = "Napraw budynek"
@@ -84,5 +97,37 @@ text = "50%"
 [node name="HarvestButton" type="Button" parent="UI/ActionPanel/VBox"]
 text = "Wydobądź drewno"
 
+[node name="CityCardButton" type="Button" parent="UI/ActionPanel/VBox"]
+text = "Karta Miasta"
+
 [node name="EndTurnButton" type="Button" parent="UI/ActionPanel/VBox"]
 text = "Zakończ turę"
+
+[node name="CityCardPanel" type="CanvasLayer" parent="."]
+layer = 10
+script = ExtResource("5")
+
+[node name="Panel" type="PanelContainer" parent="CityCardPanel"]
+offset_left = 200.0
+offset_top = 80.0
+offset_right = 900.0
+offset_bottom = 620.0
+
+[node name="VBox" type="VBoxContainer" parent="CityCardPanel/Panel"]
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="CityCardPanel/Panel/VBox"]
+theme_override_font_sizes/font_size = 20
+text = "Karta Miasta"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CityCardPanel/Panel/VBox"]
+custom_minimum_size = Vector2(0, 400)
+size_flags_vertical = 3
+
+[node name="BuildingList" type="VBoxContainer" parent="CityCardPanel/Panel/VBox/ScrollContainer"]
+custom_minimum_size = Vector2(680, 0)
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="CloseButton" type="Button" parent="CityCardPanel/Panel/VBox"]
+text = "Zamknij"

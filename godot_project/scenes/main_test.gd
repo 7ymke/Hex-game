@@ -52,4 +52,89 @@ func _ready() -> void:
 	else:
 		print("UWAGA: nie znaleziono żadnego heksa lasu w danych mapy.")
 
-	print("=== Koniec testu ===")
+	print("=== Koniec testu Fazy 0-1 ===")
+	_test_phase_6_to_9(player)
+
+
+## Manualny test dymny Faz 6-9: pełna struktura tur wielu graczy, blokada
+## ruchu przez broniącego ludzika, przejęcie terytorium (PvP) i Karta Miasta.
+## Testowane na poziomie logiki (GameManager/TurnManager/HexPathfinder),
+## bez tworzenia widocznych węzłów Ludzik - te żyją w game_map_controller.gd
+## i wymagają uruchomienia sceny scenes/main.tscn (patrz README).
+func _test_phase_6_to_9(player: PlayerData) -> void:
+	print("=== Test Faz 6-9: tury wielu graczy, blokada, przejęcie, Karta Miasta ===")
+
+	# --- Faza 6: drugi gracz + kolejność tur ---
+	var player2 := PlayerData.new()
+	player2.player_id = 2
+	player2.player_name = "Gracz 2 testowy"
+	player2.starting_city = "Szczecin"
+	GameManager.register_player(player2)
+
+	if MapData.get_hex("A3") != null:
+		print("Aneksacja A3 (Szczecin) dla gracza 2: ", GameManager.annex_hex("A3", 2))
+
+	TurnManager.setup_player_order([1, 2])
+	print(
+		"Aktywny gracz po setup_player_order: %d (oczekiwano 1)" % TurnManager.get_current_player_id()
+	)
+	TurnManager.advance_to_next_player()
+	print(
+		"Aktywny gracz po advance_to_next_player: %d (oczekiwano 2)" % TurnManager.get_current_player_id()
+	)
+
+	# --- Faza 9: blokada ruchu przez broniącego ludzika (sekcja 3 GDD) ---
+	# H14 (Wrocław) ma sześciu sąsiadów w obecnych danych, w tym H13 - użyty
+	# tu jako "zajęty przez broniącego ludzika" heks.
+	var pathfinder := HexPathfinder.new()
+	pathfinder.build(["H13"])
+	var blocked_target := pathfinder.find_path("H14", "H13")
+	print(
+		"Trasa H14->H13 gdy H13 jest bronione: %s (oczekiwano pustej listy)" % [blocked_target]
+	)
+	var reroutable := pathfinder.find_path("H14", "G14")
+	print("Trasa H14->G14 mimo blokady H13 (inny sąsiad, powinna istnieć): ", reroutable)
+
+	# --- Faza 9: przejęcie terytorium ---
+	if MapData.get_hex("H15") != null:
+		GameManager.annex_hex("H15", 1)
+
+		# Wyrównaj prestiż obu graczy (niezależnie od kar naliczonych wcześniej
+		# w teście Fazy 0-1), żeby jednoznacznie pokazać odrzucenie próby przy
+		# prestiżu ataku <= prestiżu obrony (sekcja 5 GDD: musi być ŚCIŚLE większy).
+		player2.modify_prestige(player.prestige - player2.prestige)
+		var equal_prestige_attempt := GameManager.attempt_takeover("H15", 2)
+		print(
+			"Próba przejęcia H15 przy równym prestiżu (%d vs %d): %s"
+			% [player2.prestige, player.prestige, equal_prestige_attempt]
+		)
+
+		player2.modify_prestige(50)  # gracz 2 ma teraz przewagę prestiżową
+		var winning_attempt := GameManager.attempt_takeover("H15", 2)
+		print(
+			"Próba przejęcia H15 z przewagą prestiżową (%d vs %d): %s"
+			% [player2.prestige, player.prestige, winning_attempt]
+		)
+		print("Właściciel H15 po przejęciu: ", MapData.get_hex("H15").owner_id, " (oczekiwano 2)")
+
+	# --- Faza 7: kara prestiżowa za aneksację strefy chronionej ---
+	if MapData.get_hex("B1") != null:
+		var prestige_before := player2.prestige
+		var protected_result := GameManager.annex_hex("B1", 2)
+		print("Aneksacja B1 (Woliński PN, strefa chroniona): ", protected_result)
+		print("Prestiż gracza 2 przed/po: %d -> %d" % [prestige_before, player2.prestige])
+
+	# --- Faza 8: Karta Miasta ---
+	var wroclaw_buildings := CityBuildingsData.get_buildings("Wrocław")
+	print("Liczba budynków Karty Miasta dla Wrocławia: ", wroclaw_buildings.size())
+	if not wroclaw_buildings.is_empty():
+		var cheapest: Building = wroclaw_buildings[0]
+		for res_type in cheapest.required_resources:
+			player.add_resource(res_type, cheapest.required_resources[res_type])
+		var unlock_result := GameManager.unlock_city_building(1, cheapest)
+		print("Odblokowanie '%s': %s" % [cheapest.building_name, unlock_result])
+		print("Prestiż gracza 1 po odblokowaniu: ", player.prestige)
+		var repeat_unlock := GameManager.unlock_city_building(1, cheapest)
+		print("Ponowna próba odblokowania tego samego budynku: ", repeat_unlock)
+
+	print("=== Koniec testu Faz 6-9 ===")

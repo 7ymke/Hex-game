@@ -1,81 +1,161 @@
 extends Node2D
-## Faza 4-5 planu implementacji: ruch (pathfinding + mgła) oraz akcje na polu
-## (aneksacja, naprawa budynku, wydobycie lasu) z prostym panelem UI.
+## Fazy 4-9 planu implementacji: ruch (pathfinding + mgła), akcje na polu
+## (aneksacja, naprawa budynku, wydobycie lasu), pełna struktura tur
+## wielu graczy (Faza 6), Karta Miasta (Faza 8) i przejęcie terytorium
+## PvP (Faza 9).
 ##
-## Wciąż jednoosobowy test manualny (jeden gracz, jeden ludzik) - pełna obsługa
-## wielu graczy/tur na przemian to Fazy 6+9, jeszcze nie tutaj. Przycisk
-## "Zakończ turę" już teraz woła TurnManager, żeby dało się przetestować
-## regenerację lasu i dochód z budynków między rundami.
+## Hotseat: 2 graczy na jednym ekranie, na przemian (sekcja 8 GDD - "ruchy
+## graczy na przemian... następnie przeliczenie rundy"). Gracz 1 startuje we
+## Wrocławiu (H14, jedyny heks oznaczony jako "city" w obecnym wycinku KML),
+## gracz 2 w Szczecinie (A3 - oznaczony w danych jako miasto etykietą, ale
+## nie osobnym typem terenu; wystarczające dla testu multiplayer/PvP, dopóki
+## KML nie obejmie reszty Polski z kolejnymi miastami startowymi).
 
 const VISION_RADIUS = 2
 const STEP_DELAY_SEC = 0.25
 
+## Gracze startowi hotseat - id, nazwa, miasto, heks bazowy, kolor pionka.
+const PLAYER_SETUP := [
+	{"id": 1, "name": "Gracz 1", "city": "Wrocław", "start_hex": "H14", "color": Color(0.9, 0.2, 0.2)},
+	{"id": 2, "name": "Gracz 2", "city": "Szczecin", "start_hex": "A3", "color": Color(0.2, 0.4, 0.9)},
+]
+
 @onready var hex_map_view: HexMapView = $HexMapView
-@onready var ludzik: Ludzik = $Ludzik
+@onready var city_card_panel: CityCardPanel = $CityCardPanel
 @onready var info_label: Label = $UI/InfoLabel
+@onready var turn_label: Label = $UI/TurnLabel
 @onready var mp_label: Label = $UI/MPLabel
 @onready var prestige_label: Label = $UI/PrestigeLabel
 @onready var hex_info_label: Label = $UI/ActionPanel/VBox/HexInfoLabel
 @onready var annex_button: Button = $UI/ActionPanel/VBox/AnnexButton
+@onready var takeover_button: Button = $UI/ActionPanel/VBox/TakeoverButton
 @onready var repair_button: Button = $UI/ActionPanel/VBox/RepairButton
 @onready var harvest_slider: HSlider = $UI/ActionPanel/VBox/HarvestRow/HarvestSlider
 @onready var harvest_value_label: Label = $UI/ActionPanel/VBox/HarvestRow/HarvestValueLabel
 @onready var harvest_button: Button = $UI/ActionPanel/VBox/HarvestButton
+@onready var city_card_button: Button = $UI/ActionPanel/VBox/CityCardButton
 @onready var end_turn_button: Button = $UI/ActionPanel/VBox/EndTurnButton
 
-var player: PlayerData
+var players: Array[PlayerData] = []
+var ludziks: Dictionary = {}  # player_id(int) -> Ludzik
+var active_player: PlayerData
+
 var pathfinder = HexPathfinder.new()
 var current_path: Array[String] = []
 var _moving = false
 
 
 func _ready() -> void:
-	player = PlayerData.new()
-	player.player_id = 1
-	player.player_name = "Gracz testowy"
-	player.starting_city = "Wrocław"
-	GameManager.register_player(player)
-
+	_setup_players()
 	pathfinder.build()
 
-	var start_hex_id = "H14" if MapData.get_hex("H14") != null else MapData.hexes.keys()[0]
-	GameManager.annex_hex(start_hex_id, player.player_id)
-
-	ludzik.player_id = player.player_id
-	ludzik.place_on_hex(start_hex_id)
-	_reveal_around(start_hex_id)
-
-	hex_map_view.viewing_player_id = player.player_id
 	hex_map_view.hex_clicked.connect(_on_hex_clicked)
 	hex_map_view.hex_hovered.connect(_on_hex_hovered)
-	hex_map_view.queue_redraw()
 
 	annex_button.pressed.connect(_on_annex_pressed)
+	takeover_button.pressed.connect(_on_takeover_pressed)
 	repair_button.pressed.connect(_on_repair_pressed)
 	harvest_button.pressed.connect(_on_harvest_pressed)
 	harvest_slider.value_changed.connect(_on_harvest_slider_changed)
+	city_card_button.pressed.connect(_on_city_card_pressed)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
+	city_card_panel.building_unlocked.connect(_on_city_building_unlocked)
 
-	TurnManager.setup_player_order([player.player_id])
+	TurnManager.player_turn_started.connect(_on_player_turn_started)
+	var player_ids: Array[int] = []
+	for p in players:
+		player_ids.append(p.player_id)
+	TurnManager.setup_player_order(player_ids)
 
+	_on_harvest_slider_changed(harvest_slider.value)
+
+
+## Tworzy graczy, ich ludziki i aneksuje im heks startowy - odpowiednik
+## Fazy 0-1 test setupu z main_test.gd, ale dla wielu graczy naraz.
+func _setup_players() -> void:
+	var existing_ludzik: Ludzik = $Ludzik
+
+	for i in range(PLAYER_SETUP.size()):
+		var setup: Dictionary = PLAYER_SETUP[i]
+
+		var player := PlayerData.new()
+		player.player_id = setup["id"]
+		player.player_name = setup["name"]
+		player.starting_city = setup["city"]
+		GameManager.register_player(player)
+		players.append(player)
+
+		var ludzik: Ludzik
+		if i == 0:
+			ludzik = existing_ludzik  # scena już ma jeden węzeł Ludzik gotowy
+		else:
+			ludzik = Ludzik.new()
+			add_child(ludzik)
+
+		ludzik.player_id = player.player_id
+		ludzik.color = setup["color"]
+		ludziks[player.player_id] = ludzik
+
+		var start_hex_id: String = setup["start_hex"]
+		if MapData.get_hex(start_hex_id) == null:
+			push_warning("GameMapController: brak heksa startowego %s dla %s" % [start_hex_id, player.player_name])
+			start_hex_id = MapData.hexes.keys()[0]
+
+		GameManager.annex_hex(start_hex_id, player.player_id)
+		ludzik.place_on_hex(start_hex_id)
+		_reveal_around(start_hex_id, player.player_id)
+
+
+func _get_active_ludzik() -> Ludzik:
+	return ludziks[active_player.player_id]
+
+
+## Heksy aktualnie zajęte przez ludziki INNYCH graczy - sekcja 3 GDD,
+## "funkcja obronna": dopóki tam stoją, nie można przez nie przejść ani na
+## nich wylądować.
+func _blocked_hexes_for(player_id: int) -> Array[String]:
+	var blocked: Array[String] = []
+	for pid in ludziks:
+		if pid == player_id:
+			continue
+		blocked.append(ludziks[pid].current_hex_id)
+	return blocked
+
+
+func _on_player_turn_started(player_id: int) -> void:
+	active_player = GameManager.get_player(player_id)
+	hex_map_view.viewing_player_id = player_id
+	_moving = false
+	current_path = []
+
+	turn_label.text = "Tura gracza: %s (%s) | Runda: %d" % [
+		active_player.player_name, active_player.starting_city, TurnManager.round_number
+	]
+	info_label.text = "Kliknij widoczny heks, aby przesunąć ludzika (PPM = przesuń widok, scroll = zoom)."
+
+	hex_map_view.queue_redraw()
 	_update_mp_label()
 	_update_prestige_label()
-	_on_harvest_slider_changed(harvest_slider.value)
 	_refresh_action_panel()
-	info_label.text = "Start: %s. Kliknij widoczny heks, aby przesunąć ludzika (PPM = przesuń widok, scroll = zoom)." % start_hex_id
 
 
 func _on_hex_clicked(hex_id: String) -> void:
 	if _moving:
 		return
 
+	var ludzik := _get_active_ludzik()
 	if hex_id == ludzik.current_hex_id:
 		_refresh_action_panel()
 		return
 
+	var blocked := _blocked_hexes_for(active_player.player_id)
+	pathfinder.build(blocked)
 	var path = pathfinder.find_path(ludzik.current_hex_id, hex_id)
 	if path.size() < 2:
-		info_label.text = "Brak dostępnej trasy do %s." % hex_id
+		if blocked.has(hex_id):
+			info_label.text = "Pole %s jest bronione przez ludzika innego gracza - nie można tam wejść." % hex_id
+		else:
+			info_label.text = "Brak dostępnej trasy do %s." % hex_id
 		return
 
 	current_path = path
@@ -84,6 +164,8 @@ func _on_hex_clicked(hex_id: String) -> void:
 
 
 func _step_movement() -> void:
+	var ludzik := _get_active_ludzik()
+
 	if current_path.size() <= 1:
 		_moving = false
 		_refresh_action_panel()
@@ -99,10 +181,10 @@ func _step_movement() -> void:
 		return
 
 	var cost = next_hex.get_movement_cost()
-	if not player.spend_movement_points(cost):
+	if not active_player.spend_movement_points(cost):
 		info_label.text = (
 			"Brak punktów ruchu: wejście na %s kosztuje %d, zostało %d. Trasa przerwana."
-			% [next_hex_id, cost, player.movement_points_current]
+			% [next_hex_id, cost, active_player.movement_points_current]
 		)
 		_moving = false
 		_update_mp_label()
@@ -110,7 +192,7 @@ func _step_movement() -> void:
 		return
 
 	ludzik.place_on_hex(next_hex_id)
-	_reveal_around(next_hex_id)
+	_reveal_around(next_hex_id, active_player.player_id)
 	_update_mp_label()
 	hex_map_view.queue_redraw()
 
@@ -127,14 +209,14 @@ func _step_movement() -> void:
 
 ## Odsłania mgłę w promieniu widzenia (sekcja 2.2 GDD) - BFS po realnych
 ## sąsiadach, więc liczba "skoków" odpowiada dokładnie odległości heksowej.
-func _reveal_around(center_hex_id: String) -> void:
+func _reveal_around(center_hex_id: String, player_id: int) -> void:
 	var center = MapData.get_hex(center_hex_id)
 	if center == null:
 		return
 
 	center.set_fog_state(
-		player.player_id,
-		"annexed" if center.owner_id == player.player_id else "seen"
+		player_id,
+		"annexed" if center.owner_id == player_id else "seen"
 	)
 
 	var start_coord = Vector2i(center.axial_q, center.axial_r)
@@ -151,8 +233,8 @@ func _reveal_around(center_hex_id: String) -> void:
 				continue
 			distance[n] = dist + 1
 			var hex = MapData.get_hex_at(n.x, n.y)
-			if hex != null and hex.get_fog_state(player.player_id) == "unexplored":
-				hex.set_fog_state(player.player_id, "seen")
+			if hex != null and hex.get_fog_state(player_id) == "unexplored":
+				hex.set_fog_state(player_id, "seen")
 			queue.append(n)
 
 
@@ -163,7 +245,7 @@ func _on_hex_hovered(hex_id: String) -> void:
 	if hex == null:
 		return
 
-	var fog = hex.get_fog_state(player.player_id)
+	var fog = hex.get_fog_state(active_player.player_id)
 	match fog:
 		"unexplored":
 			pass  # nic nie pokazujemy - zgodnie z zasadą dwupoziomowej mgły
@@ -185,23 +267,48 @@ func _on_hex_hovered(hex_id: String) -> void:
 			]
 
 
-## --- Akcje na polu (Faza 5) ---
+## --- Akcje na polu (Faza 5, 8, 9) ---
 
 func _on_annex_pressed() -> void:
-	var hex_id = ludzik.current_hex_id
-	var result = GameManager.annex_hex(hex_id, player.player_id)
+	var hex_id = _get_active_ludzik().current_hex_id
+	var result = GameManager.annex_hex(hex_id, active_player.player_id)
 	if result["success"]:
-		_reveal_around(hex_id)  # podnosi fog_state z "seen" na "annexed" + ujawnia budynek
+		_reveal_around(hex_id, active_player.player_id)  # "seen" -> "annexed" + ujawnia budynek
 		info_label.text = "Zaanektowano %s." % hex_id
+		if result.get("prestige_penalty", 0) > 0:
+			info_label.text += " Strefa chroniona: kara prestiżowa -%d." % result["prestige_penalty"]
 		hex_map_view.queue_redraw()
+		_update_prestige_label()
 	else:
 		info_label.text = "Nie udało się zaanektować %s (%s)." % [hex_id, result["reason"]]
 	_refresh_action_panel()
 
 
+## Przejęcie terytorium (PvP) - sekcja 5 GDD / Faza 9. Dostępne tylko, gdy
+## aktywny gracz aktualnie stoi na heksie należącym do innego gracza -
+## co (dzięki blokadzie ruchu w _on_hex_clicked) jest możliwe wyłącznie
+## wtedy, gdy broniący ludzik akurat go NIE patroluje.
+func _on_takeover_pressed() -> void:
+	var hex_id = _get_active_ludzik().current_hex_id
+	var result = GameManager.attempt_takeover(hex_id, active_player.player_id)
+	if result["success"]:
+		_reveal_around(hex_id, active_player.player_id)
+		info_label.text = "Przejęto %s (koszt: -%d prestiżu)." % [hex_id, result["cost"]]
+		hex_map_view.queue_redraw()
+		_update_prestige_label()
+	else:
+		var reason_text := {
+			"no_owner": "pole nie ma właściciela - użyj Aneksacji.",
+			"already_owner": "to już twoje pole.",
+			"insufficient_prestige": "za mało prestiżu względem obrońcy.",
+		}.get(result["reason"], result["reason"])
+		info_label.text = "Nie udało się przejąć %s (%s)." % [hex_id, reason_text]
+	_refresh_action_panel()
+
+
 func _on_repair_pressed() -> void:
-	var hex_id = ludzik.current_hex_id
-	var result = GameManager.repair_building(hex_id, player.player_id)
+	var hex_id = _get_active_ludzik().current_hex_id
+	var result = GameManager.repair_building(hex_id, active_player.player_id)
 	if result["success"]:
 		info_label.text = "Naprawiono budynek na %s. Zacznie generować zasoby od kolejnej rundy." % hex_id
 	else:
@@ -214,9 +321,9 @@ func _on_harvest_slider_changed(value: float) -> void:
 
 
 func _on_harvest_pressed() -> void:
-	var hex_id = ludzik.current_hex_id
+	var hex_id = _get_active_ludzik().current_hex_id
 	var percent = harvest_slider.value
-	var result = GameManager.harvest_forest(hex_id, player.player_id, percent)
+	var result = GameManager.harvest_forest(hex_id, active_player.player_id, percent)
 	if result["success"]:
 		var msg = "Wydobyto %.1f drewna z %s." % [result["wood_gained"], hex_id]
 		if result["prestige_penalty"] > 0:
@@ -229,18 +336,25 @@ func _on_harvest_pressed() -> void:
 	_refresh_action_panel()
 
 
-func _on_end_turn_pressed() -> void:
-	TurnManager.advance_to_next_player()
-	_update_mp_label()
+## --- Karta Miasta (Faza 8) ---
+
+func _on_city_card_pressed() -> void:
+	city_card_panel.open_for_player(active_player)
+
+
+func _on_city_building_unlocked() -> void:
 	_update_prestige_label()
-	hex_map_view.queue_redraw()
-	info_label.text = "Tura zakończona. Runda: %d." % TurnManager.round_number
-	_refresh_action_panel()
 
 
-## Aktualizuje panel akcji wg heksa, na którym aktualnie stoi ludzik.
+## --- Tura (Faza 6) ---
+
+func _on_end_turn_pressed() -> void:
+	TurnManager.advance_to_next_player()  # emit-uje player_turn_started -> odświeża cały UI
+
+
+## Aktualizuje panel akcji wg heksa, na którym aktualnie stoi ludzik gracza.
 func _refresh_action_panel() -> void:
-	var hex = MapData.get_hex(ludzik.current_hex_id)
+	var hex = MapData.get_hex(_get_active_ludzik().current_hex_id)
 	if hex == null:
 		return
 
@@ -257,9 +371,14 @@ func _refresh_action_panel() -> void:
 		owner_text, building_text, hex.resource_level
 	]
 
-	var is_owned_by_me = hex.owner_id == player.player_id
+	var is_owned_by_me = hex.owner_id == active_player.player_id
+	var is_owned_by_enemy = hex.owner_id != -1 and not is_owned_by_me
 
 	annex_button.disabled = hex.owner_id != -1
+
+	takeover_button.visible = is_owned_by_enemy
+	takeover_button.disabled = not is_owned_by_enemy
+
 	repair_button.disabled = not (is_owned_by_me and hex.building != null and hex.building_damaged)
 
 	var is_forest = hex.is_forest()
@@ -270,12 +389,12 @@ func _refresh_action_panel() -> void:
 
 
 func _update_mp_label() -> void:
-	mp_label.text = "Punkty ruchu: %d / %d" % [player.movement_points_current, player.movement_points_max]
+	mp_label.text = "Punkty ruchu: %d / %d" % [active_player.movement_points_current, active_player.movement_points_max]
 
 
 func _update_prestige_label() -> void:
 	prestige_label.text = "Prestiż: %d | Drewno: %.0f | Runda: %d" % [
-		player.prestige,
-		player.get_resource_amount(HexData.ResourceType.WOOD),
+		active_player.prestige,
+		active_player.get_resource_amount(HexData.ResourceType.WOOD),
 		TurnManager.round_number,
 	]

@@ -17,7 +17,13 @@ var _id_to_hex: Dictionary = {}   # int -> String hex_id
 var _hex_to_id: Dictionary = {}   # String hex_id -> int
 
 
-func build() -> void:
+## `blocked_hex_ids`: heksy wyłączone z grafu ruchu - sekcja 3 GDD, "funkcja
+## obronna" (dopóki ludzik innego gracza stoi na heksie, nikt inny nie może
+## na niego wejść, więc taki heks nie może być ani przystankiem, ani
+## tranzytem trasy). Wywołujące (game_map_controller.gd) przebudowuje graf
+## przed każdym wyszukaniem trasy z aktualnym zestawem heksów zajętych przez
+## PRZECIWNYCH graczy.
+func build(blocked_hex_ids: Array[String] = []) -> void:
 	_astar.clear()
 	_id_to_hex.clear()
 	_hex_to_id.clear()
@@ -26,6 +32,8 @@ func build() -> void:
 	for hex_id in MapData.hexes:
 		var hex: HexData = MapData.hexes[hex_id]
 		if not hex.is_passable():
+			continue
+		if blocked_hex_ids.has(hex_id):
 			continue
 		_id_to_hex[next_id] = hex_id
 		_hex_to_id[hex_id] = next_id
