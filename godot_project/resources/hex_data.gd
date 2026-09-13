@@ -23,7 +23,7 @@ enum ResourceType {
 	URANIUM,
 }
 
-const TERRAIN_FROM_STRING := {
+const TERRAIN_FROM_STRING = {
 	"unknown": TerrainType.UNKNOWN,
 	"agricultural": TerrainType.AGRICULTURAL,
 	"forest": TerrainType.FOREST,
@@ -33,7 +33,7 @@ const TERRAIN_FROM_STRING := {
 	"water": TerrainType.WATER,
 }
 
-const RESOURCE_FROM_STRING := {
+const RESOURCE_FROM_STRING = {
 	"none": ResourceType.NONE,
 	"gas": ResourceType.GAS,
 	"copper": ResourceType.COPPER,
@@ -45,7 +45,7 @@ const RESOURCE_FROM_STRING := {
 }
 
 ## Koszt ruchu terenowego w punktach ruchu (sekcja 2.4 GDD)
-const MOVEMENT_COST := {
+const MOVEMENT_COST = {
 	TerrainType.UNKNOWN: 1,
 	TerrainType.AGRICULTURAL: 1,
 	TerrainType.FOREST: 2,
@@ -109,7 +109,7 @@ func is_passable() -> bool:
 
 ## Tworzy HexData z jednego wpisu wczytanego z map_data.json (patrz tools/convert_kml_to_json.py)
 static func from_dict(d: Dictionary) -> HexData:
-	var hex := HexData.new()
+	var hex = HexData.new()
 	hex.hex_id = d.get("id", "")
 	hex.axial_q = d.get("q", 0)
 	hex.axial_r = d.get("r", 0)

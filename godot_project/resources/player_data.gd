@@ -13,9 +13,6 @@ extends Resource
 ## - np. gaz i węgiel NIE są tą samą walutą, mimo podobnego zastosowania.
 @export var resources: Dictionary = {}
 
-@export var movement_points_max: int = 5
-var movement_points_current: int = 5
-
 @export var unlocked_city_buildings: Array[String] = []
 
 
@@ -47,14 +44,3 @@ func pay_costs(costs: Dictionary) -> bool:
 ## Zmienia prestiż, nie pozwalając mu spaść poniżej zera.
 func modify_prestige(amount: int) -> void:
 	prestige = max(prestige + amount, 0)
-
-
-func reset_movement_points() -> void:
-	movement_points_current = movement_points_max
-
-
-func spend_movement_points(amount: int) -> bool:
-	if movement_points_current < amount:
-		return false
-	movement_points_current -= amount
-	return true

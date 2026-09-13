@@ -4,7 +4,7 @@ extends Node
 ## tools/convert_kml_to_json.py, Faza 1 planu implementacji) i udostępnia
 ## dostęp do niej po ID oraz po współrzędnych osiowych.
 
-const MAP_DATA_PATH := "res://data/map_data.json"
+const MAP_DATA_PATH = "res://data/map_data.json"
 
 var hexes: Dictionary = {}          # hex_id(String) -> HexData
 var _by_axial: Dictionary = {}      # Vector2i(q, r) -> hex_id(String), indeks pomocniczy
@@ -22,8 +22,8 @@ func load_map() -> void:
 		push_warning("MapData: brak pliku %s - mapa nie została wczytana." % MAP_DATA_PATH)
 		return
 
-	var file := FileAccess.open(MAP_DATA_PATH, FileAccess.READ)
-	var text := file.get_as_text()
+	var file = FileAccess.open(MAP_DATA_PATH, FileAccess.READ)
+	var text = file.get_as_text()
 	file.close()
 
 	var parsed = JSON.parse_string(text)
@@ -73,13 +73,13 @@ func get_hex_at(q: int, r: int) -> HexData:
 ## Sąsiedzi w siatce "offset odd-r" (pointy-top) - sekcja 2.1 GDD.
 ## Matematyka w scripts/hex_grid_utils.gd (HexGridUtils).
 func get_neighbors(hex_id: String) -> Array[HexData]:
-	var hex := get_hex(hex_id)
+	var hex = get_hex(hex_id)
 	var result: Array[HexData] = []
 	if hex == null:
 		return result
 
 	for coord in HexGridUtils.offset_neighbors(hex.axial_q, hex.axial_r):
-		var neighbor := get_hex_at(coord.x, coord.y)
+		var neighbor = get_hex_at(coord.x, coord.y)
 		if neighbor != null:
 			result.append(neighbor)
 	return result

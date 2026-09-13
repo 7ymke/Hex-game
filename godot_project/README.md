@@ -8,6 +8,14 @@ jednoosobowym-na-jednym-ekranie (**hotseat**, 2 graczy) — dokładnie to, co
 plan implementacji zakłada jako cel Faz 0-9, zanim dojdzie warstwa sieciowa
 (Faza 10).
 
+Wszystkie liczby do tweakowania balansu (prędkość ludzika, punkty ruchu,
+zasięg akcji, progi/kary lasu i stref chronionych, koszt przejęcia
+terytorium...) mieszkają w jednym pliku: `scripts/game_balance.gd`.
+
+Uwaga stylistyczna: kod celowo NIE używa operatora `:=` (type inference) -
+tylko zwykłego `=` - bo w niektórych konfiguracjach Godota 4.2.2 potrafi on
+sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
+
 ## Jak to uruchomić
 
 1. Otwórz folder `godot_project/` w Godot 4.2.2 (Import → wskaż `project.godot`).
@@ -19,30 +27,56 @@ plan implementacji zakłada jako cel Faz 0-9, zanim dojdzie warstwa sieciowa
    górze/dole heksa).
 4. **Sterowanie** (dotyczy aktualnie aktywnego gracza — patrz etykieta "Tura
    gracza" w lewym górnym rogu):
-   - **Lewy klik** na widoczny heks → ludzik idzie tam pieszo (pathfinding),
-     krok po kroku, zużywając punkty ruchu wg kosztu terenu. Heks zajęty
-     aktualnie przez ludzika PRZECIWNIKA jest nieprzejezdny — ani jako
-     przystanek, ani jako tranzyt trasy (sekcja 3 GDD, "funkcja obronna").
+   - **Lewy klik na własnego ludzika** → zaznacza go (biały pierścień) albo
+     odznacza, jeśli już był zaznaczony. Zaznaczenie jest tylko o WYDAWANIU
+     ROZKAZU RUCHU - akcje na polu (patrz niżej) działają niezależnie od
+     zaznaczenia, o ile jakiś twój ludzik jest wystarczająco blisko.
+   - **Lewy klik na dowolny inny heks**, mając ludzika zaznaczonego → ludzik
+     płynnie (animowany ruch, konfigurowalna prędkość -
+     `GameBalance.LUDZIK_MOVE_SPEED_PX_PER_SEC`) idzie tam po trasie z
+     pathfindingu, krok po kroku, zużywając punkty ruchu WG KOSZTU TERENU.
+     Punkty ruchu (MP) należą teraz do ludzika, nie do gracza - każdy ludzik
+     ma własną pulę (przygotowane pod przyszły upgrade "więcej ludzików na
+     gracza"). Heks zajęty aktualnie przez ludzika PRZECIWNIKA jest
+     nieprzejezdny - ani jako przystanek, ani jako tranzyt trasy (sekcja 3
+     GDD, "funkcja obronna").
+   - **Lewy klik na heks bez zaznaczonego ludzika** → tylko zaznacza to pole
+     (żółta obwódka) do inspekcji/akcji - NIE przesuwa nikogo. Dzięki temu np.
+     wydobycie drewna nie wymaga fizycznego wejścia na pole lasu.
    - **Prawy przycisk myszy + przeciąganie** → przesuwanie widoku kamery.
    - **Scroll** → zoom.
    - Najedź myszą na heks, żeby zobaczyć w górnym lewym rogu, co o nim wiadomo
      (nic / tylko typ terenu / pełne dane) — zgodnie z dwupoziomową mgłą wojny.
-   - Panel w lewym dolnym rogu pokazuje pole, na którym aktualnie stoi ludzik,
-     i udostępnia akcje:
-     - **Zaanektuj** — przejmuje niczyj heks. Jeśli to strefa chroniona,
-       natychmiast nalicza karę prestiżową (sekcja 4 GDD).
-     - **Przejmij teren** — widoczny tylko, gdy stoisz na heksie należącym do
-       innego gracza (czyli broniący go ludzik akurat go nie patroluje);
-       przejęcie następuje, jeśli twój prestiż jest ściśle większy niż
-       obrońcy, kosztem prestiżu proporcjonalnym do jego siły (sekcja 5 GDD).
-     - **Napraw budynek** (jeśli jest uszkodzony budynek).
-     - **Wydobądź drewno** (suwak % — tylko na lasach).
+   - Panel w lewym dolnym rogu pokazuje ZAZNACZONE pole i udostępnia akcje -
+     każda z nich wymaga, żeby jakiś twój ludzik był w zasięgu
+     `GameBalance.ACTION_RANGE` heksów od zaznaczonego pola (domyślnie: pole
+     lub sąsiad) - nie trzeba stać dokładnie na nim:
+     - **Zaanektuj** — przejmuje niczyj heks. Kosztuje punkty ruchu
+       (`GameBalance.ANNEX_MP_COST`) pobierane z puli najbliższego/zaznaczonego
+       ludzika (sekcja 2.2 GDD: "Aneksacja - płatna akcja").
+     - **Przejmij teren** — widoczny tylko, gdy zaznaczony heks należy do
+       innego gracza; wymaga DODATKOWO, żeby broniący go ludzik akurat na nim
+       nie stał (inaczej to nadal "funkcja obronna" z sekcji 3 GDD, sam zasięg
+       jej nie omija); przejęcie następuje, jeśli twój prestiż jest ściśle
+       większy niż obrońcy, kosztem prestiżu proporcjonalnym do jego siły
+       (sekcja 5 GDD).
+     - **Napraw budynek** (jeśli jest uszkodzony budynek). Na terenie
+       chronionym ta akcja NALICZA karę prestiżową (patrz sekcja niżej) -
+       sama aneksacja strefy chronionej już nie karze.
+     - **Wydobądź drewno** (suwak % — tylko na lasach, w zasięgu, bez
+       konieczności stania na polu).
      - **Karta Miasta** — osobny ekran: lista budynków charakterystycznych
        dla miasta aktywnego gracza, każdy z kosztem w zasobach i wartością
        prestiżową po odblokowaniu (sekcja 7 GDD).
-     - **Zakończ turę** — przekazuje turę kolejnemu graczowi; po turze
-       ostatniego gracza przelicza rundę (regeneracja lasu, dochód, odnowienie
-       punktów ruchu wszystkich graczy).
+   - **Zmiana gracza** — przełącza kontrolę na kolejnego zarejestrowanego
+     gracza BEZ kończenia czyjejkolwiek tury - swobodne przełączanie się tam
+     i z powrotem, np. żeby dokończyć ruch ludzikiem danego gracza później.
+   - **Zakończ turę** — oznacza aktywnego gracza jako "gotowego" na tę rundę i
+     przełącza na kolejnego, który jeszcze nie skończył. Runda (regeneracja
+     lasu, dochód, odnowienie MP wszystkich ludzików) przelicza się dopiero,
+     gdy WSZYSCY gracze są gotowi - do tego czasu gracze mogą kończyć/wracać
+     do swoich tur w dowolnej kolejności (sekcja 8 GDD dopuszcza "na przemian
+     LUB jednocześnie"). Licznik "Gotowi: x/y" w etykiecie tury pokazuje postęp.
 5. Dla testu niższego poziomu (bez UI/kamery/grafiki) nadal działa
    `scenes/main_test.tscn` (F6 na tej scenie) — smoke test Fazy 0-1 (dane,
    aneksacja, wydobycie lasu, tura) **plus** Faz 6-9 (drugi gracz, blokada
@@ -67,17 +101,25 @@ godot_project/
 │   ├── player_data.gd            # class_name PlayerData (Resource)
 │   └── city_buildings_data.gd    # statyczne dane Karty Miasta per miasto startowe
 ├── scripts/
-│   ├── hex_grid_utils.gd       # matematyka siatki - offset "even-q", flat-top
-│   └── hex_pathfinder.gd       # A* (AStar2D) po heksach, wg kosztu terenu,
-│                                 # z opcjonalną listą heksów wykluczonych (blokada PvP)
+│   ├── game_balance.gd          # WSZYSTKIE stałe balansu w jednym miejscu -
+│   │                              # tu tweakuj prędkość ludzika, MP, zasięg akcji...
+│   ├── hex_grid_utils.gd        # matematyka siatki - offset "even-q", flat-top,
+│   │                              # + odległość heksowa (zasięg akcji)
+│   └── hex_pathfinder.gd        # A* (AStar2D) po heksach, wg kosztu terenu,
+│                                  # z opcjonalną listą heksów wykluczonych (blokada PvP)
 ├── scenes/
 │   ├── main.tscn                # scena grywalna (Fazy 2-9) - kamera, mapa,
 │   │                              # 2x ludzik, UI, panel Karty Miasta
 │   ├── game_map_controller.gd   # orchestracja: ruch, mgła, akcje na polu,
-│   │                              # tury wielu graczy, PvP, Karta Miasta
+│   │                              # tury wielu graczy, PvP, Karta Miasta,
+│   │                              # zaznaczanie ludzików, zasięg akcji
 │   ├── hex_map_view.gd          # rysowanie siatki + mgła wojny + klikanie/hover
+│   │                              # + podświetlenie zaznaczonego pola
 │   ├── camera_controller.gd     # pan (PPM) / zoom (scroll)
-│   ├── ludzik.gd                 # wizualny pionek gracza (jeden na gracza)
+│   ├── ludzik.gd                 # wizualny pionek gracza: płynny ruch (Tween),
+│   │                              # własne MP, zaznaczenie - jeden na gracza na
+│   │                              # razie, ale player_ludziks w kontrolerze to
+│   │                              # już Array[Ludzik] per gracz (gotowe pod upgrade)
 │   ├── city_card_panel.gd        # UI Karty Miasta (osobny ekran, sekcja 7 GDD)
 │   └── main_test.tscn / main_test.gd   # smoke test Fazy 0-1 + Faz 6-9 (bez grafiki)
 ├── data/map_data.json         # wygenerowane przez tools/convert_kml_to_json.py
@@ -129,17 +171,62 @@ prefiks z odpowiednim ID, jeśli ma być osobnym heksem.
   Kraków, Gdańsk...). Dodaj kolejnych graczy w `PLAYER_SETUP`
   (`game_map_controller.gd`) i kolejne miasta w `city_buildings_data.gd`, gdy
   KML urośnie do pełnej skali 6 graczy.
-- **Kara za strefę chronioną nalicza się przy aneksacji.** GDD (sekcja 4) nie
-  definiuje osobnej akcji "eksploatuj strefę chronioną" — aneksacja to
-  jedyny sposób, w jaki gracz faktycznie "zagospodarowuje" taki heks, więc
-  `GameManager.annex_hex()` traktuje aneksację strefy chronionej jako pełną
-  (100%) eksploatację i od razu woła wcześniej istniejącą, ale dotąd
-  niepodłączoną `damage_protected_area()`.
+- **Kara za strefę chronioną nalicza się przy budowie/naprawie, NIE przy
+  aneksacji** (update). Pierwsza wersja karała już samo przejęcie własności
+  heksa chronionego - to się okazało zbyt agresywne (samo "zaklepanie" pola
+  nie jest jeszcze "eksploatacją/zniszczeniem" z sekcji 4 GDD). Teraz
+  `GameManager.annex_hex()` jest neutralne prestiżowo, a karę nalicza
+  `repair_building()`, gdy naprawiany/budowany budynek stoi na heksie
+  chronionym - to faktyczny akt "zagospodarowania" terenu. Analogiczny hak w
+  `harvest_forest()` (wycinka na chronionym lesie) zostaje jako defensywny -
+  obecny model terenu (jeden typ na heks) nie pozwala, żeby heks był
+  jednocześnie "forest" i "protected_area", więc na razie jest martwy, ale
+  gotowy, gdyby przyszłe dane terenu zaczęły to rozróżniać osobną flagą.
 - **Blokada heksa przez cudzego ludzika** jest wpięta w `HexPathfinder`:
-  `game_map_controller.gd` przebudowuje graf A* przed każdym wyszukaniem
-  trasy, wykluczając heksy aktualnie zajęte przez ludziki INNYCH graczy — więc
-  taki heks nie może być ani przystankiem, ani tranzytem trasy, zgodnie z
-  "jedynym mechanizmem obrony terytorium" z sekcji 3 GDD.
+  `game_map_controller.gd` przebudowuje graf A* przed każdym rozkazem ruchu,
+  wykluczając heksy aktualnie zajęte przez ludziki INNYCH graczy — więc taki
+  heks nie może być ani przystankiem, ani tranzytem trasy. Przy przejęciu
+  terytorium (Faza 9) jest dodatkowo sprawdzane wprost (`_ludzik_at()`),
+  bo update "akcje działają w zasięgu" (niżej) inaczej pozwoliłby przejąć
+  heks patrolowany przez broniącego ludzika z sąsiedniego pola - zgodnie z
+  "jedynym mechanizmem obrony terytorium" z sekcji 3 GDD to musi pozostać
+  niemożliwe.
+- **Akcje na polu działają w zasięgu, nie tylko stojąc na heksie** (update).
+  `_own_ludzik_in_range()` w `game_map_controller.gd` sprawdza odległość
+  heksową (`HexGridUtils.offset_distance`, licząca po prawdziwej matematyce
+  axial/cube) między zaznaczonym polem a każdym ludzikiem aktywnego gracza;
+  akcja jest dostępna, jeśli jakikolwiek z nich mieści się w
+  `GameBalance.ACTION_RANGE`. Aneksacja dodatkowo kosztuje punkty ruchu
+  (`GameBalance.ANNEX_MP_COST`) pobierane z konkretnego ludzika, który
+  akurat się kwalifikuje (preferowany: aktualnie zaznaczony).
+- **Punkty ruchu przeniesione z gracza na ludzika** (`scenes/ludzik.gd`),
+  celowo z myślą o przyszłym upgrade "więcej ludzików na gracza" - każdy
+  ludzik ma niezależną pulę, więc dodanie kolejnego to tylko dopisanie go do
+  `player_ludziks[player_id]` (już `Array[Ludzik]`, nie pojedynczy węzeł).
+  Reset puli na nową rundę przenosi się analogicznie: `TurnManager` już nic
+  nie wie o ludzikach - emituje `round_ended`, a `game_map_controller.gd`
+  resetuje w reakcji na ten sygnał każdemu ludzikowi z osobna.
+- **Tura oparta o gotowość, nie sztywną alternację** (update, sekcja 8 GDD
+  explicite dopuszcza "na przemian LUB jednocześnie"). "Zakończ turę"
+  oznacza aktywnego gracza jako gotowego i przełącza na kolejnego
+  niegotowego; runda przelicza się dopiero, gdy WSZYSCY są gotowi. Nowy
+  przycisk "Zmiana gracza" pozwala dowolnie przełączać kontrolę bez
+  kończenia tury - skoro MP żyje teraz na ludzikach (nie resetuje się przy
+  każdej zmianie kontroli, tylko raz na rundę), przełączanie tam i z powrotem
+  jest bezpieczne.
+- **Zaznaczanie/odznaczanie ludzików** (`Ludzik.selected` + biały pierścień w
+  `_draw()`) jest rozdzielone od zaznaczenia HEKSA do akcji
+  (`game_map_controller.selected_hex_id`, podświetlanego w `hex_map_view.gd`)
+  - to dwie osobne, świadomie nieskoordynowane wprost rzeczy: zaznaczenie
+  ludzika steruje tylko rozkazami ruchu, a akcje na polu działają na
+  zaznaczonym heksie niezależnie od tego, czy jakiś ludzik jest akurat
+  zaznaczony (patrz "akcje w zasięgu" wyżej).
+- **Płynny ruch** (`Ludzik.animate_to_hex()`) używa `Tween` per krok trasy,
+  z prędkością `GameBalance.LUDZIK_MOVE_SPEED_PX_PER_SEC` (edytowalną też
+  per-instancja przez eksportowane `move_speed_px_per_sec`). Stan logiczny
+  (`current_hex_id`, mgła, blokady) aktualizuje się natychmiast na starcie
+  animacji kroku - tylko wizualna pozycja dogania go płynnie w tle, więc
+  szybkość animacji nie wpływa na poprawność logiki (blokad, MP, mgły).
 - **Karta Miasta** to nowy `CanvasLayer` (`city_card_panel.gd`) rysowany nad
   resztą UI, z treścią budowaną w kodzie na podstawie
   `CityBuildingsData.get_buildings(miasto_gracza)` — niezależny od siatki

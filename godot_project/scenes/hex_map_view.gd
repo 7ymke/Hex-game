@@ -9,11 +9,14 @@ extends Node2D
 signal hex_clicked(hex_id: String)
 signal hex_hovered(hex_id: String)  # pusty string = kursor poza siatką
 
-const HEX_SIZE := HexPathfinder.HEX_SIZE
-
 @export var viewing_player_id: int = 1
 
-const TERRAIN_COLORS := {
+## Heks aktualnie zaznaczony w UI (Faza 6+ update - akcje na polu działają na
+## zaznaczonym heksie, niekoniecznie tym, na którym stoi ludzik) - rysowany z
+## wyróżniającą obwódką, żeby było widać, czego dotyczy panel akcji.
+@export var selected_hex_id: String = ""
+
+const TERRAIN_COLORS = {
 	HexData.TerrainType.UNKNOWN: Color(0.6, 0.6, 0.6),
 	HexData.TerrainType.AGRICULTURAL: Color(0.76, 0.80, 0.35),
 	HexData.TerrainType.FOREST: Color(0.13, 0.42, 0.16),
@@ -23,9 +26,10 @@ const TERRAIN_COLORS := {
 	HexData.TerrainType.WATER: Color(0.2, 0.4, 0.75),
 }
 
-const FOG_UNEXPLORED := Color(0.08, 0.08, 0.08)
-const FOG_SEEN_OVERLAY := Color(0, 0, 0, 0.4)
-const OUTLINE_COLOR := Color(0, 0, 0, 0.5)
+const FOG_UNEXPLORED = Color(0.08, 0.08, 0.08)
+const FOG_SEEN_OVERLAY = Color(0, 0, 0, 0.4)
+const OUTLINE_COLOR = Color(0, 0, 0, 0.5)
+const SELECTED_OUTLINE_COLOR = Color(1, 0.9, 0.2, 0.9)
 
 
 func _draw() -> void:
@@ -35,9 +39,9 @@ func _draw() -> void:
 
 
 func _draw_hex(hex: HexData) -> void:
-	var center := HexGridUtils.offset_to_pixel(hex.axial_q, hex.axial_r, HEX_SIZE)
-	var corners := HexGridUtils.hex_corners(center, HEX_SIZE * 0.92)
-	var fog := hex.get_fog_state(viewing_player_id)
+	var center = HexGridUtils.offset_to_pixel(hex.axial_q, hex.axial_r, GameBalance.HEX_SIZE)
+	var corners = HexGridUtils.hex_corners(center, GameBalance.HEX_SIZE * 0.92)
+	var fog = hex.get_fog_state(viewing_player_id)
 
 	if fog == "unexplored":
 		draw_colored_polygon(corners, FOG_UNEXPLORED)
@@ -47,9 +51,10 @@ func _draw_hex(hex: HexData) -> void:
 		if fog == "seen":
 			draw_colored_polygon(corners, FOG_SEEN_OVERLAY)
 
-	var outline := corners.duplicate()
+	var outline = corners.duplicate()
 	outline.append(corners[0])
-	draw_polyline(outline, OUTLINE_COLOR, 1.5)
+	var is_selected = hex.hex_id == selected_hex_id
+	draw_polyline(outline, SELECTED_OUTLINE_COLOR if is_selected else OUTLINE_COLOR, 3.0 if is_selected else 1.5)
 
 	if fog == "annexed":
 		draw_string(
@@ -60,11 +65,11 @@ func _draw_hex(hex: HexData) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		var hex := _hex_under_mouse()
+		var hex = _hex_under_mouse()
 		if hex != null:
 			hex_clicked.emit(hex.hex_id)
 	elif event is InputEventMouseMotion:
-		var hex := _hex_under_mouse()
+		var hex = _hex_under_mouse()
 		hex_hovered.emit(hex.hex_id if hex != null else "")
 
 
@@ -73,5 +78,5 @@ func _unhandled_input(event: InputEvent) -> void:
 ## które są współrzędnymi ekranu/okna i NIE uwzględniają kamery.
 func _hex_under_mouse() -> HexData:
 	var local_pos: Vector2 = to_local(get_global_mouse_position())
-	var coord := HexGridUtils.pixel_to_offset(local_pos, HEX_SIZE)
+	var coord = HexGridUtils.pixel_to_offset(local_pos, GameBalance.HEX_SIZE)
 	return MapData.get_hex_at(coord.x, coord.y)

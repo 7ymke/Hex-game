@@ -26,7 +26,7 @@ static func get_buildings(city_name: String) -> Array[Building]:
 
 
 static func _make(name: String, costs: Dictionary, prestige: int) -> Building:
-	var b := Building.new()
+	var b = Building.new()
 	b.building_name = name
 	b.building_type = Building.BuildingType.CITY_LANDMARK
 	b.required_resources = costs

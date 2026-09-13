@@ -61,9 +61,9 @@ text = "Prestiż: -"
 
 [node name="ActionPanel" type="PanelContainer" parent="UI"]
 offset_left = 16.0
-offset_top = 420.0
+offset_top = 380.0
 offset_right = 460.0
-offset_bottom = 700.0
+offset_bottom = 760.0
 
 [node name="VBox" type="VBoxContainer" parent="UI/ActionPanel"]
 theme_override_constants/separation = 6
@@ -99,6 +99,9 @@ text = "Wydobądź drewno"
 
 [node name="CityCardButton" type="Button" parent="UI/ActionPanel/VBox"]
 text = "Karta Miasta"
+
+[node name="SwitchPlayerButton" type="Button" parent="UI/ActionPanel/VBox"]
+text = "Zmiana gracza"
 
 [node name="EndTurnButton" type="Button" parent="UI/ActionPanel/VBox"]
 text = "Zakończ turę"

@@ -7,7 +7,7 @@ func _ready() -> void:
 	print("=== Test Fazy 0-1: dane, aneksacja, wydobycie lasu, tura ===")
 	print("Liczba wczytanych heksów: ", MapData.hexes.size())
 
-	var player := PlayerData.new()
+	var player = PlayerData.new()
 	player.player_id = 1
 	player.player_name = "Gracz testowy"
 	player.starting_city = "Wrocław"
@@ -15,13 +15,13 @@ func _ready() -> void:
 
 	# Aneksacja heksa bazowego Wrocławia (H14 wg konwencji z KML)
 	if MapData.get_hex("H14") != null:
-		var result := GameManager.annex_hex("H14", 1)
+		var result = GameManager.annex_hex("H14", 1)
 		print("Aneksacja H14 (Wrocław): ", result)
 	else:
 		print("UWAGA: nie znaleziono heksa H14 - sprawdź dane mapy.")
 
 	# Znajdź pierwszy dostępny heks leśny i przetestuj oba warianty wydobycia
-	var forest_hex_id := ""
+	var forest_hex_id = ""
 	for hex_id in MapData.hexes:
 		var hex: HexData = MapData.hexes[hex_id]
 		if hex.is_forest():
@@ -31,10 +31,10 @@ func _ready() -> void:
 	if forest_hex_id != "":
 		GameManager.annex_hex(forest_hex_id, 1)
 
-		var safe_result := GameManager.harvest_forest(forest_hex_id, 1, 50.0)
+		var safe_result = GameManager.harvest_forest(forest_hex_id, 1, 50.0)
 		print("Wydobycie 50%% z lasu %s (bezpieczne, brak kary): %s" % [forest_hex_id, safe_result])
 
-		var over_result := GameManager.harvest_forest(forest_hex_id, 1, 90.0)
+		var over_result = GameManager.harvest_forest(forest_hex_id, 1, 90.0)
 		print("Wydobycie 90%% z lasu %s (przekroczenie progu 60%%): %s" % [forest_hex_id, over_result])
 
 		print("Prestiż gracza po nadmiernej wycince: ", player.prestige)
@@ -56,16 +56,21 @@ func _ready() -> void:
 	_test_phase_6_to_9(player)
 
 
-## Manualny test dymny Faz 6-9: pełna struktura tur wielu graczy, blokada
-## ruchu przez broniącego ludzika, przejęcie terytorium (PvP) i Karta Miasta.
+## Manualny test dymny Faz 6-9 (+ update po dalszych poprawkach): pełna
+## struktura tur wielu graczy oparta o gotowość (nie sztywną alternację),
+## blokada ruchu przez broniącego ludzika, przejęcie terytorium (PvP), Karta
+## Miasta i (zaktualizowana) kara za strefę chronioną - dopiero za
+## budowę/naprawę na niej, NIE za samą aneksację.
 ## Testowane na poziomie logiki (GameManager/TurnManager/HexPathfinder),
 ## bez tworzenia widocznych węzłów Ludzik - te żyją w game_map_controller.gd
-## i wymagają uruchomienia sceny scenes/main.tscn (patrz README).
+## i wymagają uruchomienia sceny scenes/main.tscn (patrz README). Punkty
+## ruchu (teraz własność Ludzika, nie gracza) i koszt MP aneksacji dlatego
+## też nie są tu testowane - to logika na poziomie kontrolera/sceny.
 func _test_phase_6_to_9(player: PlayerData) -> void:
 	print("=== Test Faz 6-9: tury wielu graczy, blokada, przejęcie, Karta Miasta ===")
 
-	# --- Faza 6: drugi gracz + kolejność tur ---
-	var player2 := PlayerData.new()
+	# --- Faza 6 (update): drugi gracz + kolejność tur oparta o gotowość ---
+	var player2 = PlayerData.new()
 	player2.player_id = 2
 	player2.player_name = "Gracz 2 testowy"
 	player2.starting_city = "Szczecin"
@@ -78,21 +83,37 @@ func _test_phase_6_to_9(player: PlayerData) -> void:
 	print(
 		"Aktywny gracz po setup_player_order: %d (oczekiwano 1)" % TurnManager.get_current_player_id()
 	)
-	TurnManager.advance_to_next_player()
+	TurnManager.end_turn_for_current_player()  # gracz 1 kończy turę, nie jest jeszcze gotowa cała runda
 	print(
-		"Aktywny gracz po advance_to_next_player: %d (oczekiwano 2)" % TurnManager.get_current_player_id()
+		"Aktywny gracz po end_turn_for_current_player (gracz 1 gotowy): %d (oczekiwano 2)"
+		% TurnManager.get_current_player_id()
+	)
+	print("Gotowych graczy: %d/2 (oczekiwano 1/2)" % TurnManager.ready_count())
+
+	TurnManager.switch_to_player(1)
+	print(
+		"Aktywny gracz po ręcznej zmianie (Zmiana gracza) z powrotem na 1: %d"
+		% TurnManager.get_current_player_id()
+	)
+	var round_before = TurnManager.round_number
+	TurnManager.end_turn_for_current_player()  # gracz 1 znów "gotowy" - bez zmiany, wciąż czekamy na gracza 2
+	TurnManager.switch_to_player(2)
+	TurnManager.end_turn_for_current_player()  # gracz 2 gotowy -> wszyscy gotowi -> koniec rundy
+	print(
+		"Runda po tym, jak WSZYSCY gracze skończyli turę: %d -> %d (oczekiwano +1)"
+		% [round_before, TurnManager.round_number]
 	)
 
 	# --- Faza 9: blokada ruchu przez broniącego ludzika (sekcja 3 GDD) ---
 	# H14 (Wrocław) ma sześciu sąsiadów w obecnych danych, w tym H13 - użyty
 	# tu jako "zajęty przez broniącego ludzika" heks.
-	var pathfinder := HexPathfinder.new()
+	var pathfinder = HexPathfinder.new()
 	pathfinder.build(["H13"])
-	var blocked_target := pathfinder.find_path("H14", "H13")
+	var blocked_target = pathfinder.find_path("H14", "H13")
 	print(
 		"Trasa H14->H13 gdy H13 jest bronione: %s (oczekiwano pustej listy)" % [blocked_target]
 	)
-	var reroutable := pathfinder.find_path("H14", "G14")
+	var reroutable = pathfinder.find_path("H14", "G14")
 	print("Trasa H14->G14 mimo blokady H13 (inny sąsiad, powinna istnieć): ", reroutable)
 
 	# --- Faza 9: przejęcie terytorium ---
@@ -103,38 +124,61 @@ func _test_phase_6_to_9(player: PlayerData) -> void:
 		# w teście Fazy 0-1), żeby jednoznacznie pokazać odrzucenie próby przy
 		# prestiżu ataku <= prestiżu obrony (sekcja 5 GDD: musi być ŚCIŚLE większy).
 		player2.modify_prestige(player.prestige - player2.prestige)
-		var equal_prestige_attempt := GameManager.attempt_takeover("H15", 2)
+		var equal_prestige_attempt = GameManager.attempt_takeover("H15", 2)
 		print(
 			"Próba przejęcia H15 przy równym prestiżu (%d vs %d): %s"
 			% [player2.prestige, player.prestige, equal_prestige_attempt]
 		)
 
 		player2.modify_prestige(50)  # gracz 2 ma teraz przewagę prestiżową
-		var winning_attempt := GameManager.attempt_takeover("H15", 2)
+		var winning_attempt = GameManager.attempt_takeover("H15", 2)
 		print(
 			"Próba przejęcia H15 z przewagą prestiżową (%d vs %d): %s"
 			% [player2.prestige, player.prestige, winning_attempt]
 		)
 		print("Właściciel H15 po przejęciu: ", MapData.get_hex("H15").owner_id, " (oczekiwano 2)")
 
-	# --- Faza 7: kara prestiżowa za aneksację strefy chronionej ---
+	# --- Faza 7 (zaktualizowane): aneksacja strefy chronionej NIE karze już
+	# prestiżem - kara pojawia się dopiero przy budowie/naprawie budynku na
+	# takim terenie (repair_building). ---
 	if MapData.get_hex("B1") != null:
-		var prestige_before := player2.prestige
-		var protected_result := GameManager.annex_hex("B1", 2)
-		print("Aneksacja B1 (Woliński PN, strefa chroniona): ", protected_result)
-		print("Prestiż gracza 2 przed/po: %d -> %d" % [prestige_before, player2.prestige])
+		var prestige_before_annex = player2.prestige
+		var protected_annex_result = GameManager.annex_hex("B1", 2)
+		print("Aneksacja B1 (Woliński PN, strefa chroniona) - BEZ kary: ", protected_annex_result)
+		print(
+			"Prestiż gracza 2 przed/po aneksacji: %d -> %d (oczekiwano BEZ zmian)"
+			% [prestige_before_annex, player2.prestige]
+		)
+
+		# Obecny wycinek KML nie ma żadnego budynku na terenie chronionym -
+		# symulujemy go tu ręcznie, żeby przetestować samą regułę "budowa na
+		# terenie chronionym karze prestiż".
+		var synthetic_building = Building.new()
+		synthetic_building.building_name = "Testowa infrastruktura (symulacja)"
+		synthetic_building.required_resources = {}
+		var protected_hex: HexData = MapData.get_hex("B1")
+		protected_hex.building = synthetic_building
+		protected_hex.building_damaged = true
+
+		var prestige_before_repair = player2.prestige
+		var repair_result = GameManager.repair_building("B1", 2)
+		print("Naprawa/budowa na strefie chronionej B1: ", repair_result)
+		print(
+			"Prestiż gracza 2 przed/po naprawie: %d -> %d (oczekiwana kara)"
+			% [prestige_before_repair, player2.prestige]
+		)
 
 	# --- Faza 8: Karta Miasta ---
-	var wroclaw_buildings := CityBuildingsData.get_buildings("Wrocław")
+	var wroclaw_buildings = CityBuildingsData.get_buildings("Wrocław")
 	print("Liczba budynków Karty Miasta dla Wrocławia: ", wroclaw_buildings.size())
 	if not wroclaw_buildings.is_empty():
 		var cheapest: Building = wroclaw_buildings[0]
 		for res_type in cheapest.required_resources:
 			player.add_resource(res_type, cheapest.required_resources[res_type])
-		var unlock_result := GameManager.unlock_city_building(1, cheapest)
+		var unlock_result = GameManager.unlock_city_building(1, cheapest)
 		print("Odblokowanie '%s': %s" % [cheapest.building_name, unlock_result])
 		print("Prestiż gracza 1 po odblokowaniu: ", player.prestige)
-		var repeat_unlock := GameManager.unlock_city_building(1, cheapest)
+		var repeat_unlock = GameManager.unlock_city_building(1, cheapest)
 		print("Ponowna próba odblokowania tego samego budynku: ", repeat_unlock)
 
 	print("=== Koniec testu Faz 6-9 ===")

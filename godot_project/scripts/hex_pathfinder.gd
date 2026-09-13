@@ -10,9 +10,7 @@ extends RefCounted
 ## środkami heksów jest zawsze taka sama, w praktyce daje to koszt
 ## proporcjonalny do kosztu terenowego heksa, do którego się wchodzi).
 
-const HEX_SIZE := 40.0
-
-var _astar := AStar2D.new()
+var _astar = AStar2D.new()
 var _id_to_hex: Dictionary = {}   # int -> String hex_id
 var _hex_to_id: Dictionary = {}   # String hex_id -> int
 
@@ -28,7 +26,7 @@ func build(blocked_hex_ids: Array[String] = []) -> void:
 	_id_to_hex.clear()
 	_hex_to_id.clear()
 
-	var next_id := 0
+	var next_id = 0
 	for hex_id in MapData.hexes:
 		var hex: HexData = MapData.hexes[hex_id]
 		if not hex.is_passable():
@@ -37,7 +35,7 @@ func build(blocked_hex_ids: Array[String] = []) -> void:
 			continue
 		_id_to_hex[next_id] = hex_id
 		_hex_to_id[hex_id] = next_id
-		var pos := HexGridUtils.offset_to_pixel(hex.axial_q, hex.axial_r, HEX_SIZE)
+		var pos = HexGridUtils.offset_to_pixel(hex.axial_q, hex.axial_r, GameBalance.HEX_SIZE)
 		_astar.add_point(next_id, pos, float(hex.get_movement_cost()))
 		next_id += 1
 
@@ -45,7 +43,7 @@ func build(blocked_hex_ids: Array[String] = []) -> void:
 		var hex: HexData = MapData.hexes[hex_id]
 		var from_id: int = _hex_to_id[hex_id]
 		for neighbor_coord in HexGridUtils.offset_neighbors(hex.axial_q, hex.axial_r):
-			var neighbor_hex := MapData.get_hex_at(neighbor_coord.x, neighbor_coord.y)
+			var neighbor_hex = MapData.get_hex_at(neighbor_coord.x, neighbor_coord.y)
 			if neighbor_hex == null or not neighbor_hex.is_passable():
 				continue
 			var to_id: int = _hex_to_id.get(neighbor_hex.hex_id, -1)
@@ -64,7 +62,7 @@ func find_path(from_hex_id: String, to_hex_id: String) -> Array[String]:
 
 	var from_id: int = _hex_to_id[from_hex_id]
 	var to_id: int = _hex_to_id[to_hex_id]
-	var id_path := _astar.get_id_path(from_id, to_id)
+	var id_path = _astar.get_id_path(from_id, to_id)
 	for id in id_path:
 		result.append(_id_to_hex[id])
 	return result

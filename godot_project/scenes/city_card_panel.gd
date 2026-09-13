@@ -42,9 +42,9 @@ func _refresh() -> void:
 		_current_player.starting_city, _current_player.player_name
 	]
 
-	var buildings := CityBuildingsData.get_buildings(_current_player.starting_city)
+	var buildings = CityBuildingsData.get_buildings(_current_player.starting_city)
 	if buildings.is_empty():
-		var empty_label := Label.new()
+		var empty_label = Label.new()
 		empty_label.text = "Brak zdefiniowanych budynków dla tego miasta."
 		building_list.add_child(empty_label)
 		return
@@ -54,10 +54,10 @@ func _refresh() -> void:
 
 
 func _build_row(building: Building) -> Control:
-	var row := HBoxContainer.new()
+	var row = HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
 
-	var info_label := Label.new()
+	var info_label = Label.new()
 	info_label.custom_minimum_size = Vector2(320, 0)
 	info_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	info_label.text = "%s (+%d prestiżu)\nKoszt: %s" % [
@@ -65,8 +65,8 @@ func _build_row(building: Building) -> Control:
 	]
 	row.add_child(info_label)
 
-	var unlocked := _current_player.unlocked_city_buildings.has(building.building_name)
-	var action_button := Button.new()
+	var unlocked = _current_player.unlocked_city_buildings.has(building.building_name)
+	var action_button = Button.new()
 	if unlocked:
 		action_button.text = "Odblokowano"
 		action_button.disabled = true
@@ -80,7 +80,7 @@ func _build_row(building: Building) -> Control:
 
 
 func _on_unlock_pressed(building: Building) -> void:
-	var result := GameManager.unlock_city_building(_current_player.player_id, building)
+	var result = GameManager.unlock_city_building(_current_player.player_id, building)
 	if result["success"]:
 		building_unlocked.emit()
 	_refresh()

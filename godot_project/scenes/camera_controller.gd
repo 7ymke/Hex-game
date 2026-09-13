@@ -2,13 +2,13 @@ extends Camera2D
 ## Prosta kamera 2D: przeciąganie prawym przyciskiem myszy, zoom scrollem.
 ## Potrzebna do eksploracji mapy Polski (Faza 2 planu implementacji).
 
-const ZOOM_STEP := 0.1
-const MIN_ZOOM := 0.25
-const MAX_ZOOM := 3.0
+const ZOOM_STEP = 0.1
+const MIN_ZOOM = 0.25
+const MAX_ZOOM = 3.0
 
-var _dragging := false
-var _drag_start_mouse := Vector2.ZERO
-var _drag_start_cam := Vector2.ZERO
+var _dragging = false
+var _drag_start_mouse = Vector2.ZERO
+var _drag_start_cam = Vector2.ZERO
 
 
 func _unhandled_input(event: InputEvent) -> void:
