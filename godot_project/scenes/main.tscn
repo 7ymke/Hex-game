@@ -1,0 +1,88 @@
+[gd_scene load_steps=5 format=3 uid="uid://cmapmain0001"]
+
+[ext_resource type="Script" path="res://scenes/game_map_controller.gd" id="1"]
+[ext_resource type="Script" path="res://scenes/camera_controller.gd" id="2"]
+[ext_resource type="Script" path="res://scenes/hex_map_view.gd" id="3"]
+[ext_resource type="Script" path="res://scenes/ludzik.gd" id="4"]
+
+[node name="GameMapController" type="Node2D"]
+script = ExtResource("1")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(270, 589)
+zoom = Vector2(0.55, 0.55)
+current = true
+script = ExtResource("2")
+
+[node name="HexMapView" type="Node2D" parent="."]
+script = ExtResource("3")
+
+[node name="Ludzik" type="Node2D" parent="."]
+script = ExtResource("4")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="InfoLabel" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 760.0
+offset_bottom = 40.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Ładowanie..."
+
+[node name="MPLabel" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 44.0
+offset_right = 300.0
+offset_bottom = 68.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Punkty ruchu: -"
+
+[node name="PrestigeLabel" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 72.0
+offset_right = 500.0
+offset_bottom = 96.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Prestiż: -"
+
+[node name="ActionPanel" type="PanelContainer" parent="UI"]
+offset_left = 16.0
+offset_top = 440.0
+offset_right = 460.0
+offset_bottom = 630.0
+
+[node name="VBox" type="VBoxContainer" parent="UI/ActionPanel"]
+theme_override_constants/separation = 6
+
+[node name="HexInfoLabel" type="Label" parent="UI/ActionPanel/VBox"]
+autowrap_mode = 2
+text = "Wybierz pole."
+
+[node name="AnnexButton" type="Button" parent="UI/ActionPanel/VBox"]
+text = "Zaanektuj"
+
+[node name="RepairButton" type="Button" parent="UI/ActionPanel/VBox"]
+text = "Napraw budynek"
+
+[node name="HarvestRow" type="HBoxContainer" parent="UI/ActionPanel/VBox"]
+
+[node name="HarvestSlider" type="HSlider" parent="UI/ActionPanel/VBox/HarvestRow"]
+custom_minimum_size = Vector2(240, 0)
+min_value = 0.0
+max_value = 100.0
+step = 1.0
+value = 50.0
+
+[node name="HarvestValueLabel" type="Label" parent="UI/ActionPanel/VBox/HarvestRow"]
+custom_minimum_size = Vector2(48, 0)
+text = "50%"
+
+[node name="HarvestButton" type="Button" parent="UI/ActionPanel/VBox"]
+text = "Wydobądź drewno"
+
+[node name="EndTurnButton" type="Button" parent="UI/ActionPanel/VBox"]
+text = "Zakończ turę"
