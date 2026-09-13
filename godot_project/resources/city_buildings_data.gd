@@ -4,10 +4,8 @@ extends RefCounted
 ## charakterystycznych dla danego miasta... nie pojawiają się na mapie
 ## heksów - to osobny, wewnętrzny system rozwoju miasta").
 ##
-## Na razie zdefiniowane dla miast startowych faktycznie obecnych w
-## bieżącym wycinku mapy (Faza 1 - tylko Pomorze Zachodnie + Dolny Śląsk,
-## patrz README). Dodaj kolejne miasta tutaj w miarę rozszerzania KML o
-## resztę Polski (Warszawa, Kraków, Gdańsk... - przykłady z sekcji 7 GDD).
+## Zdefiniowane dla wszystkich 6 miast startowych z sekcji 7 GDD, obecnych
+## jako heksy typu "city" w pełnej mapie Polski (data/map_data.json).
 ##
 ## Koszty celowo używają różnych typów zasobów rozsianych po mapie (gaz,
 ## miedź, węgiel, drewno z lasu, żywność, nikiel, uran), żeby skompletowanie
@@ -21,6 +19,14 @@ static func get_buildings(city_name: String) -> Array[Building]:
 			return _wroclaw()
 		"Szczecin":
 			return _szczecin()
+		"Warszawa":
+			return _warszawa()
+		"Kraków":
+			return _krakow()
+		"Gdańsk":
+			return _gdansk()
+		"Poznań":
+			return _poznan()
 		_:
 			return []
 
@@ -76,6 +82,110 @@ static func _szczecin() -> Array[Building]:
 		_make(
 			"Filharmonia Szczecińska",
 			{HexData.ResourceType.GAS: 15.0, HexData.ResourceType.COPPER: 10.0},
+			35
+		),
+	]
+	return list
+
+
+static func _warszawa() -> Array[Building]:
+	var list: Array[Building] = [
+		_make("Stare Miasto", {HexData.ResourceType.FOOD: 20.0}, 10),
+		_make(
+			"Zamek Królewski",
+			{HexData.ResourceType.FOOD: 15.0, HexData.ResourceType.WOOD: 10.0},
+			15
+		),
+		_make(
+			"Pałac Kultury i Nauki",
+			{HexData.ResourceType.FOOD: 10.0, HexData.ResourceType.COAL: 10.0},
+			15
+		),
+		_make(
+			"Uniwersytet Warszawski",
+			{
+				HexData.ResourceType.COPPER: 15.0,
+				HexData.ResourceType.COAL: 15.0,
+				HexData.ResourceType.GAS: 10.0,
+			},
+			35
+		),
+	]
+	return list
+
+
+static func _krakow() -> Array[Building]:
+	var list: Array[Building] = [
+		_make("Sukiennice", {HexData.ResourceType.FOOD: 20.0}, 10),
+		_make(
+			"Kościół Mariacki",
+			{HexData.ResourceType.FOOD: 15.0, HexData.ResourceType.WOOD: 10.0},
+			15
+		),
+		_make(
+			"Kopiec Kościuszki",
+			{HexData.ResourceType.FOOD: 10.0, HexData.ResourceType.COAL: 10.0},
+			15
+		),
+		_make(
+			"Zamek Królewski na Wawelu",
+			{
+				HexData.ResourceType.COPPER: 20.0,
+				HexData.ResourceType.NICKEL: 10.0,
+				HexData.ResourceType.URANIUM: 5.0,
+			},
+			35
+		),
+	]
+	return list
+
+
+static func _gdansk() -> Array[Building]:
+	var list: Array[Building] = [
+		_make("Dwór Artusa", {HexData.ResourceType.FOOD: 20.0}, 10),
+		_make(
+			"Bazylika Mariacka",
+			{HexData.ResourceType.FOOD: 15.0, HexData.ResourceType.WOOD: 10.0},
+			15
+		),
+		_make(
+			"Żuraw Gdański",
+			{HexData.ResourceType.FOOD: 10.0, HexData.ResourceType.GAS: 10.0},
+			15
+		),
+		_make(
+			"Stocznia Gdańska",
+			{
+				HexData.ResourceType.COAL: 15.0,
+				HexData.ResourceType.COPPER: 15.0,
+				HexData.ResourceType.GAS: 10.0,
+			},
+			35
+		),
+	]
+	return list
+
+
+static func _poznan() -> Array[Building]:
+	var list: Array[Building] = [
+		_make("Stary Rynek", {HexData.ResourceType.FOOD: 20.0}, 10),
+		_make(
+			"Ratusz Poznański",
+			{HexData.ResourceType.FOOD: 15.0, HexData.ResourceType.WOOD: 10.0},
+			15
+		),
+		_make(
+			"Ostrów Tumski",
+			{HexData.ResourceType.FOOD: 10.0, HexData.ResourceType.COAL: 10.0},
+			15
+		),
+		_make(
+			"Poznańskie Koziołki",
+			{
+				HexData.ResourceType.COPPER: 10.0,
+				HexData.ResourceType.NICKEL: 10.0,
+				HexData.ResourceType.URANIUM: 5.0,
+			},
 			35
 		),
 	]

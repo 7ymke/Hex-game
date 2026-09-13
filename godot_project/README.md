@@ -4,9 +4,9 @@ Godot 4.2.2. Zaimplementowane: **Fazy 0-9** z `Plan_Implementacji_Godot.md`
 (fundament, import mapy, wizualizacja, mgła wojny, ludzik i ruch, akcje na
 polu, pełna struktura tur wielu graczy, prestiż jako centralna waluta, Karta
 Miasta, przejęcie terytorium PvP). Gra jest w pełni grywalna w trybie
-jednoosobowym-na-jednym-ekranie (**hotseat**, 2 graczy) — dokładnie to, co
-plan implementacji zakłada jako cel Faz 0-9, zanim dojdzie warstwa sieciowa
-(Faza 10).
+jednoosobowym-na-jednym-ekranie (**hotseat**, do 6 graczy — pełna skala
+multiplayer z sekcji 7 GDD) — dokładnie to, co plan implementacji zakłada
+jako cel Faz 0-9, zanim dojdzie warstwa sieciowa (Faza 10).
 
 Wszystkie liczby do tweakowania balansu (prędkość ludzika, wygląd zaznaczenia,
 punkty ruchu, progi/kary lasu i stref chronionych, koszt przejęcia
@@ -21,12 +21,13 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
 1. Otwórz folder `godot_project/` w Godot 4.2.2 (Import → wskaż `project.godot`).
 2. Naciśnij **F5** (Run Project) — scena `scenes/main.tscn` jest ustawiona jako
    główna, więc powinna wystartować od razu.
-3. Gra hotseat, **2 graczy**: Gracz 1 startuje we Wrocławiu (`H18`), Gracz 2
-   w Szczecinie (`A7`) — każdy widzi tylko odkryty przez siebie fragment mapy
-   (osobna mgła wojny per gracz). Siatka jest **flat-top** (płaski bok na
-   górze/dole heksa) i pokrywa już CAŁĄ Polskę (496 heksów, wszystkie 6 miast
-   startowych z sekcji 7 GDD) — na razie grywalne hotseat na 2 graczy, patrz
-   sekcja "Decyzje projektowe" niżej o dodaniu pozostałych 4.
+3. Gra hotseat, **6 graczy**, każdy w innym mieście startowym (sekcja 7 GDD):
+   Wrocław (`H18`), Szczecin (`A7`), Warszawa (`R12`), Kraków (`O22`), Gdańsk
+   (`L3`), Poznań (`G12`) — każdy widzi tylko odkryty przez siebie fragment
+   mapy (osobna mgła wojny per gracz). Siatka jest **flat-top** (płaski bok
+   na górze/dole heksa) i pokrywa całą Polskę (496 heksów). Żeby zagrać w
+   mniejszym składzie, usuń wpisy z `PLAYER_SETUP` w
+   `game_map_controller.gd` (patrz "Decyzje projektowe" niżej).
 4. **Sterowanie** (dotyczy aktualnie kontrolowanego gracza — patrz etykieta
    "Kontrolujesz" w lewym górnym rogu):
    - **Lewy klik na własnego ludzika** → zaznacza go: lekko się powiększa i
@@ -106,7 +107,7 @@ godot_project/
 │                                  # z opcjonalną listą heksów wykluczonych (blokada PvP)
 ├── scenes/
 │   ├── main.tscn                # scena grywalna (Fazy 2-9) - kamera, mapa,
-│   │                              # 2x ludzik, UI, panel Karty Miasta
+│   │                              # ludzik (+5 tworzonych w kodzie), UI, Karta Miasta
 │   ├── game_map_controller.gd   # orchestracja: ruch, mgła, akcje na polu,
 │   │                              # wybór gracza, PvP, Karta Miasta,
 │   │                              # zaznaczanie ludzików
@@ -182,15 +183,16 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
-- **Hotseat na razie testowany na 2 z 6 dostępnych miast.** Mapa (patrz wyżej)
-  ma już WSZYSTKIE 6 miast startowych z sekcji 7 GDD jako realne heksy typu
-  `city` - `PLAYER_SETUP` w `game_map_controller.gd` używa na razie tylko
-  dwóch (Wrocław `H18`, Szczecin `A7`), żeby trzymać hotseat testowalny na
-  jednym ekranie. Dodanie graczy 3-6 (Warszawa `R12`, Kraków `O22`, Gdańsk
-  `L3`, Poznań `G12`) to już tylko dopisanie wpisów do `PLAYER_SETUP` (id,
-  nazwa, miasto, heks startowy, kolor) i odpowiadających im budynków w
-  `city_buildings_data.gd` - żadnych zmian w logice ruchu/akcji/tur nie
-  wymaga (już są napisane generycznie dla dowolnej liczby graczy).
+- **Hotseat na pełnych 6 graczach (sekcja 7 GDD).** `PLAYER_SETUP` w
+  `game_map_controller.gd` rejestruje wszystkich 6 graczy naraz (Wrocław
+  `H18`, Szczecin `A7`, Warszawa `R12`, Kraków `O22`, Gdańsk `L3`, Poznań
+  `G12`), każdy z osobnym kolorem pionka i kompletem budynków Karty Miasta
+  w `city_buildings_data.gd`. Cała logika ruchu/mgły/akcji/tur/PvP była od
+  początku napisana generycznie (pętle po `players`/`player_ludziks`, bez
+  założenia "dokładnie dwóch graczy"), więc przejście z 2 na 6 to była
+  wyłącznie kwestia dopisania DANYCH (wpisów w tych dwóch plikach) - żadnych
+  zmian w logice sterowania, ruchu, mgły, akcji na polu czy tur. Żeby zagrać
+  w mniejszym składzie, po prostu usuń wybrane wpisy z `PLAYER_SETUP`.
 - **Kara za strefę chronioną nalicza się przy budowie/naprawie, NIE przy
   aneksacji** (update). Pierwsza wersja karała już samo przejęcie własności
   heksa chronionego - to się okazało zbyt agresywne (samo "zaklepanie" pola
@@ -291,16 +293,17 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   kluczowych — dla nietypowych etykiet (fabryki, atrakcje UNESCO) może
   wymagać ręcznej korekty w JSON albo rozbudowy listy słów kluczowych.
 - Siatka obejmuje już całą Polskę (496 heksów, wszystkie 6 miast startowych)
-  — multiplayer docelowo na 6 graczy (Faza 10) czeka teraz tylko na warstwę
-  sieciową, nie na dane mapy.
-- **Ludziki obu graczy są zawsze widoczne**, niezależnie od mgły wojny
-  aktywnego gracza (rysują się jako zwykłe węzły `Node2D` nad warstwą mgły).
-  W hotseat na jednym ekranie to nieszkodliwe uproszczenie — obaj gracze i tak
-  widzą ten sam monitor między turami, więc "ukrywanie pionka przeciwnika"
-  nie chroni żadnej realnej informacji. Nabierze znaczenia dopiero przy
-  prawdziwym multiplayerze sieciowym z osobnymi klientami (Faza 10), gdzie
-  wymagałoby też decyzji projektowej, czy pozycja ludzika w ogóle powinna być
-  tajna (GDD tego nie precyzuje).
+  i hotseat gra już na pełnych 6 graczach — multiplayer SIECIOWY (Faza 10)
+  czeka teraz tylko na warstwę sieciową (ENet), nie na dane mapy ani na
+  logikę wielu graczy, która już istnieje i działa lokalnie.
+- **Ludziki wszystkich graczy są zawsze widoczne**, niezależnie od mgły
+  wojny aktywnego gracza (rysują się jako zwykłe węzły `Node2D` nad warstwą
+  mgły). W hotseat na jednym ekranie to nieszkodliwe uproszczenie — wszyscy
+  gracze i tak widzą ten sam monitor między turami, więc "ukrywanie pionka
+  przeciwnika" nie chroni żadnej realnej informacji. Nabierze znaczenia
+  dopiero przy prawdziwym multiplayerze sieciowym z osobnymi klientami
+  (Faza 10), gdzie wymagałoby też decyzji projektowej, czy pozycja ludzika
+  w ogóle powinna być tajna (GDD tego nie precyzuje).
 - **Otwarte pytania z sekcji 11 GDD** wciąż nierozstrzygnięte (nie blokują
   Faz 0-9, ale wpłyną na balans): czy typ strefy chronionej (UNESCO vs zwykły
   PN) różnicuje karę prestiżową; czy surowce wymagają przetworzenia w
