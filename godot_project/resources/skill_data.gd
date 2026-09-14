@@ -1,31 +1,31 @@
 class_name SkillData
 extends Resource
-## Pojedynczy węzeł drzewka umiejętności - permanentny upgrade dla gracza,
-## płatny surowcami, które już istnieją w grze (ten sam mechanizm co Karta
-## Miasta: PlayerData.can_afford/pay_costs, patrz city_buildings_data.gd).
+## A single skill tree node - a permanent upgrade for a player, paid for
+## with resources that already exist in the game (the same mechanism as the
+## City Card: PlayerData.can_afford/pay_costs, see city_buildings_data.gd).
 ##
-## Na razie drzewko jest PŁASKIE (bez zależności/prerequisitów między
-## węzłami, bez poziomów) - każdy z 5 startowych upgrade'ów (scripts/skill_tree_data.gd)
-## da się odblokować niezależnie, jeśli stać na niego gracza. Efekt jest
-## aplikowany RAZ, w momencie odblokowania (permanentny bonus, nie zużywalny
-## przedmiot) - patrz GameManager.unlock_skill() i
-## game_map_controller._on_skill_unlocked() dla efektów wymagających dostępu
-## do węzłów sceny (EXTRA_LUDZIK, retroaktywny bonus MP).
+## The tree is currently FLAT (no dependencies/prerequisites between nodes,
+## no levels) - each of the 5 starting upgrades (scripts/skill_tree_data.gd)
+## can be unlocked independently, as long as the player can afford it. The
+## effect is applied ONCE, at the moment of unlocking (a permanent bonus,
+## not a consumable) - see GameManager.unlock_skill() and
+## game_map_controller._on_skill_unlocked() for effects that need access to
+## scene nodes (EXTRA_UNIT, retroactive MP bonus).
 
 enum EffectType {
-	EXTRA_LUDZIK,           # dodaje kolejnego Ludzika do player_ludziks (rekrutacja w mieście startowym)
-	MOVEMENT_POINTS_BONUS,  # +N do movement_points_max każdego ludzika gracza (obecnego i przyszłego)
-	VISION_RADIUS_BONUS,    # +N do promienia widzenia (VISION_RADIUS) gracza
-	FOREST_THRESHOLD_BONUS, # +N pkt. proc. do bezpiecznego progu wycinki lasu (FOREST_SAFE_THRESHOLD_PERCENT)
-	ANNEX_COST_REDUCTION,   # -N do kosztu MP aneksacji (ANNEX_MP_COST), nie mniej niż 1
+	EXTRA_UNIT,             # adds another Unit to player_units (recruited in the starting city)
+	MOVEMENT_POINTS_BONUS,  # +N to movement_points_max for each of the player's units (current and future)
+	VISION_RADIUS_BONUS,    # +N to vision radius (VISION_RADIUS) for the player
+	FOREST_THRESHOLD_BONUS, # +N percentage points to the safe forest harvesting threshold (FOREST_SAFE_THRESHOLD_PERCENT)
+	ANNEX_COST_REDUCTION,   # -N to the MP cost of annexation (ANNEX_MP_COST), never below 1
 }
 
 @export var skill_id: String = ""
 @export var skill_name: String = ""
 @export var description: String = ""
 
-## HexData.ResourceType(int) -> ilość(float) - te same kategorie surowców co
-## wszędzie indziej w grze (sekcja 6 GDD).
+## HexData.ResourceType(int) -> amount(float) - the same resource categories
+## used everywhere else in the game (GDD section 6).
 @export var required_resources: Dictionary = {}
 
 @export var effect_type: EffectType = EffectType.MOVEMENT_POINTS_BONUS

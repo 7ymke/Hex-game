@@ -1,26 +1,26 @@
 extends Node
-## Manualny test dymny (smoke test) Fazy 0-1 planu implementacji.
-## Uruchom tę scenę (F6 / "Run Current Scene"), żeby zobaczyć w konsoli,
-## czy wczytywanie mapy, aneksacja, wydobycie lasu i przeliczenie rundy działają.
+## Manual smoke test for implementation plan Phase 0-1.
+## Run this scene (F6 / "Run Current Scene") to see in the console whether
+## map loading, annexation, forest harvesting, and round resolution work.
 
 func _ready() -> void:
-	print("=== Test Fazy 0-1: dane, aneksacja, wydobycie lasu, tura ===")
-	print("Liczba wczytanych heksów: ", MapData.hexes.size())
+	print("=== Phase 0-1 test: data, annexation, forest harvesting, turn ===")
+	print("Number of hexes loaded: ", MapData.hexes.size())
 
 	var player = PlayerData.new()
 	player.player_id = 1
-	player.player_name = "Gracz testowy"
+	player.player_name = "Test player"
 	player.starting_city = "Wrocław"
 	GameManager.register_player(player)
 
-	# Aneksacja heksa bazowego Wrocławia (H18 wg konwencji z KML)
+	# Annex Wrocław's base hex (H18 per the KML convention)
 	if MapData.get_hex("H18") != null:
 		var result = GameManager.annex_hex("H18", 1)
-		print("Aneksacja H18 (Wrocław): ", result)
+		print("Annexing H18 (Wrocław): ", result)
 	else:
-		print("UWAGA: nie znaleziono heksa H18 - sprawdź dane mapy.")
+		print("WARNING: hex H18 not found - check the map data.")
 
-	# Znajdź pierwszy dostępny heks leśny i przetestuj oba warianty wydobycia
+	# Find the first available forest hex and test both harvesting scenarios
 	var forest_hex_id = ""
 	for hex_id in MapData.hexes:
 		var hex: HexData = MapData.hexes[hex_id]
@@ -32,135 +32,137 @@ func _ready() -> void:
 		GameManager.annex_hex(forest_hex_id, 1)
 
 		var safe_result = GameManager.harvest_forest(forest_hex_id, 1, 50.0)
-		print("Wydobycie 50%% z lasu %s (bezpieczne, brak kary): %s" % [forest_hex_id, safe_result])
+		print("Harvesting 50%% of forest %s (safe, no penalty): %s" % [forest_hex_id, safe_result])
 
 		var over_result = GameManager.harvest_forest(forest_hex_id, 1, 90.0)
-		print("Wydobycie 90%% z lasu %s (przekroczenie progu 60%%): %s" % [forest_hex_id, over_result])
+		print("Harvesting 90%% of forest %s (exceeds the 60%% threshold): %s" % [forest_hex_id, over_result])
 
-		print("Prestiż gracza po nadmiernej wycince: ", player.prestige)
-		print("Zasoby drewna gracza: ", player.get_resource_amount(HexData.ResourceType.WOOD))
+		print("Player prestige after over-harvesting: ", player.prestige)
+		print("Player wood resources: ", player.get_resource_amount(HexData.ResourceType.WOOD))
 
 		var hex_after: HexData = MapData.get_hex(forest_hex_id)
 		print(
-			"Poziom zasobu %s po dwóch wydobyciach: %.1f%% (powinno być WYRAŹNIE poniżej 100%% - wydobycie musi wyczerpywać pole, nie tylko naliczać karę)"
+			"Resource level of %s after two harvests: %.1f%% (should be CLEARLY below 100%% - harvesting must deplete the hex, not just apply a penalty)"
 			% [forest_hex_id, hex_after.resource_level]
 		)
-		print("Pole %s generuje prestiż? %s (powinno być false po przekroczeniu)" % [forest_hex_id, hex_after.generates_prestige])
+		print("Does hex %s generate prestige? %s (should be false after exceeding the threshold)" % [forest_hex_id, hex_after.generates_prestige])
 
-		# Przeliczenie rundy - sprawdzenie regeneracji
+		# Resolve a round - check regrowth
 		TurnManager.setup_player_order([1])
 		TurnManager.end_round()
-		print("--- Po przeliczeniu rundy ---")
-		print("Poziom zasobu %s po regeneracji: %.1f%%" % [forest_hex_id, hex_after.resource_level])
-		print("Pole generuje prestiż po regeneracji? ", hex_after.generates_prestige)
+		print("--- After resolving the round ---")
+		print("Resource level of %s after regrowth: %.1f%%" % [forest_hex_id, hex_after.resource_level])
+		print("Does the hex generate prestige after regrowth? ", hex_after.generates_prestige)
 	else:
-		print("UWAGA: nie znaleziono żadnego heksa lasu w danych mapy.")
+		print("WARNING: no forest hex found in the map data.")
 
-	print("=== Koniec testu Fazy 0-1 ===")
+	print("=== End of Phase 0-1 test ===")
 	_test_phase_6_to_9(player)
 
 
-## Manualny test dymny Faz 6-9 (+ update po dalszych poprawkach): pełna
-## struktura tur wielu graczy oparta o gotowość (nie sztywną alternację),
-## blokada ruchu przez broniącego ludzika, przejęcie terytorium (PvP), Karta
-## Miasta i (zaktualizowana) kara za strefę chronioną - dopiero za
-## budowę/naprawę na niej, NIE za samą aneksację.
-## Testowane na poziomie logiki (GameManager/TurnManager/HexPathfinder),
-## bez tworzenia widocznych węzłów Ludzik - te żyją w game_map_controller.gd
-## i wymagają uruchomienia sceny scenes/main.tscn (patrz README). Punkty
-## ruchu (teraz własność Ludzika, nie gracza) i koszt MP aneksacji dlatego
-## też nie są tu testowane - to logika na poziomie kontrolera/sceny.
+## Manual smoke test for Phases 6-9 (+ updates from later fixes): the full
+## readiness-based (not strict alternation) multi-player turn structure,
+## movement blocked by a defending unit, territory takeover (PvP), the City
+## Card, and the (updated) protected-area penalty - now only for
+## building/repairing on it, NOT for the annexation itself.
+## Tested at the logic level (GameManager/TurnManager/HexPathfinder), without
+## creating visible Unit nodes - those live in game_map_controller.gd and
+## require running the scenes/main.tscn scene (see README). Movement points
+## (now owned by the Unit, not the player) and the annexation MP cost are
+## therefore not tested here either - that's logic at the
+## controller/scene level.
 func _test_phase_6_to_9(player: PlayerData) -> void:
-	print("=== Test Faz 6-9: tury wielu graczy, blokada, przejęcie, Karta Miasta ===")
+	print("=== Phase 6-9 test: multi-player turns, blocking, takeover, City Card ===")
 
-	# --- Faza 6 (update): drugi gracz + wybór aktywnego gracza wprost,
-	# niezależny od przeliczenia rundy (patrz turn_manager.gd) ---
+	# --- Phase 6 (update): a second player + choosing the active player
+	# directly, independent of round resolution (see turn_manager.gd) ---
 	var player2 = PlayerData.new()
 	player2.player_id = 2
-	player2.player_name = "Gracz 2 testowy"
+	player2.player_name = "Test player 2"
 	player2.starting_city = "Szczecin"
 	GameManager.register_player(player2)
 
 	if MapData.get_hex("A7") != null:
-		print("Aneksacja A7 (Szczecin) dla gracza 2: ", GameManager.annex_hex("A7", 2))
+		print("Annexing A7 (Szczecin) for player 2: ", GameManager.annex_hex("A7", 2))
 
 	TurnManager.setup_player_order([1, 2])
 	print(
-		"Aktywny gracz po setup_player_order: %d (oczekiwano 1)" % TurnManager.get_current_player_id()
+		"Active player after setup_player_order: %d (expected 1)" % TurnManager.get_current_player_id()
 	)
 
 	TurnManager.switch_to_player(2)
 	print(
-		"Aktywny gracz po switch_to_player(2) (wybór wprost, nie cykl): %d (oczekiwano 2)"
+		"Active player after switch_to_player(2) (direct choice, not cycling): %d (expected 2)"
 		% TurnManager.get_current_player_id()
 	)
 	TurnManager.switch_to_player(1)
 	print(
-		"Aktywny gracz po switch_to_player(1) z powrotem: %d (oczekiwano 1)"
+		"Active player after switch_to_player(1) back again: %d (expected 1)"
 		% TurnManager.get_current_player_id()
 	)
 
 	var round_before = TurnManager.round_number
-	TurnManager.end_round()  # nie zmienia aktywnego gracza, tylko przelicza rundę
+	TurnManager.end_round()  # does not change the active player, only resolves the round
 	print(
-		"Aktywny gracz po end_round (bez zmiany, oczekiwano 1): %d" % TurnManager.get_current_player_id()
+		"Active player after end_round (unchanged, expected 1): %d" % TurnManager.get_current_player_id()
 	)
 	print(
-		"Runda po end_round: %d -> %d (oczekiwano +1)"
+		"Round after end_round: %d -> %d (expected +1)"
 		% [round_before, TurnManager.round_number]
 	)
 
-	# --- Faza 9: blokada ruchu przez broniącego ludzika (sekcja 3 GDD) ---
-	# H18 (Wrocław) ma sześciu sąsiadów w obecnych danych, w tym H17 - użyty
-	# tu jako "zajęty przez broniącego ludzika" heks.
+	# --- Phase 9: movement blocked by a defending unit (GDD section 3) ---
+	# H18 (Wrocław) has six neighbors in the current data, including H17 -
+	# used here as the "occupied by a defending unit" hex.
 	var pathfinder = HexPathfinder.new()
 	pathfinder.build(["H17"])
 	var blocked_target = pathfinder.find_path("H18", "H17")
 	print(
-		"Trasa H18->H17 gdy H17 jest bronione: %s (oczekiwano pustej listy)" % [blocked_target]
+		"Route H18->H17 while H17 is defended: %s (expected an empty list)" % [blocked_target]
 	)
 	var reroutable = pathfinder.find_path("H18", "G17")
-	print("Trasa H18->G17 mimo blokady H17 (inny sąsiad, powinna istnieć): ", reroutable)
+	print("Route H18->G17 despite the H17 block (a different neighbor, should exist): ", reroutable)
 
-	# --- Faza 9: przejęcie terytorium ---
+	# --- Phase 9: territory takeover ---
 	if MapData.get_hex("H19") != null:
 		GameManager.annex_hex("H19", 1)
 
-		# Wyrównaj prestiż obu graczy (niezależnie od kar naliczonych wcześniej
-		# w teście Fazy 0-1), żeby jednoznacznie pokazać odrzucenie próby przy
-		# prestiżu ataku <= prestiżu obrony (sekcja 5 GDD: musi być ŚCIŚLE większy).
+		# Equalize both players' prestige (regardless of penalties accrued
+		# earlier in the Phase 0-1 test), to unambiguously demonstrate the
+		# attempt being rejected when attacker prestige <= defender prestige
+		# (GDD section 5: must be STRICTLY greater).
 		player2.modify_prestige(player.prestige - player2.prestige)
 		var equal_prestige_attempt = GameManager.attempt_takeover("H19", 2)
 		print(
-			"Próba przejęcia H19 przy równym prestiżu (%d vs %d): %s"
+			"Attempt to take H19 with equal prestige (%d vs %d): %s"
 			% [player2.prestige, player.prestige, equal_prestige_attempt]
 		)
 
-		player2.modify_prestige(50)  # gracz 2 ma teraz przewagę prestiżową
+		player2.modify_prestige(50)  # player 2 now has a prestige advantage
 		var winning_attempt = GameManager.attempt_takeover("H19", 2)
 		print(
-			"Próba przejęcia H19 z przewagą prestiżową (%d vs %d): %s"
+			"Attempt to take H19 with a prestige advantage (%d vs %d): %s"
 			% [player2.prestige, player.prestige, winning_attempt]
 		)
-		print("Właściciel H19 po przejęciu: ", MapData.get_hex("H19").owner_id, " (oczekiwano 2)")
+		print("Owner of H19 after the takeover: ", MapData.get_hex("H19").owner_id, " (expected 2)")
 
-	# --- Faza 7 (zaktualizowane): aneksacja strefy chronionej NIE karze już
-	# prestiżem - kara pojawia się dopiero przy budowie/naprawie budynku na
-	# takim terenie (repair_building). ---
+	# --- Phase 7 (updated): annexing a protected area NO LONGER incurs a
+	# prestige penalty - the penalty only appears when a building is built/
+	# repaired on such terrain (repair_building). ---
 	if MapData.get_hex("A8") != null:
 		var prestige_before_annex = player2.prestige
 		var protected_annex_result = GameManager.annex_hex("A8", 2)
-		print("Aneksacja A8 (Park Krajobrazowy Dolnej Odry, strefa chroniona) - BEZ kary: ", protected_annex_result)
+		print("Annexing A8 (Dolna Odra Landscape Park, a protected area) - NO penalty: ", protected_annex_result)
 		print(
-			"Prestiż gracza 2 przed/po aneksacji: %d -> %d (oczekiwano BEZ zmian)"
+			"Player 2 prestige before/after annexation: %d -> %d (expected NO change)"
 			% [prestige_before_annex, player2.prestige]
 		)
 
-		# Obecny wycinek KML nie ma żadnego budynku na terenie chronionym -
-		# symulujemy go tu ręcznie, żeby przetestować samą regułę "budowa na
-		# terenie chronionym karze prestiż".
+		# The current KML excerpt has no building on protected terrain - we
+		# simulate one here manually to test the "building on protected
+		# terrain incurs a prestige penalty" rule on its own.
 		var synthetic_building = Building.new()
-		synthetic_building.building_name = "Testowa infrastruktura (symulacja)"
+		synthetic_building.building_name = "Test infrastructure (simulated)"
 		synthetic_building.required_resources = {}
 		var protected_hex: HexData = MapData.get_hex("A8")
 		protected_hex.building = synthetic_building
@@ -168,23 +170,23 @@ func _test_phase_6_to_9(player: PlayerData) -> void:
 
 		var prestige_before_repair = player2.prestige
 		var repair_result = GameManager.repair_building("A8", 2)
-		print("Naprawa/budowa na strefie chronionej A8: ", repair_result)
+		print("Repairing/building on protected area A8: ", repair_result)
 		print(
-			"Prestiż gracza 2 przed/po naprawie: %d -> %d (oczekiwana kara)"
+			"Player 2 prestige before/after repair: %d -> %d (expected a penalty)"
 			% [prestige_before_repair, player2.prestige]
 		)
 
-	# --- Faza 8: Karta Miasta ---
+	# --- Phase 8: City Card ---
 	var wroclaw_buildings = CityBuildingsData.get_buildings("Wrocław")
-	print("Liczba budynków Karty Miasta dla Wrocławia: ", wroclaw_buildings.size())
+	print("Number of City Card buildings for Wrocław: ", wroclaw_buildings.size())
 	if not wroclaw_buildings.is_empty():
 		var cheapest: Building = wroclaw_buildings[0]
 		for res_type in cheapest.required_resources:
 			player.add_resource(res_type, cheapest.required_resources[res_type])
 		var unlock_result = GameManager.unlock_city_building(1, cheapest)
-		print("Odblokowanie '%s': %s" % [cheapest.building_name, unlock_result])
-		print("Prestiż gracza 1 po odblokowaniu: ", player.prestige)
+		print("Unlocking '%s': %s" % [cheapest.building_name, unlock_result])
+		print("Player 1 prestige after unlocking: ", player.prestige)
 		var repeat_unlock = GameManager.unlock_city_building(1, cheapest)
-		print("Ponowna próba odblokowania tego samego budynku: ", repeat_unlock)
+		print("Repeated attempt to unlock the same building: ", repeat_unlock)
 
-	print("=== Koniec testu Faz 6-9 ===")
+	print("=== End of Phase 6-9 test ===")

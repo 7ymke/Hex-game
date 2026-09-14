@@ -1,21 +1,21 @@
 class_name SkillTreeData
 extends RefCounted
-## Startowa zawartość drzewka umiejętności - 5 upgrade'ów zaproponowanych do
-## gry (jak dotąd tylko Karta Miasta dawała trwały cel na zdobyte surowce;
-## to drugi taki "zlew" na nadwyżki surowców, tym razem z bezpośrednim
-## wpływem na rozgrywkę zamiast samego prestiżu). Wspólna dla wszystkich
-## graczy/miast (w przeciwieństwie do Karty Miasta) - to ogólne usprawnienia,
-## nie zabytki charakterystyczne dla konkretnego miasta.
+## Starting content of the skill tree - 5 upgrades proposed for the game (so
+## far only the City Card gave a lasting goal for surplus resources; this is
+## a second such "sink" for resource surpluses, this time with a direct
+## effect on gameplay instead of just prestige). Shared by all
+## players/cities (unlike the City Card) - these are general improvements,
+## not landmarks specific to a given city.
 ##
-## Koszty celowo rozsiane po różnych typach zasobów, tak jak w
-## city_buildings_data.gd, żeby skompletowanie drzewka też wymagało kontroli
-## wielu regionów. Wartości to placeholdery do dostrojenia podczas testów
-## balansu (sekcja 11 GDD).
+## Costs are deliberately spread across different resource types, just like
+## in city_buildings_data.gd, so that completing the tree also requires
+## controlling multiple regions. Values are placeholders to be tuned during
+## balance testing (GDD section 11).
 
 static func get_skills() -> Array[SkillData]:
 	var list: Array[SkillData] = [
 		_make(
-			"extra_ludzik",
+			"extra_unit",
 			"Drugi ludzik",
 			"Rekrutuje drugiego ludzika w mieście startowym - dwa niezależne ruchy i akcje na rundę zamiast jednego.",
 			{
@@ -23,7 +23,7 @@ static func get_skills() -> Array[SkillData]:
 				HexData.ResourceType.WOOD: 40.0,
 				HexData.ResourceType.COAL: 20.0,
 			},
-			SkillData.EffectType.EXTRA_LUDZIK,
+			SkillData.EffectType.EXTRA_UNIT,
 			1.0
 		),
 		_make(

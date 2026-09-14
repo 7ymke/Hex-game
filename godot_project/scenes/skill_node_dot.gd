@@ -1,13 +1,13 @@
 class_name SkillNodeDot
 extends Control
-## Pojedynczy węzeł drzewka umiejętności - na razie zwykła kropka, celowo
-## łatwa do podmiany na obrazek w przyszłości: ustaw `sprite_texture` (ten
-## sam wzorzec co `Ludzik.sprite_texture` w ludzik.gd) - bez ustawionego
-## obrazka rysowane jest domyślne kółko w kolorze zależnym od stanu
-## (zablokowany / stać cię na niego / odblokowany).
+## A single skill tree node - currently just a plain dot, deliberately easy
+## to swap for an image in the future: set `sprite_texture` (the same
+## pattern as `Unit.sprite_texture` in unit.gd) - without an image set, a
+## default circle is drawn, colored by state (locked / affordable / unlocked).
 ##
-## Sam nie zna szczegółów UI (okienko itd.) - tylko rysuje się i przekazuje
-## hover/klik do SkillTreePanel przez sygnały, które decydują, co z tym zrobić.
+## Doesn't know any UI details itself (the popup, etc.) - it just draws
+## itself and forwards hover/click to SkillTreePanel via signals, which
+## decide what to do with them.
 
 signal dot_hovered(skill: SkillData)
 signal dot_unhovered(skill: SkillData)
@@ -20,8 +20,8 @@ const COLOR_UNLOCKED = Color(0.3, 0.75, 0.35, 1)
 const OUTLINE_COLOR = Color(0.9, 0.95, 1.0, 0.9)
 const OUTLINE_WIDTH = 2.0
 
-## Opcjonalny obrazek węzła - ustaw z kodu (`dot.sprite_texture = load("res://...png")`).
-## Bez tego rysowane jest domyślne kółko (patrz _draw()).
+## Optional node image - set from code (`dot.sprite_texture = load("res://...png")`).
+## Without it, a default circle is drawn (see _draw()).
 @export var sprite_texture: Texture2D = null
 
 var skill: SkillData = null

@@ -1,26 +1,26 @@
 class_name HexPathfinder
 extends RefCounted
-## A* na siatce heksów - sekcja 3 GDD ("Pathfinding: A* po heksach lądowych,
-## z uwzględnieniem wag terenowych, omijający wodę i tereny zablokowane").
+## A* on the hex grid - GDD section 3 ("Pathfinding: A* over land hexes,
+## accounting for terrain weights, avoiding water and blocked terrain").
 ##
-## Implementacja: AStar2D Godota, gdzie każdy przejezdny heks to punkt.
-## Koszt wejścia na heks ~ HexData.get_movement_cost() poprzez weight_scale
-## punktu (AStar2D liczy koszt krawędzi jako odległość euklidesową razy
-## weight_scale punktu docelowego; ponieważ odległość między sąsiednimi
-## środkami heksów jest zawsze taka sama, w praktyce daje to koszt
-## proporcjonalny do kosztu terenowego heksa, do którego się wchodzi).
+## Implementation: Godot's AStar2D, where each passable hex is a point.
+## The cost of entering a hex ~ HexData.get_movement_cost() via the point's
+## weight_scale (AStar2D computes edge cost as the Euclidean distance times
+## the destination point's weight_scale; since the distance between
+## neighboring hex centers is always the same, in practice this gives a
+## cost proportional to the terrain cost of the hex being entered).
 
 var _astar = AStar2D.new()
 var _id_to_hex: Dictionary = {}   # int -> String hex_id
 var _hex_to_id: Dictionary = {}   # String hex_id -> int
 
 
-## `blocked_hex_ids`: heksy wyłączone z grafu ruchu - sekcja 3 GDD, "funkcja
-## obronna" (dopóki ludzik innego gracza stoi na heksie, nikt inny nie może
-## na niego wejść, więc taki heks nie może być ani przystankiem, ani
-## tranzytem trasy). Wywołujące (game_map_controller.gd) przebudowuje graf
-## przed każdym wyszukaniem trasy z aktualnym zestawem heksów zajętych przez
-## PRZECIWNYCH graczy.
+## `blocked_hex_ids`: hexes excluded from the movement graph - GDD section 3,
+## "defensive function" (as long as another player's unit stands on a hex,
+## no one else can enter it, so that hex can be neither a stop nor a
+## transit point on a route). The caller (game_map_controller.gd) rebuilds
+## the graph before every path search with the current set of hexes
+## occupied by OPPOSING players.
 func build(blocked_hex_ids: Array[String] = []) -> void:
 	_astar.clear()
 	_id_to_hex.clear()
@@ -53,8 +53,8 @@ func build(blocked_hex_ids: Array[String] = []) -> void:
 				_astar.connect_points(from_id, to_id)
 
 
-## Zwraca listę hex_id od `from_hex_id` do `to_hex_id` (włącznie z obydwoma
-## końcami), albo pustą tablicę, jeśli nie ma połączenia.
+## Returns the list of hex_id from `from_hex_id` to `to_hex_id` (inclusive of
+## both ends), or an empty array if there is no connection.
 func find_path(from_hex_id: String, to_hex_id: String) -> Array[String]:
 	var result: Array[String] = []
 	if not _hex_to_id.has(from_hex_id) or not _hex_to_id.has(to_hex_id):

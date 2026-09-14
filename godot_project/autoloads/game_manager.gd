@@ -1,11 +1,11 @@
 extends Node
 ## Autoload: GameManager
-## Rejestr graczy i akcje rdzenia rozgrywki: aneksacja, wydobycie lasu,
-## przejęcie terytorium. Wszystkie zmiany prestiżu przechodzą przez tu -
-## sekcja 7 planu implementacji ("scentralizowana funkcja zmiany prestiżu").
+## Player registry and core gameplay actions: annexation, forest harvesting,
+## territory takeover. All prestige changes go through here - implementation
+## plan section 7 ("centralized prestige-change function").
 ##
-## Stałe balansu (progi, kary, koszty) mieszkają teraz w scripts/game_balance.gd
-## - patrz tam, żeby je stroić.
+## Balance constants (thresholds, penalties, costs) now live in
+## scripts/game_balance.gd - tweak them there.
 
 var players: Dictionary = {}  # player_id(int) -> PlayerData
 
@@ -18,7 +18,7 @@ func get_player(player_id: int) -> PlayerData:
 	return players.get(player_id, null)
 
 
-## Scentralizowana zmiana prestiżu - sekcja 7 planu implementacji.
+## Centralized prestige change - implementation plan section 7.
 func change_prestige(player_id: int, delta: int) -> void:
 	var player = get_player(player_id)
 	if player == null:
@@ -26,27 +26,27 @@ func change_prestige(player_id: int, delta: int) -> void:
 	player.modify_prestige(delta)
 
 
-## Aneksacja - sekcja 2.2/3 GDD: wejście na pole i aneksacja to osobne czynności,
-## to wywołanie reprezentuje samą akcję aneksacji, wykonywaną stojąc na polu
-## (w przeciwieństwie do reszty akcji na polu, które po update działają z
-## dowolnej odległości na już zaanektowanym terenie - patrz
-## game_map_controller.gd, sekcja "akcje na polu").
+## Annexation - GDD section 2.2/3: entering a hex and annexing it are separate
+## actions; this call represents the annexation action itself, performed
+## while standing on the hex (unlike the rest of the field actions, which
+## after the update work from any distance on already-annexed territory -
+## see game_map_controller.gd, the "field actions" section).
 ##
-## Koszt w punktach ruchu (sekcja 2.2 GDD) jest sprawdzany i pobierany PRZED
-## wywołaniem tej funkcji, na poziomie game_map_controller.gd - stamtąd, bo
-## MP należą teraz do konkretnego ludzika (węzła sceny), a nie do gracza, i
-## GameManager celowo nic nie wie o ludzikach/scenie.
+## The movement-point cost (GDD section 2.2) is checked and deducted BEFORE
+## calling this function, at the game_map_controller.gd level - because MP
+## now belongs to a specific unit (a scene node), not to the player, and
+## GameManager deliberately knows nothing about units/the scene.
 ##
-## Same aneksacja strefy chronionej NIE karze już prestiżem (update) - kara
-## nalicza się dopiero, gdy ktoś faktycznie zabuduje/naprawi budynek na takim
-## terenie (patrz `repair_building`).
+## Annexing a protected area by itself no longer incurs a prestige penalty
+## (update) - the penalty is only charged once someone actually builds/
+## repairs a building on such terrain (see `repair_building`).
 ##
-## Update: aneksować można TYLKO pole sąsiadujące z już posiadanym polem
-## tego samego gracza (terytorium musi rosnąć spójnie, nie "skakać" po
-## mapie) - `require_adjacency` domyślnie true. Jedyny wyjątek to POCZĄTKOWA
-## aneksacja stolicy gracza (`game_map_controller._setup_players()`), gdzie
-## gracz jeszcze NIC nie posiada, więc wymóg sąsiedztwa byłby niespełnialny -
-## tam wywołanie jawnie przekazuje `false`.
+## Update: a hex can ONLY be annexed if it's adjacent to a hex already owned
+## by the same player (territory must grow contiguously, not "jump" around
+## the map) - `require_adjacency` defaults to true. The only exception is the
+## INITIAL annexation of a player's capital (`game_map_controller._setup_players()`),
+## where the player doesn't own anything yet, so the adjacency requirement
+## would be impossible to satisfy - that call explicitly passes `false`.
 func annex_hex(hex_id: String, player_id: int, require_adjacency: bool = true) -> Dictionary:
 	var hex = MapData.get_hex(hex_id)
 	if hex == null:
@@ -62,10 +62,10 @@ func annex_hex(hex_id: String, player_id: int, require_adjacency: bool = true) -
 	return {"success": true, "terrain": hex.terrain_type, "resource": hex.resource_type}
 
 
-## Czy `hex_id` ma choć jednego sąsiada należącego do `player_id` - warunek
-## aneksacji (wyżej) i podstawa stanu przycisku "Zaanektuj" w
-## game_map_controller.gd (`_can_annex_selected_hex()`), żeby UI i faktyczna
-## reguła zawsze się zgadzały.
+## Whether `hex_id` has at least one neighbor owned by `player_id` - the
+## condition for annexation (above) and the basis for the "Zaanektuj" (annex)
+## button's state in game_map_controller.gd (`_can_annex_selected_hex()`), so
+## the UI and the actual rule always agree.
 func has_adjacent_owned_hex(hex_id: String, player_id: int) -> bool:
 	for neighbor in MapData.get_neighbors(hex_id):
 		if neighbor.owner_id == player_id:
@@ -73,8 +73,9 @@ func has_adjacent_owned_hex(hex_id: String, player_id: int) -> bool:
 	return false
 
 
-## Wydobycie lasu - sekcja 6.1 GDD.
-## harvest_percent: ile % AKTUALNEGO poziomu zasobu (nie z 100%!) gracz wydobywa.
+## Forest harvesting - GDD section 6.1.
+## harvest_percent: what % of the hex's CURRENT resource level (not of 100%!)
+## the player harvests.
 func harvest_forest(hex_id: String, player_id: int, harvest_percent: float) -> Dictionary:
 	var hex = MapData.get_hex(hex_id)
 	var player = get_player(player_id)
@@ -88,18 +89,19 @@ func harvest_forest(hex_id: String, player_id: int, harvest_percent: float) -> D
 
 	harvest_percent = clampf(harvest_percent, 0.0, 100.0)
 
-	# Surowiec: zawsze wydawany wg wyboru gracza, niezależnie od kary.
-	# WAŻNE: wydobyta ilość schodzi z resource_level pola (sekcja 6.1 GDD -
-	# "ile drewna jest obecnie DOSTĘPNE do wydobycia") - bez tego odjęcia las
-	# nigdy by się nie wyczerpywał i dawałby to samo drewno w nieskończoność,
-	# niezależnie od regeneracji w turn_manager.gd.
+	# Resource: always granted per the player's choice, regardless of penalty.
+	# IMPORTANT: the harvested amount comes off the hex's resource_level (GDD
+	# section 6.1 - "how much wood is currently AVAILABLE to harvest") -
+	# without this deduction the forest would never deplete and would give
+	# the same amount of wood forever, independent of the regrowth in
+	# turn_manager.gd.
 	var wood_gained: float = hex.resource_level * (harvest_percent / 100.0)
 	hex.resource_level -= wood_gained
 	player.add_resource(HexData.ResourceType.WOOD, wood_gained)
 
-	# Prestiż: kara i wyłączenie generowania TYLKO przy przekroczeniu progu.
-	# Próg podniesiony o ewentualny bonus z drzewka umiejętności (skill
-	# "advanced_logging" - patrz scripts/skill_tree_data.gd), 0.0 domyślnie.
+	# Prestige: penalty and disabling generation ONLY when the threshold is
+	# exceeded. The threshold is raised by any skill-tree bonus (skill
+	# "advanced_logging" - see scripts/skill_tree_data.gd), 0.0 by default.
 	var safe_threshold = GameBalance.FOREST_SAFE_THRESHOLD_PERCENT + player.forest_safe_threshold_bonus
 	var over_harvest: float = harvest_percent - safe_threshold
 	var prestige_penalty = 0
@@ -108,11 +110,11 @@ func harvest_forest(hex_id: String, player_id: int, harvest_percent: float) -> D
 		change_prestige(player_id, -prestige_penalty)
 		hex.generates_prestige = false
 
-	# Wycinka lasu na terenie chronionym (sekcja 4 GDD) - w obecnym modelu
-	# terenu (jeden typ na heks) heks nie może być jednocześnie "forest" i
-	# "protected_area", więc ta gałąź jest na razie martwa, ale zostaje na
-	# wypadek, gdyby przyszłe dane terenu zaczęły oznaczać takie nakładanie
-	# się osobną flagą zamiast wyłącznym typem terenu.
+	# Logging on protected terrain (GDD section 4) - in the current terrain
+	# model (one type per hex) a hex can't be both "forest" and
+	# "protected_area" at once, so this branch is currently dead, but it
+	# stays in case future terrain data starts marking such overlap with a
+	# separate flag instead of an exclusive terrain type.
 	if hex.is_protected():
 		var protection_result = damage_protected_area(hex_id, player_id, 1.0)
 		prestige_penalty += protection_result.get("prestige_penalty", 0)
@@ -125,11 +127,12 @@ func harvest_forest(hex_id: String, player_id: int, harvest_percent: float) -> D
 	}
 
 
-## Zniszczenie/zabudowa strefy chronionej - sekcja 4 GDD (kara proporcjonalna
-## do skali zniszczeń, współczynnik damage_scale w zakresie 0-1 jako
-## placeholder na "jak dużo zniszczono"; dokładna definicja "skali zniszczeń"
-## - otwarty punkt GDD). Wywoływane z `repair_building` (budowa/naprawa na
-## terenie chronionym) i defensywnie z `harvest_forest` - patrz tam.
+## Destruction/development of a protected area - GDD section 4 (penalty
+## proportional to the extent of the damage; the damage_scale parameter in
+## the 0-1 range is a placeholder for "how much was destroyed" - the exact
+## definition of "extent of damage" is an open GDD question). Called from
+## `repair_building` (building/repairing on protected terrain) and
+## defensively from `harvest_forest` - see there.
 func damage_protected_area(hex_id: String, player_id: int, damage_scale: float) -> Dictionary:
 	var hex = MapData.get_hex(hex_id)
 	if hex == null or not hex.is_protected():
@@ -142,23 +145,25 @@ func damage_protected_area(hex_id: String, player_id: int, damage_scale: float) 
 	return {"success": true, "prestige_penalty": penalty}
 
 
-## Przejęcie terytorium - sekcja 5 GDD (update). Wymaga fizycznej obecności
-## na polu (sprawdzane przez game_map_controller.gd, tak jak przy aneksacji -
-## GameManager celowo nic nie wie o ludzikach) - to jedyny powód, dla którego
-## dwóch różnych graczy nigdy nie stoi jednocześnie na tym samym heksie, więc
-## osobne sprawdzanie "czy broniący ludzik akurat tu stoi" nie jest już
-## potrzebne (sama fizyczna obecność atakującego to już wyklucza).
+## Territory takeover - GDD section 5 (update). Requires physical presence on
+## the hex (checked by game_map_controller.gd, same as annexation -
+## GameManager deliberately knows nothing about units) - this is the only
+## reason two different players can never stand on the same hex at the same
+## time, so a separate check for "is the defending unit currently standing
+## here" is no longer needed (the attacker's mere physical presence already
+## rules that out).
 ##
-## Zawsze da się PRÓBOWAĆ - w przeciwieństwie do poprzedniej wersji, gdzie
-## niewystarczający prestiż był twardą blokadą bez żadnego skutku. Teraz:
-## - Prestiż atakującego ŚCIŚLE większy niż obrońcy -> sukces: obrońca traci
-##   `TAKEOVER_DEFENDER_LOSS_RATIO` WŁASNEGO prestiżu (koszt bycia podbitym),
-##   atakujący płaci `TAKEOVER_COST_RATIO` prestiżu obrońcy (jak dotąd).
-## - W przeciwnym razie -> nieudana próba: obrońca NIE TRACI NIC, ale
-##   atakujący płaci karę proporcjonalną do przewagi obrońcy (im bardziej
-##   nierówna walka, tym droższa porażka) - "dobry wzór" na to, żeby zniechęcać
-##   do desperackich prób bez faktycznie karania silniejszej strony za to, że
-##   ktoś słabszy spróbował.
+## An attempt can always be MADE - unlike the previous version, where
+## insufficient prestige was a hard block with no effect at all. Now:
+## - Attacker's prestige STRICTLY greater than the defender's -> success: the
+##   defender loses `TAKEOVER_DEFENDER_LOSS_RATIO` of their OWN prestige (the
+##   cost of being conquered), the attacker pays `TAKEOVER_COST_RATIO` of the
+##   defender's prestige (as before).
+## - Otherwise -> failed attempt: the defender LOSES NOTHING, but the
+##   attacker pays a penalty proportional to the defender's advantage (the
+##   more lopsided the fight, the more expensive the failure) - a "good
+##   formula" to discourage desperate attempts without actually punishing the
+##   stronger side for someone weaker having tried.
 func attempt_takeover(hex_id: String, attacker_id: int) -> Dictionary:
 	var hex = MapData.get_hex(hex_id)
 	if hex == null or hex.owner_id == -1:
@@ -189,11 +194,11 @@ func attempt_takeover(hex_id: String, attacker_id: int) -> Dictionary:
 	return {"success": true, "cost": cost, "defender_loss": defender_loss, "previous_owner": previous_owner}
 
 
-## Odblokowanie budynku charakterystycznego w Karcie Miasta - sekcja 7 GDD.
-## Scentralizowane tu (a nie w UI Karty Miasta), żeby - tak jak inne akcje -
-## płatność zasobami i przyznanie prestiżu (sekcja 7: "główny fundament pod
-## przyszły warunek zwycięstwa - punkty prestiżu za skompletowane budynki")
-## przechodziły przez jedno miejsce.
+## Unlocking a City Card landmark building - GDD section 7. Centralized here
+## (rather than in the City Card UI) so that - like other actions - paying
+## with resources and granting prestige (section 7: "main foundation for a
+## future win condition - prestige points for completed buildings") goes
+## through one place.
 func unlock_city_building(player_id: int, building: Building) -> Dictionary:
 	var player = get_player(player_id)
 	if player == null or building == null:
@@ -210,17 +215,17 @@ func unlock_city_building(player_id: int, building: Building) -> Dictionary:
 	return {"success": true, "prestige_gained": building.prestige_value}
 
 
-## Odblokowanie węzła drzewka umiejętności (scripts/skill_tree_data.gd) -
-## ten sam mechanizm płatności co unlock_city_building() wyżej. Efekty
-## "czysto danowe" (bez potrzeby dostępu do węzłów sceny) są aplikowane
-## wprost tutaj, na akumulatorach PlayerData - żeby były aktywne natychmiast
-## i gotowe do odczytu wszędzie, gdzie już dziś czytamy stałe z GameBalance
-## (harvest_forest wyżej, _reveal_around/_on_annex_pressed w
-## game_map_controller.gd). EXTRA_LUDZIK i retroaktywny bonus MP na już
-## istniejących ludzikach WYMAGAJĄ węzłów sceny, których GameManager celowo
-## nie zna (tak jak MP przy aneksacji) - te aplikuje
-## game_map_controller._on_skill_unlocked() w reakcji na sygnał
-## SkillTreePanel.skill_unlocked, korzystając z `effect_type` zwróconego tu.
+## Unlocking a skill tree node (scripts/skill_tree_data.gd) - the same
+## payment mechanism as unlock_city_building() above. "Pure data" effects
+## (no need for scene node access) are applied directly here, on PlayerData's
+## accumulators - so they're active immediately and readable everywhere we
+## already read GameBalance constants (harvest_forest above,
+## _reveal_around/_on_annex_pressed in game_map_controller.gd). EXTRA_UNIT
+## and the retroactive MP bonus on existing units DO need scene nodes, which
+## GameManager deliberately doesn't know about (same as MP for annexation) -
+## those are applied by game_map_controller._on_skill_unlocked() in reaction
+## to the SkillTreePanel.skill_unlocked signal, using the `effect_type`
+## returned here.
 func unlock_skill(player_id: int, skill: SkillData) -> Dictionary:
 	var player = get_player(player_id)
 	if player == null or skill == null:
@@ -240,20 +245,21 @@ func unlock_skill(player_id: int, skill: SkillData) -> Dictionary:
 			player.annex_cost_reduction += int(skill.effect_amount)
 		SkillData.EffectType.MOVEMENT_POINTS_BONUS:
 			player.movement_points_bonus += int(skill.effect_amount)
-		SkillData.EffectType.EXTRA_LUDZIK:
-			pass  # w całości po stronie game_map_controller.gd
+		SkillData.EffectType.EXTRA_UNIT:
+			pass  # entirely handled by game_map_controller.gd
 
 	return {"success": true, "effect_type": skill.effect_type}
 
 
-## Naprawa budynku - sekcja 3 GDD ("może go naprawić i sprawić, że będzie
-## generował zasoby od następnej rundy"). Koszt z Building.required_resources
-## (na razie placeholder = {} dla automatycznie wygenerowanych budynków,
-## patrz MapData._attach_placeholder_building - Faza 5, tymczasowe).
+## Repairing a building - GDD section 3 ("can repair it and make it generate
+## resources starting next round"). Cost comes from
+## Building.required_resources (currently a placeholder = {} for
+## auto-generated buildings, see MapData._attach_placeholder_building - Phase
+## 5, temporary).
 ##
-## Jeśli budynek stoi na terenie chronionym, sama naprawa/budowa jest tym,
-## co GDD (sekcja 4) nazywa "eksploatacją/zniszczeniem heksa chronionego" -
-## i to ONA, nie aneksacja, nalicza karę prestiżową (update).
+## If the building stands on protected terrain, the repair/build itself is
+## what the GDD (section 4) calls "exploiting/damaging a protected hex" - and
+## it is THAT, not the annexation, that incurs the prestige penalty (update).
 func repair_building(hex_id: String, player_id: int) -> Dictionary:
 	var hex = MapData.get_hex(hex_id)
 	var player = get_player(player_id)

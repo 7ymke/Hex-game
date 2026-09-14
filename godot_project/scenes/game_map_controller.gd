@@ -1,67 +1,71 @@
 extends Node2D
-## Fazy 4-9 planu implementacji (+ dalsze poprawki): płynny ruch ludzika z
-## pathfindingiem i mgłą, zaznaczanie/odznaczanie ludzików, wybór aktywnego
-## gracza wprost z listy, Karta Miasta i przejęcie terytorium PvP.
+## Phases 4-9 of the implementation plan (+ further fixes): smooth unit
+## movement with pathfinding and fog, selecting/deselecting units, choosing
+## the active player directly from a list, the City Card, and PvP territory
+## takeover.
 ##
-## Hotseat: do 6 graczy na jednym ekranie (sekcja 7 GDD: "Skala multiplayer:
-## 6 graczy jednocześnie na jednej mapie, każdy w innym mieście startowym").
-## Pełna mapa Polski (data/map_data.json) ma wszystkie 6 miast startowych
-## jako realne heksy typu "city": Wrocław (H18), Szczecin (A7), Warszawa
-## (R12), Kraków (O22), Gdańsk (L3), Poznań (G12) - PLAYER_SETUP niżej (alias
-## na scripts/player_setup.gd -> PlayerSetup.LIST, współdzielone z ekranem
-## startowym) je opisuje. `_setup_players()` rejestruje tylko te wybrane na
-## ekranie startowym (scenes/start_screen.gd, GameSetup.selected_player_ids)
-## - pusta lista (np. przy uruchomieniu main.tscn wprost, z pominięciem
-## ekranu startowego) oznacza "wszystkich". Dodanie kolejnego gracza w
-## przyszłości (np. po rozszerzeniu mapy o nowe miasto) to tylko nowy wpis w
-## PlayerSetup.LIST + budynki w city_buildings_data.gd - reszta (ruch, mgła,
-## tury, PvP) jest już napisana generycznie dla dowolnej liczby graczy.
+## Hotseat: up to 6 players on one screen (GDD section 7: "Multiplayer
+## scale: 6 players simultaneously on one map, each in a different starting
+## city"). The full map of Poland (data/map_data.json) has all 6 starting
+## cities as real "city"-type hexes: Wrocław (H18), Szczecin (A7), Warszawa
+## (R12), Kraków (O22), Gdańsk (L3), Poznań (G12) - PLAYER_SETUP below (an
+## alias for scripts/player_setup.gd -> PlayerSetup.LIST, shared with the
+## start screen) describes them. `_setup_players()` only registers the ones
+## chosen on the start screen (scenes/start_screen.gd,
+## GameSetup.selected_player_ids) - an empty list (e.g. when running
+## main.tscn directly, skipping the start screen) means "all of them".
+## Adding another player in the future (e.g. after extending the map with a
+## new city) is just a new entry in PlayerSetup.LIST + buildings in
+## city_buildings_data.gd - the rest (movement, fog, turns, PvP) is already
+## written generically for any number of players.
 ##
-## Model danych `player_ludziks: player_id -> Array[Ludzik]` (zamiast
-## pojedynczego węzła na gracza) jest tak zaprojektowany, żeby przyszły
-## upgrade "więcej ludzików" sprowadzał się do dopisania nowego Ludzika do
-## tej tablicy - cała reszta (zaznaczanie, blokady ruchu) już iteruje po
-## tablicach, nie zakłada dokładnie jednego elementu.
+## Data model `player_units: player_id -> Array[Unit]` (instead of a single
+## node per player) is deliberately designed so that a future "more units"
+## upgrade boils down to appending a new Unit to this array - everything
+## else (selection, movement blocking) already iterates over arrays and
+## doesn't assume exactly one element.
 ##
-## Zasięg akcji (update): aneksacja I przejęcie terenu gracza WYMAGAJĄ stania
-## dokładnie na polu (płacą punkty ruchu ludzika, który tam stoi - tyle samo
-## co aneksacja) - oba żyją w panelu "Trasa ludzika", wzajemnie się
-## wykluczając (niczyje pole -> Zaanektuj, wrogie -> Przejmij teren gracza).
-## Naprawa i wydobycie nadal działają na dowolnym już zaanektowanym polu
-## (swoim - naprawa, albo swoim - wydobycie), niezależnie od tego, gdzie
-## akurat stoją ludziki - "zarządzanie zdalne" własnym terytorium, bez
-## potrzeby fizycznej obecności.
+## Action range (update): annexation AND territory takeover BOTH REQUIRE
+## standing exactly on the hex (they cost movement points of the unit
+## standing there - the same amount as annexation) - both live in the
+## "Trasa ludzika" (unit route) panel, mutually exclusive (an unclaimed hex
+## -> Zaanektuj/Annex, an enemy hex -> Przejmij teren gracza/Take over
+## territory). Repair and harvest still work on any already-annexed hex
+## (your own - repair, or your own - harvest), regardless of where units
+## currently stand - "remote management" of your own territory, without
+## needing physical presence.
 ##
-## Kontrola gracza i przeliczenie rundy są teraz całkowicie rozdzielone:
-## "Zmiana gracza" (OptionButton) wybiera KONKRETNEGO gracza wprost z listy,
-## "Zakończ rundę" przelicza rundę niezależnie od tego, kto jest kontrolowany
-## - patrz turn_manager.gd.
+## Control over the active player and round resolution are now completely
+## separate: "Zmiana gracza" (the OptionButton) picks a SPECIFIC player
+## directly from a list, "Zakończ rundę" resolves the round independent of
+## who's currently in control - see turn_manager.gd.
 ##
-## Trasa wielorundowa (update): klik na polu z zaznaczonym ludzikiem już NIE
-## rusza go od razu - liczy i POKAZUJE podgląd trasy (żółta linia na mapie),
-## czeka na potwierdzenie w nowym panelu "Trasa ludzika". Po potwierdzeniu
-## trasa (`Ludzik.queued_route`) wykonuje się na tyle kroków, ile starczy
-## bieżących MP (linia w kolorze pomarańczowym, dopóki trwa) - jeśli trasa
-## jest dłuższa niż jednorazowy zapas MP, reszta zostaje zapamiętana i
-## kontynuowana AUTOMATYCZNIE po każdym kolejnym "Zakończ rundę"
-## (`_continue_all_queued_routes`), więc nie trzeba jej klikać ponownie.
+## Multi-round route (update): clicking a hex with a unit selected no longer
+## moves it right away - it computes and SHOWS a route preview (a yellow
+## line on the map), waiting for confirmation in the new "Trasa ludzika"
+## panel. Once confirmed, the route (`Unit.queued_route`) executes as many
+## steps as the current MP allow (the line turns orange while it's in
+## progress) - if the route is longer than a single round's worth of MP, the
+## rest is remembered and continued AUTOMATICALLY after every subsequent
+## "Zakończ rundę" (`_continue_all_queued_routes`), so it doesn't need to be
+## clicked again.
 ##
-## Drzewko umiejętności (nowość): osobny ekran (SkillTreePanel, analogiczny
-## do Karty Miasta) z 5 upgrade'ami płatnymi surowcami z mapy
-## (scripts/skill_tree_data.gd). Efekty "czysto danowe" (promień widzenia,
-## próg bezpiecznej wycinki, koszt aneksacji, MP przyszłych ludzików)
-## aplikuje GameManager.unlock_skill() na PlayerData; efekty wymagające
-## dostępu do węzłów sceny (nowy Ludzik, retroaktywny bonus MP na już
-## istniejących) aplikuje `_on_skill_unlocked()` tutaj.
+## Skill tree (new): a separate screen (SkillTreePanel, analogous to the
+## City Card) with 5 upgrades paid for with resources from the map
+## (scripts/skill_tree_data.gd). "Pure data" effects (vision radius, safe
+## harvesting threshold, annexation cost, MP for future units) are applied
+## by GameManager.unlock_skill() on PlayerData; effects that need access to
+## scene nodes (a new Unit, a retroactive MP bonus on existing ones) are
+## applied by `_on_skill_unlocked()` here.
 
 const VISION_RADIUS = GameBalance.VISION_RADIUS
 
-## Gracze startowi hotseat - id, nazwa, miasto, heks bazowy, kolor pionka.
-## Pełna lista (wszystkie 6 miast z sekcji 7 GDD) żyje w
-## scripts/player_setup.gd, żeby scenes/start_screen.gd mógł z niej budować
-## checkboxy bez duplikowania danych. Który skład faktycznie gra decyduje
-## ekran startowy (patrz komentarz wyżej), NIE trzeba już ręcznie usuwać
-## wpisów stąd, żeby zagrać w mniejszym składzie.
+## Hotseat starting players - id, name, city, base hex, token color. The
+## full list (all 6 cities from GDD section 7) lives in
+## scripts/player_setup.gd, so scenes/start_screen.gd can build checkboxes
+## from it without duplicating data. Which lineup actually plays is decided
+## by the start screen (see the comment above) - entries no longer need to
+## be manually removed here to play with a smaller roster.
 const PLAYER_SETUP = PlayerSetup.LIST
 
 @onready var hex_map_view: HexMapView = $HexMapView
@@ -90,22 +94,23 @@ const PLAYER_SETUP = PlayerSetup.LIST
 @onready var auto_annex_checkbox: CheckBox = $UI/RoutePanel/VBox/AutoAnnexCheckBox
 
 var players: Array[PlayerData] = []
-var player_ludziks: Dictionary = {}  # player_id(int) -> Array[Ludzik]
+var player_units: Dictionary = {}  # player_id(int) -> Array[Unit]
 var active_player: PlayerData
 
-var selected_ludzik: Ludzik = null
+var selected_unit: Unit = null
 var selected_hex_id: String = ""
 
-## Podgląd trasy jeszcze NIEPOTWIERDZONY (patrz komentarz na górze pliku) -
-## transientny stan UI, nie ludzika: `preview_route[0]` to zawsze bieżący
-## heks `preview_route_ludzik`. Trasa już zatwierdzona żyje na samym
-## ludziku (`Ludzik.queued_route`), bo musi przetrwać zmianę
-## zaznaczenia/gracza i kolejne rundy.
+## Route preview that is still UNCONFIRMED (see the comment at the top of
+## the file) - transient UI state, not the unit's: `preview_route[0]` is
+## always the current hex of `preview_route_unit`. A confirmed route lives
+## on the unit itself (`Unit.queued_route`), because it must survive
+## selection/player changes and subsequent rounds.
 var preview_route: Array[String] = []
-var preview_route_ludzik: Ludzik = null
+var preview_route_unit: Unit = null
 
-## Prawdziwy cel podglądu (może się różnić od `preview_route[-1]`, jeśli cel
-## jest w danej chwili zajęty przez wrogiego ludzika - patrz `_find_path_toward`).
+## The true destination of the preview (may differ from `preview_route[-1]`
+## if the destination is currently occupied by an enemy unit - see
+## `_find_path_toward`).
 var preview_target_hex_id: String = ""
 
 var pathfinder = HexPathfinder.new()
@@ -147,14 +152,14 @@ func _ready() -> void:
 	_refresh_route_panel()
 
 
-## Tworzy graczy, ich ludziki i aneksuje im heks startowy. Uwzględnia tylko
-## miasta wybrane na ekranie startowym (GameSetup.selected_player_ids,
-## ustawione przez scenes/start_screen.gd) - pusta lista (np. przy
-## uruchomieniu main.tscn bezpośrednio, z pominięciem ekranu startowego)
-## oznacza "wszystkie", tak jak dotychczas.
+## Creates the players, their units, and annexes their starting hex. Only
+## includes the cities chosen on the start screen
+## (GameSetup.selected_player_ids, set by scenes/start_screen.gd) - an empty
+## list (e.g. when running main.tscn directly, skipping the start screen)
+## means "all of them", as before.
 func _setup_players() -> void:
-	var existing_ludzik: Ludzik = $Ludzik
-	var existing_ludzik_used = false
+	var existing_unit: Unit = $Unit
+	var existing_unit_used = false
 	var allowed_ids: Array = GameSetup.selected_player_ids
 
 	for i in range(PLAYER_SETUP.size()):
@@ -170,113 +175,112 @@ func _setup_players() -> void:
 		GameManager.register_player(player)
 		players.append(player)
 
-		var ludzik: Ludzik
-		if not existing_ludzik_used:
-			ludzik = existing_ludzik  # scena już ma jeden węzeł Ludzik gotowy
-			existing_ludzik_used = true
+		var unit: Unit
+		if not existing_unit_used:
+			unit = existing_unit  # the scene already has one Unit node ready to go
+			existing_unit_used = true
 		else:
-			ludzik = Ludzik.new()
-			add_child(ludzik)
-		_configure_ludzik(ludzik, player, setup)
-		player_ludziks[player.player_id] = [ludzik]
+			unit = Unit.new()
+			add_child(unit)
+		_configure_unit(unit, player, setup)
+		player_units[player.player_id] = [unit]
 
 		var start_hex_id = _resolve_start_hex(setup, player.player_name)
 
-		# `require_adjacency = false`: gracz jeszcze nic nie posiada, więc
-		# zwykły wymóg "aneksuj tylko sąsiada własnego pola" byłby tu
-		# niespełnialny - patrz GameManager.annex_hex(). Stolica jest też
-		# trwale oznaczona jako chroniona przed przejęciem siłą (PvP) -
-		# GameManager.attempt_takeover().
+		# `require_adjacency = false`: the player doesn't own anything yet,
+		# so the usual "annex only next to your own territory" requirement
+		# would be impossible to satisfy here - see GameManager.annex_hex().
+		# The capital is also permanently marked as protected from a forced
+		# takeover (PvP) - GameManager.attempt_takeover().
 		GameManager.annex_hex(start_hex_id, player.player_id, false)
 		MapData.get_hex(start_hex_id).is_capital = true
-		ludzik.place_on_hex(start_hex_id)
+		unit.place_on_hex(start_hex_id)
 		_reveal_around(start_hex_id, player.player_id)
 
 
-## Ustawia dane wizualne/właściciela na `ludzik` wg wpisu `setup` (kolor,
-## opcjonalny obrazek) - współdzielone przez `_setup_players()` (gracze
-## startowi, ludzik może być już istniejącym węzłem sceny) i
-## `_recruit_extra_ludzik()` (skill "extra_ludzik", ludzik zawsze świeżo
-## utworzony). NIE tworzy węzła ani nie dodaje go do drzewa sceny - to zależy
-## od wołającego.
-func _configure_ludzik(ludzik: Ludzik, player: PlayerData, setup: Dictionary) -> void:
-	ludzik.player_id = player.player_id
-	ludzik.color = setup["color"]
+## Sets `unit`'s visual data/owner from the `setup` entry (color, optional
+## image) - shared by `_setup_players()` (starting players, the unit may
+## already be an existing scene node) and `_recruit_extra_unit()` (the
+## "extra_unit" skill, the unit is always freshly created). Does NOT create
+## the node or add it to the scene tree - that's up to the caller.
+func _configure_unit(unit: Unit, player: PlayerData, setup: Dictionary) -> void:
+	unit.player_id = player.player_id
+	unit.color = setup["color"]
 	if setup.has("sprite") and ResourceLoader.exists(setup["sprite"]):
-		ludzik.sprite_texture = load(setup["sprite"])
+		unit.sprite_texture = load(setup["sprite"])
 
 
-## `setup["start_hex"]`, z awaryjnym fallbackiem na dowolny istniejący heks,
-## gdyby dane mapy nie zawierały oczekiwanego ID (nie powinno się zdarzyć przy
-## poprawnych danych, ale lepiej dostać jakiś heks z ostrzeżeniem w konsoli
-## niż wywalić się na null). Współdzielone przez `_setup_players()` i
-## `_recruit_extra_ludzik()`.
+## `setup["start_hex"]`, with a fallback to any existing hex in case the map
+## data doesn't contain the expected ID (shouldn't happen with correct data,
+## but it's better to get some hex with a console warning than to crash on
+## null). Shared by `_setup_players()` and `_recruit_extra_unit()`.
 func _resolve_start_hex(setup: Dictionary, player_name: String) -> String:
 	var hex_id: String = setup["start_hex"]
 	if MapData.get_hex(hex_id) == null:
-		push_warning("GameMapController: brak heksa startowego %s dla %s" % [hex_id, player_name])
+		push_warning("GameMapController: starting hex %s not found for %s" % [hex_id, player_name])
 		hex_id = MapData.hexes.keys()[0]
 	return hex_id
 
 
-## Item ID w OptionButton = player_id, żeby wybór nie zależał od kolejności.
+## Item ID in the OptionButton = player_id, so the choice doesn't depend on
+## ordering.
 func _populate_player_selector() -> void:
 	player_selector.clear()
 	for p in players:
 		player_selector.add_item("%s (%s)" % [p.player_name, p.starting_city], p.player_id)
 
 
-func _primary_ludzik_for(player_id: int) -> Ludzik:
-	var list: Array = player_ludziks.get(player_id, [])
+func _primary_unit_for(player_id: int) -> Unit:
+	var list: Array = player_units.get(player_id, [])
 	return list[0] if not list.is_empty() else null
 
 
-func _find_own_ludzik_at(hex_id: String) -> Ludzik:
-	for l in player_ludziks.get(active_player.player_id, []):
-		if l.current_hex_id == hex_id:
-			return l
+func _find_own_unit_at(hex_id: String) -> Unit:
+	for u in player_units.get(active_player.player_id, []):
+		if u.current_hex_id == hex_id:
+			return u
 	return null
 
 
-## Heksy aktualnie zajęte przez ludziki INNYCH graczy - sekcja 3 GDD,
-## "funkcja obronna": dopóki tam stoją, nie można przez nie przejść ani na
-## nich wylądować.
+## Hexes currently occupied by OTHER players' units - GDD section 3,
+## "defensive function": as long as they stand there, no one can pass
+## through or land on that hex.
 func _blocked_hexes_for(player_id: int) -> Array[String]:
 	var blocked: Array[String] = []
-	for pid in player_ludziks:
+	for pid in player_units:
 		if pid == player_id:
 			continue
-		for l in player_ludziks[pid]:
-			blocked.append(l.current_hex_id)
+		for u in player_units[pid]:
+			blocked.append(u.current_hex_id)
 	return blocked
 
 
-## Ludzik (dowolnego gracza) aktualnie stojący dokładnie na `hex_id`, jeśli
-## jakiś tam jest. Używane do egzekwowania "funkcji obronnej" (sekcja 3 GDD)
-## przy przejęciu terytorium - odróżnij od `_blocked_hexes_for`, które celowo
-## pomija ludziki WŁASNE gracza (bo nie blokują jego samego).
-func _ludzik_at(hex_id: String) -> Ludzik:
-	for pid in player_ludziks:
-		for l in player_ludziks[pid]:
-			if l.current_hex_id == hex_id:
-				return l
+## The unit (of any player) currently standing exactly on `hex_id`, if any.
+## Used to enforce the "defensive function" (GDD section 3) during territory
+## takeover - distinct from `_blocked_hexes_for`, which deliberately skips a
+## player's OWN units (since they don't block the player themselves).
+func _unit_at(hex_id: String) -> Unit:
+	for pid in player_units:
+		for u in player_units[pid]:
+			if u.current_hex_id == hex_id:
+				return u
 	return null
 
 
-func _set_selected_ludzik(ludzik: Ludzik) -> void:
-	if selected_ludzik == ludzik:
+func _set_selected_unit(unit: Unit) -> void:
+	if selected_unit == unit:
 		return
-	if selected_ludzik != null:
-		selected_ludzik.set_selected(false)
-	selected_ludzik = ludzik
-	if selected_ludzik != null:
-		selected_ludzik.set_selected(true)
+	if selected_unit != null:
+		selected_unit.set_selected(false)
+	selected_unit = unit
+	if selected_unit != null:
+		selected_unit.set_selected(true)
 
-	# Zmiana zaznaczenia ludzika porzuca jego (jeszcze niepotwierdzony)
-	# podgląd trasy - zatwierdzona, trwająca trasa (`queued_route`) zostaje
-	# nietknięta, bo żyje na samym ludziku, nie tu.
+	# Changing the selected unit drops its (not yet confirmed) route preview
+	# - a confirmed, in-progress route (`queued_route`) stays untouched,
+	# since it lives on the unit itself, not here.
 	preview_route = []
-	preview_route_ludzik = null
+	preview_route_unit = null
 	preview_target_hex_id = ""
 	hex_map_view.preview_route_hex_ids = []
 
@@ -290,13 +294,13 @@ func _set_selected_hex(hex_id: String) -> void:
 func _on_player_turn_started(player_id: int) -> void:
 	active_player = GameManager.get_player(player_id)
 	hex_map_view.viewing_player_id = player_id
-	_set_selected_ludzik(null)
+	_set_selected_unit(null)
 
 	var selector_index = player_selector.get_item_index(player_id)
 	if selector_index != -1:
-		player_selector.select(selector_index)  # nie emituje item_selected
+		player_selector.select(selector_index)  # does not emit item_selected
 
-	var primary = _primary_ludzik_for(player_id)
+	var primary = _primary_unit_for(player_id)
 	_set_selected_hex(primary.current_hex_id if primary != null else "")
 
 	turn_label.text = "Kontrolujesz: %s (%s) | Runda: %d" % [
@@ -311,14 +315,14 @@ func _on_player_turn_started(player_id: int) -> void:
 	_refresh_route_panel()
 
 
-## Po przeliczeniu rundy świeże punkty ruchu pozwalają automatycznie
-## kontynuować wszystkie zatwierdzone, ale jeszcze nie w pełni wykonane
-## trasy (`_continue_all_queued_routes`) - stąd trasa może "iść przez parę
-## rund" bez ponownego klikania.
+## After a round is resolved, fresh movement points let all confirmed but
+## not yet fully executed routes continue automatically
+## (`_continue_all_queued_routes`) - hence a route can "run across several
+## rounds" without being clicked again.
 func _on_round_ended(round_number: int) -> void:
-	for pid in player_ludziks:
-		for l in player_ludziks[pid]:
-			l.reset_movement_points()
+	for pid in player_units:
+		for u in player_units[pid]:
+			u.reset_movement_points()
 	_update_mp_label()
 	_update_stats_labels()
 	info_label.text = "Runda zakończona. Rozpoczyna się runda %d." % round_number
@@ -329,30 +333,31 @@ func _on_round_ended(round_number: int) -> void:
 
 
 func _on_hex_clicked(hex_id: String) -> void:
-	var own_ludzik = _find_own_ludzik_at(hex_id)
+	var own_unit = _find_own_unit_at(hex_id)
 
-	if own_ludzik != null:
-		# Klik na własnego ludzika -> zaznacz go (albo odznacz, jeśli już
-		# był zaznaczony).
-		_set_selected_ludzik(null if selected_ludzik == own_ludzik else own_ludzik)
-	elif selected_ludzik != null and not selected_ludzik.is_moving:
-		# Klik gdzie indziej, mając zaznaczonego ludzika -> TYLKO podgląd
-		# trasy (żółta linia), NIE rozkaz ruchu - patrz panel "Trasa ludzika".
-		_preview_route_to(selected_ludzik, hex_id)
+	if own_unit != null:
+		# Clicking your own unit -> select it (or deselect, if it was
+		# already selected).
+		_set_selected_unit(null if selected_unit == own_unit else own_unit)
+	elif selected_unit != null and not selected_unit.is_moving:
+		# Clicking elsewhere with a unit selected -> ONLY previews the route
+		# (a yellow line), NOT a move order - see the "Trasa ludzika" panel.
+		_preview_route_to(selected_unit, hex_id)
 
 	_set_selected_hex(hex_id)
 	_refresh_action_panel()
 	_refresh_route_panel()
 
 
-## Liczy trasę od `from_hex_id` do `target_hex_id` z uwzględnieniem `blocked`
-## (heksy zajęte przez wrogich ludzików - patrz `_blocked_hexes_for`). Jeśli
-## sam `target_hex_id` jest zablokowany (wrogi ludzik stoi dokładnie na
-## celu), zamiast zwracać "brak trasy" szuka NAJBLIŻSZEGO osiągalnego
-## sąsiada celu - pozwala to zaznaczyć pole przeciwnika jako cel trasy: ludzik
-## dojdzie tak blisko, jak się da, i będzie czekał (patrz `_recompute_route`)
-## aż przeciwnik się ruszy albo gracz anuluje trasę. Zwraca pustą tablicę,
-## jeśli nie ma drogi nawet do żadnego sąsiada.
+## Computes a route from `from_hex_id` to `target_hex_id`, taking `blocked`
+## into account (hexes occupied by enemy units - see `_blocked_hexes_for`).
+## If `target_hex_id` itself is blocked (an enemy unit is standing exactly
+## on the destination), instead of returning "no route" it looks for the
+## NEAREST reachable neighbor of the destination - this lets the player
+## select an enemy-occupied hex as a route target: the unit will get as
+## close as it can and wait (see `_recompute_route`) until the enemy moves
+## or the player cancels the route. Returns an empty array if there's no
+## route even to any neighbor.
 func _find_path_toward(from_hex_id: String, target_hex_id: String, blocked: Array[String]) -> Array[String]:
 	pathfinder.build(blocked)
 
@@ -371,30 +376,31 @@ func _find_path_toward(from_hex_id: String, target_hex_id: String, blocked: Arra
 	return best_path
 
 
-## Liczy trasę do `target_hex_id` i pokazuje ją jako podgląd (nie rusza
-## ludzika) - nadpisuje poprzedni, jeszcze niepotwierdzony podgląd. NIE
-## dotyka zatwierdzonej, trwającej trasy (`ludzik.queued_route`), dopóki
-## gracz nie potwierdzi tego nowego podglądu w panelu. Cel może być w danej
-## chwili zajęty przez wrogiego ludzika (patrz `_find_path_toward`) -
-## `preview_target_hex_id` wtedy różni się od faktycznego końca
-## `preview_route`, a etykieta informuje, że to tylko "najbliżej jak się da".
-func _preview_route_to(ludzik: Ludzik, target_hex_id: String) -> void:
+## Computes a route to `target_hex_id` and shows it as a preview (does not
+## move the unit) - overwrites the previous, still-unconfirmed preview. Does
+## NOT touch a confirmed, in-progress route (`unit.queued_route`) until the
+## player confirms this new preview in the panel. The destination may
+## currently be occupied by an enemy unit (see `_find_path_toward`) -
+## `preview_target_hex_id` then differs from the actual end of
+## `preview_route`, and the label explains that this is only "as close as
+## possible".
+func _preview_route_to(unit: Unit, target_hex_id: String) -> void:
 	preview_route = []
-	preview_route_ludzik = null
+	preview_route_unit = null
 	preview_target_hex_id = ""
 	hex_map_view.preview_route_hex_ids = []
 
-	if target_hex_id == ludzik.current_hex_id:
+	if target_hex_id == unit.current_hex_id:
 		return
 
-	var blocked = _blocked_hexes_for(ludzik.player_id)
-	var path = _find_path_toward(ludzik.current_hex_id, target_hex_id, blocked)
+	var blocked = _blocked_hexes_for(unit.player_id)
+	var path = _find_path_toward(unit.current_hex_id, target_hex_id, blocked)
 	if path.size() < 2:
 		info_label.text = "Brak dostępnej trasy do %s." % target_hex_id
 		return
 
 	preview_route = path
-	preview_route_ludzik = ludzik
+	preview_route_unit = unit
 	preview_target_hex_id = target_hex_id
 	hex_map_view.preview_route_hex_ids = preview_route
 
@@ -410,214 +416,220 @@ func _preview_route_to(ludzik: Ludzik, target_hex_id: String) -> void:
 
 
 func _on_confirm_route_pressed() -> void:
-	if preview_route_ludzik == null or preview_route.size() < 2:
+	if preview_route_unit == null or preview_route.size() < 2:
 		return
 
-	var ludzik = preview_route_ludzik
-	ludzik.queued_route = preview_route.slice(1)
-	ludzik.route_destination = preview_target_hex_id
+	var unit = preview_route_unit
+	unit.queued_route = preview_route.slice(1)
+	unit.route_destination = preview_target_hex_id
 	preview_route = []
-	preview_route_ludzik = null
+	preview_route_unit = null
 	preview_target_hex_id = ""
 	hex_map_view.preview_route_hex_ids = []
 
 	info_label.text = "Trasa zatwierdzona - ludzik rusza."
-	_advance_queued_route(ludzik)  # fire-and-forget, jak dawniej _command_move
+	_advance_queued_route(unit)  # fire-and-forget, like the old _command_move
 	_refresh_map_view()
 	_refresh_route_panel()
 
 
 func _on_cancel_route_pressed() -> void:
-	if preview_route_ludzik == selected_ludzik and not preview_route.is_empty():
+	if preview_route_unit == selected_unit and not preview_route.is_empty():
 		preview_route = []
-		preview_route_ludzik = null
+		preview_route_unit = null
 		preview_target_hex_id = ""
 		hex_map_view.preview_route_hex_ids = []
-	elif selected_ludzik != null:
-		selected_ludzik.queued_route = []
-		selected_ludzik.route_destination = ""
+	elif selected_unit != null:
+		selected_unit.queued_route = []
+		selected_unit.route_destination = ""
 		info_label.text = "Trasa anulowana."
 
 	_refresh_map_view()
 	_refresh_route_panel()
 
 
-## Kontynuuje WSZYSTKIE zatwierdzone, ale jeszcze nie w pełni wykonane trasy
-## (dowolnego gracza - hotseat, wszyscy dzielą tę samą oś rund) świeżymi
-## punktami ruchu - wołane po każdym przeliczeniu rundy, żeby trasa
-## faktycznie "szła" przez kolejne rundy bez ponownego klikania. Przed
-## kontynuacją PRZELICZA trasę na nowo (`_recompute_route`) dla każdego
-## ludzika z ustawionym `route_destination` - jeśli przeciwnik zmienił
-## pozycję (odsłonił poprzednio zablokowany cel albo zablokował dotychczasową
-## ścieżkę), trasa się na to reaguje automatycznie, bez ręcznej interwencji.
-## Poza samą kontynuacją tras (`queued_route` niepuste) woła
-## `_advance_queued_route()` też dla ludzika BEZ żadnej aktywnej trasy, jeśli
-## akurat stoi na polu czekającym na automatyczną aneksację
-## (`_current_hex_needs_auto_annex()`) - patrz komentarz przy
-## `_advance_queued_route()`, dlaczego to osobny, niezależny od
-## `queued_route`/`route_destination` warunek (m.in. pole, na którym ludzik
-## utknął z brakiem MP dokładnie NA celu trasy, już bez żadnych kolejnych
-## kroków w `queued_route`).
+## Continues ALL confirmed but not yet fully executed routes (of any player
+## - hotseat, everyone shares the same round timeline) with fresh movement
+## points - called after every round is resolved, so a route actually
+## "keeps going" across rounds without being clicked again. Before
+## continuing, RECOMPUTES the route (`_recompute_route`) for every unit with
+## a `route_destination` set - if an opponent has moved (uncovering a
+## previously blocked destination, or blocking the route so far), the route
+## reacts to that automatically, with no manual intervention. Besides
+## continuing actual routes (`queued_route` non-empty), this also calls
+## `_advance_queued_route()` for a unit with NO active route, if it happens
+## to be standing on a hex waiting for auto-annexation
+## (`_current_hex_needs_auto_annex()`) - see the comment on
+## `_advance_queued_route()` for why this is a separate condition,
+## independent of `queued_route`/`route_destination` (e.g. a unit stuck for
+## lack of MP exactly ON its route destination, with no further steps left
+## in `queued_route`).
 func _continue_all_queued_routes() -> void:
-	for pid in player_ludziks:
-		for l in player_ludziks[pid]:
-			if l.route_destination != "":
-				_recompute_route(l)
-			if not l.queued_route.is_empty() or _current_hex_needs_auto_annex(l):
-				await _advance_queued_route(l)
+	for pid in player_units:
+		for u in player_units[pid]:
+			if u.route_destination != "":
+				_recompute_route(u)
+			if not u.queued_route.is_empty() or _current_hex_needs_auto_annex(u):
+				await _advance_queued_route(u)
 
 
-## Przelicza trasę ludzika do jego prawdziwego celu (`route_destination`) na
-## nowo, aktualnymi blokadami - wołane na starcie każdej rundy
-## (`_continue_all_queued_routes`). Obsługuje trzy sytuacje: (1) ludzik już
-## stoi na celu I nie ma tam już nic do zaanektowania -> trasa skończona;
-## (2) jest droga (choćby częściowa, do najbliższego osiągalnego pola, jeśli
-## cel wciąż zablokowany) -> `queued_route` dostaje świeżą ścieżkę; (3) nie
-## ma żadnej drogi (np. ludzik sam jest otoczony) -> `queued_route` pozostaje
-## puste, ludzik czeka w miejscu, spróbuje ponownie w kolejnej rundzie.
-func _recompute_route(ludzik: Ludzik) -> void:
-	if ludzik.route_destination == "" or ludzik.is_moving:
+## Recomputes a unit's route to its true destination (`route_destination`)
+## from scratch, with current blocking - called at the start of every round
+## (`_continue_all_queued_routes`). Handles three situations: (1) the unit is
+## already standing on the destination AND there's nothing left to annex
+## there -> route complete; (2) there's a path (even a partial one, to the
+## nearest reachable hex, if the destination is still blocked) ->
+## `queued_route` gets a fresh path; (3) there's no path at all (e.g. the
+## unit itself is surrounded) -> `queued_route` stays empty, the unit waits
+## in place and tries again next round.
+func _recompute_route(unit: Unit) -> void:
+	if unit.route_destination == "" or unit.is_moving:
 		return
 
-	if ludzik.current_hex_id == ludzik.route_destination:
-		# Dotarł na miejsce - ALE jeśli to pole wciąż czeka na automatyczną
-		# aneksację (zabrakło MP w poprzedniej rundzie), trasa NIE jest
-		# jeszcze skończona - `route_destination` zostaje ustawiony, żeby
-		# `_continue_all_queued_routes()` wciąż wołało `_advance_queued_route()`
-		# co rundę, aż starczy MP na aneksację (patrz tam).
-		if not _current_hex_needs_auto_annex(ludzik):
-			ludzik.route_destination = ""
-			ludzik.queued_route = []
+	if unit.current_hex_id == unit.route_destination:
+		# Arrived - BUT if this hex is still waiting for auto-annexation
+		# (ran out of MP last round), the route is NOT finished yet -
+		# `route_destination` stays set, so `_continue_all_queued_routes()`
+		# keeps calling `_advance_queued_route()` every round until there's
+		# enough MP to annex (see there).
+		if not _current_hex_needs_auto_annex(unit):
+			unit.route_destination = ""
+			unit.queued_route = []
 		return
 
-	var blocked = _blocked_hexes_for(ludzik.player_id)
-	var path = _find_path_toward(ludzik.current_hex_id, ludzik.route_destination, blocked)
+	var blocked = _blocked_hexes_for(unit.player_id)
+	var path = _find_path_toward(unit.current_hex_id, unit.route_destination, blocked)
 	if path.size() < 2:
-		ludzik.queued_route = []
+		unit.queued_route = []
 		return
 
-	ludzik.queued_route = path.slice(1)
+	unit.queued_route = path.slice(1)
 
 
-## Wykonuje (dalszy ciąg) zatwierdzonej trasy, tyle kroków, na ile starczy
-## AKTUALNYCH punktów ruchu - reszta zostaje w `ludzik.queued_route` do
-## kontynuacji w kolejnej rundzie. Re-weryfikuje przejezdność i blokadę przez
-## ludzika innego gracza PRZY KAŻDYM kroku (nie tylko przy planowaniu
-## podglądu) - trasa może czekać na wykonanie kilka rund, w międzyczasie
-## sytuacja na polu mogła się zmienić.
+## Executes (the next leg of) a confirmed route, as many steps as the
+## CURRENT movement points allow - the rest stays in `unit.queued_route` to
+## continue next round. Re-checks passability and blocking by another
+## player's unit on EVERY step (not just when planning the preview) - a
+## route may wait several rounds before executing, and the situation on the
+## hex may have changed in the meantime.
 ##
-## Aneksacja pola, na którym ludzik AKTUALNIE stoi, ma PIERWSZEŃSTWO nad
-## dalszym ruchem - sprawdzana na POCZĄTKU KAŻDEJ iteracji pętli (nie tylko
-## raz na starcie funkcji), więc obejmuje też pole, na które ludzik dopiero
-## co wszedł w TEJ SAMEJ rundzie: "wejdź i zaanektuj" nadal dzieje się
-## jednym ciągiem w JEDNEJ rundzie, kiedy starcza MP na oba, a rozdziela się
-## na dwie rundy TYLKO wtedy, gdy naprawdę brakuje MP na samą aneksację -
-## ludzik i tak już zrobił krok naprzód, zamiast bezczynnie stać w miejscu
-## (update - naprawiony błąd: wcześniej "wejście na pole + aneksacja" było
-## JEDNĄ nierozdzielną akcją sprawdzaną PRZED ruchem, więc gdy brakowało MP
-## tylko na aneksację, ludzik w OGÓLE się nie ruszał - marnując w tej rundzie
-## punkty ruchu, które i tak przepadają bezpowrotnie na koniec rundy, zamiast
-## chociaż zrobić krok bliżej celu). Pole, które i tak nie kwalifikuje się do
-## aneksacji (np. brak sąsiedztwa), nie blokuje ruchu - nie ma na co czekać.
+## Annexing the hex the unit is CURRENTLY standing on takes PRIORITY over
+## further movement - checked at the START of EVERY loop iteration (not
+## just once at the start of the function), so it also covers a hex the
+## unit just entered in THIS SAME round: "enter and annex" still happens as
+## one sequence within a SINGLE round when there's enough MP for both, and
+## only splits across two rounds when there truly isn't enough MP for the
+## annexation itself - the unit has already taken a step forward instead of
+## sitting idle (update - a fixed bug: previously "enter the hex +
+## annexation" was ONE inseparable action checked BEFORE moving, so when MP
+## was short only for the annexation, the unit didn't move AT ALL - wasting
+## that round's movement points, which are lost for good at round's end
+## anyway, instead of at least taking a step closer to the goal). A hex that
+## doesn't qualify for annexation for some other reason (e.g. no adjacency)
+## doesn't block movement - there's nothing to wait for.
 ##
-## Ta sama logika obsługuje też ludzika BEZ żadnego ruchu do wykonania
-## (`queued_route` puste) - w tym przypadku funkcja próbuje TYLKO zaanektować
-## bieżące pole (patrz `_current_hex_needs_auto_annex`/
-## `_continue_all_queued_routes`, które w takiej sytuacji wciąż ją wołają) -
-## dotyczy to zarówno pola będącego prawdziwym celem trasy (dotarł, ale
-## zabrakło MP na aneksację w poprzedniej rundzie), jak i ludzika w ogóle bez
-## aktywnej trasy, który akurat stoi na kwalifikującym się polu (np. inny
-## ludzik tego samego gracza w międzyczasie zaanektował sąsiada).
-func _advance_queued_route(ludzik: Ludzik) -> void:
-	if ludzik.is_moving:
+## The same logic also handles a unit with NO movement left to do
+## (`queued_route` empty) - in that case the function ONLY tries to annex
+## the current hex (see `_current_hex_needs_auto_annex`/
+## `_continue_all_queued_routes`, which still call it in that situation) -
+## this covers both a hex that is the true route destination (arrived, but
+## ran out of MP to annex it last round), and a unit with no active route at
+## all that happens to be standing on a qualifying hex (e.g. another unit of
+## the same player annexed a neighbor in the meantime).
+func _advance_queued_route(unit: Unit) -> void:
+	if unit.is_moving:
 		return
-	if ludzik.queued_route.is_empty() and not _current_hex_needs_auto_annex(ludzik):
+	if unit.queued_route.is_empty() and not _current_hex_needs_auto_annex(unit):
 		return
 
-	ludzik.is_moving = true
+	unit.is_moving = true
 	while true:
-		if _current_hex_needs_auto_annex(ludzik):
-			var annex_cost_here = _effective_annex_cost_for(ludzik.player_id)
-			if ludzik.movement_points_current < annex_cost_here:
+		if _current_hex_needs_auto_annex(unit):
+			var annex_cost_here = _effective_annex_cost_for(unit.player_id)
+			if unit.movement_points_current < annex_cost_here:
 				info_label.text = (
 					"Brak punktów ruchu na aneksację %s (potrzeba %d MP) - spróbuje ponownie w kolejnej rundzie."
-					% [ludzik.current_hex_id, annex_cost_here]
+					% [unit.current_hex_id, annex_cost_here]
 				)
 				break
-			_auto_annex_hex(ludzik, ludzik.current_hex_id)
+			_auto_annex_hex(unit, unit.current_hex_id)
 			_update_mp_label()
-			# Bez _refresh_map_view() tutaj - to czysto wizualne odświeżenie i tak
-			# nastąpi albo przy refreshu po kolejnym kroku ruchu niżej, albo (gdy to
-			# była ostatnia akcja w tej rundzie) w gwarantowanym _refresh_map_view()
-			# na końcu funkcji; między tymi dwoma miejscami nic nie oddaje sterowania
-			# do rendera, więc dodatkowe wywołanie tutaj nie zmienia niczego, co
-			# faktycznie widać na ekranie - tylko dubluje _update_ludzik_visibility()/
-			# _update_route_overlay().
-			continue  # sprawdź od nowa - może kwalifikować się kolejne pole (nie tu), albo można iść dalej
+			# No _refresh_map_view() here - that's a purely visual refresh
+			# that will happen anyway, either with the refresh after the
+			# next movement step below, or (if this was the last action this
+			# round) in the guaranteed _refresh_map_view() at the end of the
+			# function; nothing yields control to the renderer between these
+			# two points, so an extra call here wouldn't change anything
+			# actually visible on screen - it would just duplicate
+			# _update_unit_visibility()/_update_route_overlay().
+			continue  # re-check from scratch - another hex might now qualify (not this one), or it may be possible to move on
 
-		if ludzik.queued_route.is_empty():
+		if unit.queued_route.is_empty():
 			break
 
-		var next_hex_id: String = ludzik.queued_route[0]
+		var next_hex_id: String = unit.queued_route[0]
 		var next_hex = MapData.get_hex(next_hex_id)
 
 		if next_hex == null or not next_hex.is_passable():
 			info_label.text = "Trasa przerwana: pole %s jest niedostępne dla ruchu." % next_hex_id
-			ludzik.queued_route = []
+			unit.queued_route = []
 			break
 
-		var blocker = _ludzik_at(next_hex_id)
-		if blocker != null and blocker.player_id != ludzik.player_id:
+		var blocker = _unit_at(next_hex_id)
+		if blocker != null and blocker.player_id != unit.player_id:
 			info_label.text = "Trasa wstrzymana: pole %s jest bronione przez ludzika innego gracza." % next_hex_id
-			break  # queued_route zostaje - spróbuje ponownie w kolejnej rundzie
+			break  # queued_route stays - will try again next round
 
 		var move_cost = next_hex.get_movement_cost()
-		if ludzik.movement_points_current < move_cost:
+		if unit.movement_points_current < move_cost:
 			info_label.text = "Brak punktów ruchu - trasa będzie kontynuowana w kolejnej rundzie."
 			break
 
-		ludzik.spend_movement_points(move_cost)
+		unit.spend_movement_points(move_cost)
 
-		await ludzik.animate_to_hex(next_hex_id)
-		ludzik.queued_route.remove_at(0)
-		_reveal_around(next_hex_id, ludzik.player_id)
+		await unit.animate_to_hex(next_hex_id)
+		unit.queued_route.remove_at(0)
+		_reveal_around(next_hex_id, unit.player_id)
 
 		_update_mp_label()
 		_refresh_map_view()
-		# Kolejna iteracja pętli od razu sprawdzi `_current_hex_needs_auto_annex()`
-		# dla pola, na które ludzik właśnie wszedł - jeśli starczy MP, zaanektuje
-		# je w TEJ SAMEJ rundzie, zanim spróbuje pójść dalej (patrz komentarz funkcji).
+		# The next loop iteration will immediately check
+		# `_current_hex_needs_auto_annex()` for the hex the unit just
+		# entered - if there's enough MP, it annexes it in THIS SAME round,
+		# before trying to move on (see the function comment).
 
-	ludzik.is_moving = false
-	if ludzik == selected_ludzik:
-		_set_selected_hex(ludzik.current_hex_id)
-	if ludzik.route_destination != "" and ludzik.queued_route.is_empty():
-		if ludzik.current_hex_id == ludzik.route_destination:
-			if not _current_hex_needs_auto_annex(ludzik):
-				ludzik.route_destination = ""
-				info_label.text = "Ludzik dotarł do celu trasy (%s)." % ludzik.current_hex_id
-			# W przeciwnym razie dotarł, ale wciąż czeka na MP do aneksacji tego
-			# pola - `route_destination` zostaje, `info_label` ma już właściwy
-			# komunikat ustawiony wyżej w pętli ("Brak punktów ruchu na aneksację...").
-		elif not _current_hex_needs_auto_annex(ludzik):
+	unit.is_moving = false
+	if unit == selected_unit:
+		_set_selected_hex(unit.current_hex_id)
+	if unit.route_destination != "" and unit.queued_route.is_empty():
+		if unit.current_hex_id == unit.route_destination:
+			if not _current_hex_needs_auto_annex(unit):
+				unit.route_destination = ""
+				info_label.text = "Ludzik dotarł do celu trasy (%s)." % unit.current_hex_id
+			# Otherwise it arrived but is still waiting on MP to annex this
+			# hex - `route_destination` stays set, `info_label` already has
+			# the right message set above in the loop ("Brak punktów ruchu
+			# na aneksację...").
+		elif not _current_hex_needs_auto_annex(unit):
 			info_label.text = (
 				"Ludzik dotarł najbliżej jak się dało (%s) - czeka, aż pole %s stanie się osiągalne."
-				% [ludzik.current_hex_id, ludzik.route_destination]
+				% [unit.current_hex_id, unit.route_destination]
 			)
-			# W przeciwnym razie (`_current_hex_needs_auto_annex` == true) ludzik
-			# zatrzymał się tu NIE dlatego, że cel jest zajęty, tylko dlatego, że
-			# zabrakło MP na aneksację TEGO pola - `info_label` ma już właściwy
-			# komunikat ustawiony wyżej w pętli ("Brak punktów ruchu na aneksację...");
-			# nie nadpisuj go mylącym komunikatem o czekaniu na zwolnienie celu.
+			# Otherwise (`_current_hex_needs_auto_annex` == true) the unit
+			# stopped here NOT because the destination is occupied, but
+			# because it ran out of MP to annex THIS hex - `info_label`
+			# already has the right message set above in the loop ("Brak
+			# punktów ruchu na aneksację..."); don't overwrite it with a
+			# misleading message about waiting for the destination to free up.
 	_refresh_action_panel()
 	_refresh_route_panel()
 	_refresh_map_view()
 
 
-## Odsłania mgłę w promieniu widzenia (sekcja 2.2 GDD) - BFS po realnych
-## sąsiadach, więc liczba "skoków" odpowiada dokładnie odległości heksowej.
-## Promień bazowy (VISION_RADIUS) powiększony o ewentualny bonus danego
-## gracza z drzewka umiejętności (skill "reconnaissance").
+## Reveals fog within the vision radius (GDD section 2.2) - a BFS over
+## actual neighbors, so the number of "hops" matches the hex distance
+## exactly. The base radius (VISION_RADIUS) is increased by any bonus the
+## player has from the skill tree (the "reconnaissance" skill).
 func _reveal_around(center_hex_id: String, player_id: int) -> void:
 	var center = MapData.get_hex(center_hex_id)
 	if center == null:
@@ -650,50 +662,50 @@ func _reveal_around(center_hex_id: String, player_id: int) -> void:
 			queue.append(n)
 
 
-## Odświeża siatkę heksów, widoczność ludzików przeciwników I podgląd trasy w
-## toku - te rzeczy idą razem, bo wszystkie zależą od stanu, który mógł się
-## właśnie zmienić (mgła, pozycja ludzika, postęp trasy). Używaj tego zamiast
-## bezpośredniego hex_map_view.queue_redraw().
+## Refreshes the hex grid, enemy unit visibility, AND the in-progress route
+## overlay - these go together, since they all depend on state that may have
+## just changed (fog, unit position, route progress). Use this instead of
+## calling hex_map_view.queue_redraw() directly.
 func _refresh_map_view() -> void:
-	_update_ludzik_visibility()
+	_update_unit_visibility()
 	_update_route_overlay()
 	hex_map_view.queue_redraw()
 
 
-## Trasa w toku (już zatwierdzona) zaznaczonego ludzika - rysowana zawsze,
-## niezależnie od tego, czy akurat trwa animacja kroku, czy czeka na kolejną
-## rundę (patrz komentarz na górze pliku).
+## The in-progress (already confirmed) route of the selected unit - always
+## drawn, regardless of whether a step animation is currently playing or
+## it's waiting for the next round (see the comment at the top of the file).
 func _update_route_overlay() -> void:
-	if selected_ludzik != null and not selected_ludzik.queued_route.is_empty():
-		# UWAGA: celowo NIE `[a] + selected_ludzik.queued_route` - konkatenacja
-		# operatorem `+` literału (nietypowanego Array) z Array[String] potrafi
-		# w Godot 4.2 rzucić błędem typowania w runtime. `append_array()` na
-		# jawnie otypowanej zmiennej jest bezpieczne.
-		var full_route: Array[String] = [selected_ludzik.current_hex_id]
-		full_route.append_array(selected_ludzik.queued_route)
+	if selected_unit != null and not selected_unit.queued_route.is_empty():
+		# NOTE: deliberately NOT `[a] + selected_unit.queued_route` -
+		# concatenating an untyped Array literal with an Array[String] using
+		# the `+` operator can throw a runtime typing error in Godot 4.2.
+		# `append_array()` on an explicitly typed variable is safe.
+		var full_route: Array[String] = [selected_unit.current_hex_id]
+		full_route.append_array(selected_unit.queued_route)
 		hex_map_view.queued_route_hex_ids = full_route
 	else:
 		hex_map_view.queued_route_hex_ids = []
 
 
-## Ludzik przeciwnika jest widoczny TYLKO na polu, które aktywny (oglądający)
-## gracz już odkrył - fog_state != FogState.UNEXPLORED. Nie trzeba go w pełni zbadać
-## ani zaanektować, wystarczy, że heks kiedyś znalazł się w promieniu
-## widzenia (VISION_RADIUS) jednego z Twoich ludzików - dokładnie ten sam
-## próg, co ujawnienie samego terenu (sekcja 2.2 GDD). Własne ludziki są
-## widoczne zawsze.
-func _update_ludzik_visibility() -> void:
+## An enemy unit is visible ONLY on a hex that the active (viewing) player
+## has already discovered - fog_state != FogState.UNEXPLORED. It doesn't
+## need to be fully explored or annexed, it's enough for the hex to have
+## once been within vision range (VISION_RADIUS) of one of your units -
+## exactly the same threshold as revealing the terrain itself (GDD section
+## 2.2). Your own units are always visible.
+func _update_unit_visibility() -> void:
 	if active_player == null:
 		return
 
-	for pid in player_ludziks:
+	for pid in player_units:
 		var is_own = pid == active_player.player_id
-		for l in player_ludziks[pid]:
+		for u in player_units[pid]:
 			if is_own:
-				l.visible = true
+				u.visible = true
 				continue
-			var hex = MapData.get_hex(l.current_hex_id)
-			l.visible = hex != null and hex.get_fog_state(active_player.player_id) != HexData.FogState.UNEXPLORED
+			var hex = MapData.get_hex(u.current_hex_id)
+			u.visible = hex != null and hex.get_fog_state(active_player.player_id) != HexData.FogState.UNEXPLORED
 
 
 func _on_hex_hovered(hex_id: String) -> void:
@@ -706,7 +718,7 @@ func _on_hex_hovered(hex_id: String) -> void:
 	var fog = hex.get_fog_state(active_player.player_id)
 	match fog:
 		HexData.FogState.UNEXPLORED:
-			pass  # nic nie pokazujemy - zgodnie z zasadą dwupoziomowej mgły
+			pass  # we show nothing - per the two-level fog rule
 		HexData.FogState.SEEN:
 			info_label.text = _describe_seen_hex(hex)
 		HexData.FogState.ANNEXED:
@@ -716,24 +728,23 @@ func _on_hex_hovered(hex_id: String) -> void:
 			]
 
 
-## Opis pola widocznego na poziomie mgły SEEN (widać typ terenu, nie
-## zasoby/budynki/właściciela) - współdzielony przez dymek najechania
-## (`_on_hex_hovered`) i panel po lewej (`_refresh_action_panel`), żeby oba
-## miejsca zawsze pokazywały dokładnie tyle samo, ile mgła w danym momencie
-## pozwala.
+## Description of a hex visible at the SEEN fog level (terrain type visible,
+## not resources/buildings/owner) - shared by the hover tooltip
+## (`_on_hex_hovered`) and the panel on the left (`_refresh_action_panel`),
+## so both always show exactly as much as the fog currently allows.
 static func _describe_seen_hex(hex: HexData) -> String:
 	return "%s: teren %s (koszt ruchu %d) - nieznane zasoby/budynki." % [
 		hex.hex_id, HexData.TerrainType.keys()[hex.terrain_type], hex.get_movement_cost()
 	]
 
 
-## Właściciel pola jako tekst (pole ANNEXED) - współdzielone przez dymek
-## najechania i panel po lewej, które tylko inaczej układają go w zdaniu.
+## A hex's owner as text (ANNEXED hexes) - shared by the hover tooltip and
+## the panel on the left, which just arrange it differently in a sentence.
 static func _describe_owner(hex: HexData) -> String:
 	return "gracz %d" % hex.owner_id if hex.owner_id != -1 else "niczyj"
 
 
-## Budynek pola jako tekst (pole ANNEXED) - jak `_describe_owner`.
+## A hex's building as text (ANNEXED hexes) - like `_describe_owner`.
 static func _describe_building(hex: HexData) -> String:
 	if hex.building == null:
 		return "brak"
@@ -743,157 +754,161 @@ static func _describe_building(hex: HexData) -> String:
 	]
 
 
-## --- Akcje na polu (Faza 5, 8, 9) ---
-## Działają na `selected_hex_id`. Aneksacja i przejęcie terenu gracza (update)
-## wymagają, żeby ludzik aktywnego gracza stał dokładnie na tym polu; Napraw
-## i Wydobądź działają na dowolnym już zaanektowanym WŁASNYM polu, z dowolnej
-## odległości.
+## --- Field actions (Phases 5, 8, 9) ---
+## Act on `selected_hex_id`. Annexation and territory takeover (update)
+## require a unit of the active player to stand exactly on that hex; Repair
+## and Harvest still work on any already-annexed OWN hex, from any distance.
 
-## Odświeżenie UI wspólne dla KAŻDEGO zakończenia (wczesny brak MP, sukces
-## LUB porażka) akcji ludzika wymagającej fizycznej obecności (Zaanektuj/
-## Przejmij teren gracza) - MP i stan pola mogły się zmienić, więc etykieta i
-## oba panele muszą nadążać. Nie odświeża `_refresh_map_view()`/
-## `_update_stats_labels()` - te dotyczą tylko niektórych wyników (patrz
-## wywołania w `_on_annex_pressed`/`_on_takeover_pressed`), nie każdego.
-func _refresh_ludzik_action_ui() -> void:
+## UI refresh shared by EVERY way a unit action requiring physical presence
+## (Zaanektuj/annex or Przejmij teren gracza/take over territory) can end
+## (an early MP shortfall, success, OR failure) - MP and the hex's state may
+## have changed, so the label and both panels need to keep up. Does not
+## refresh `_refresh_map_view()`/`_update_stats_labels()` - those only apply
+## to some outcomes (see the calls in `_on_annex_pressed`/
+## `_on_takeover_pressed`), not every one.
+func _refresh_unit_action_ui() -> void:
 	_update_mp_label()
 	_refresh_action_panel()
 	_refresh_route_panel()
 
 
-## Jedyne miejsce, gdzie gracz wydaje polecenie aneksacji - przycisk żyje
-## teraz WYŁĄCZNIE w panelu "Trasa ludzika" (`route_annex_button`), nie w
-## głównym panelu akcji (usunięty stamtąd - aneksacja to czynność ludzika,
-## nie ogólna akcja na zaznaczonym polu, w odróżnieniu od Przejmij/Napraw/
-## Wydobądź, które nie wymagają fizycznej obecności).
+## The only place a player issues an annexation command - the button now
+## lives EXCLUSIVELY in the "Trasa ludzika" panel (`route_annex_button`),
+## not the main action panel (removed from there - annexation is a unit's
+## action, not a general action on the selected hex, unlike Take
+## over/Repair/Harvest, which don't require physical presence).
 func _on_annex_pressed() -> void:
 	var hex_id = selected_hex_id
-	var ludzik = _find_own_ludzik_at(hex_id)
-	if ludzik == null:
+	var unit = _find_own_unit_at(hex_id)
+	if unit == null:
 		info_label.text = "Musisz stać ludzikiem na polu %s, żeby je zaanektować." % hex_id
 		return
 
 	var annex_cost = _effective_annex_cost_for(active_player.player_id)
-	if not ludzik.spend_movement_points(annex_cost):
+	if not unit.spend_movement_points(annex_cost):
 		info_label.text = "Brak punktów ruchu na aneksację (koszt: %d)." % annex_cost
-		_refresh_ludzik_action_ui()
+		_refresh_unit_action_ui()
 		return
 
 	var result = GameManager.annex_hex(hex_id, active_player.player_id)
 	if result["success"]:
-		_reveal_around(hex_id, active_player.player_id)  # "seen" -> "annexed" + ujawnia budynek
+		_reveal_around(hex_id, active_player.player_id)  # SEEN -> ANNEXED + reveals the building
 		info_label.text = "Zaanektowano %s (koszt: %d MP)." % [hex_id, annex_cost]
 		_refresh_map_view()
 	else:
-		ludzik.refund_movement_points(annex_cost)
+		unit.refund_movement_points(annex_cost)
 		var reason_text = {
 			"not_adjacent": "pole musi sąsiadować z już posiadanym.",
 			"already_owned": "pole ma już właściciela.",
 		}.get(result["reason"], result["reason"])
 		info_label.text = "Nie udało się zaanektować %s (%s)." % [hex_id, reason_text]
 
-	_refresh_ludzik_action_ui()
+	_refresh_unit_action_ui()
 
 
-## Aneksuje automatycznie heks, na którym ludzik AKTUALNIE stoi - skrót
-## "Anektuj napotkane pola" w panelu "Trasa ludzika" (Ludzik.auto_annex),
-## wołany z _advance_queued_route() (patrz tam - ZAWSZE poprzedzony
-## sprawdzeniem `_current_hex_needs_auto_annex()` + wystarczającego MP, więc
-## `spend_movement_points()` tutaj w praktyce nigdy nie zawodzi z braku MP;
-## zostaje jako zabezpieczenie). Ten sam mechanizm płatności co ręczna
-## aneksacja (_on_annex_pressed), ale bez dotykania UI/selected_hex_id - może
-## zajść dla DOWOLNEGO ludzika, w tym w trakcie automatycznej kontynuacji
-## trasy po przeliczeniu rundy (_continue_all_queued_routes), niekoniecznie
-## tego aktualnie zaznaczonego.
-func _auto_annex_hex(ludzik: Ludzik, hex_id: String) -> void:
-	var annex_cost = _effective_annex_cost_for(ludzik.player_id)
-	if not ludzik.spend_movement_points(annex_cost):
+## Automatically annexes the hex the unit is CURRENTLY standing on - the
+## "Anektuj napotkane pola" (annex hexes along the way) shortcut in the
+## "Trasa ludzika" panel (Unit.auto_annex), called from
+## _advance_queued_route() (see there - ALWAYS preceded by a check of
+## `_current_hex_needs_auto_annex()` + sufficient MP, so
+## `spend_movement_points()` here in practice never fails for lack of MP;
+## it stays as a safeguard). The same payment mechanism as manual annexation
+## (_on_annex_pressed), but without touching the UI/selected_hex_id - it can
+## happen for ANY unit, including during automatic route continuation after
+## a round is resolved (_continue_all_queued_routes), not just the currently
+## selected one.
+func _auto_annex_hex(unit: Unit, hex_id: String) -> void:
+	var annex_cost = _effective_annex_cost_for(unit.player_id)
+	if not unit.spend_movement_points(annex_cost):
 		return
 
-	var result = GameManager.annex_hex(hex_id, ludzik.player_id)
+	var result = GameManager.annex_hex(hex_id, unit.player_id)
 	if result["success"]:
-		_reveal_around(hex_id, ludzik.player_id)
+		_reveal_around(hex_id, unit.player_id)
 		info_label.text = "Automatycznie zaanektowano %s." % hex_id
 	else:
-		ludzik.refund_movement_points(annex_cost)
+		unit.refund_movement_points(annex_cost)
 
 
-## Czy heks, na którym ludzik AKTUALNIE stoi, kwalifikuje się do automatycznej
-## aneksacji (włączone "Anektuj napotkane pola", pole niczyje, sąsiaduje z już
-## posiadanym) - współdzielona przez _advance_queued_route() (priorytet
-## aneksacji nad dalszym ruchem, patrz tam), _continue_all_queued_routes()
-## (decyduje, czy w ogóle wołać _advance_queued_route() dla ludzika BEZ
-## aktywnej trasy - patrz tam) i _recompute_route()/_refresh_route_panel()
-## (żeby nie ogłaszać trasy za skończoną/nie mylić stanu "czeka na MP do
-## aneksacji" ze stanem "czeka, bo cel zajął przeciwnik").
-func _current_hex_needs_auto_annex(ludzik: Ludzik) -> bool:
-	if not ludzik.auto_annex:
+## Whether the hex the unit is CURRENTLY standing on qualifies for automatic
+## annexation ("Anektuj napotkane pola" enabled, the hex is unclaimed and
+## adjacent to already-owned territory) - shared by _advance_queued_route()
+## (annexation priority over further movement, see there),
+## _continue_all_queued_routes() (decides whether to call
+## _advance_queued_route() at all for a unit with NO active route - see
+## there), and _recompute_route()/_refresh_route_panel() (so as not to
+## declare the route finished too early, and not to confuse the "waiting on
+## MP to annex" state with "waiting because the enemy occupies the
+## destination").
+func _current_hex_needs_auto_annex(unit: Unit) -> bool:
+	if not unit.auto_annex:
 		return false
-	var hex = MapData.get_hex(ludzik.current_hex_id)
+	var hex = MapData.get_hex(unit.current_hex_id)
 	return (
 		hex != null and hex.owner_id == -1
-		and GameManager.has_adjacent_owned_hex(ludzik.current_hex_id, ludzik.player_id)
+		and GameManager.has_adjacent_owned_hex(unit.current_hex_id, unit.player_id)
 	)
 
 
 func _on_auto_annex_toggled(pressed: bool) -> void:
-	if selected_ludzik != null:
-		selected_ludzik.auto_annex = pressed
-		_refresh_route_panel()  # podgląd kosztu trasy zależy od auto_annex - patrz _route_cost()
+	if selected_unit != null:
+		selected_unit.auto_annex = pressed
+		_refresh_route_panel()  # the route cost preview depends on auto_annex - see _route_cost()
 
 
-## Czy zaznaczony heks da się zaanektować ludzikiem, który akurat go stoi -
-## wspólna logika dla stanu przycisku "Zaanektuj" w panelu "Trasa ludzika".
-## Wymaga też sąsiedztwa z już posiadanym polem (GameManager.annex_hex()) -
-## sprawdzone tu też, żeby przycisk był wyszarzony zamiast dawać błąd dopiero
-## po kliknięciu.
+## Whether the selected hex can be annexed by the unit currently standing on
+## it - shared logic for the "Zaanektuj" button's state in the "Trasa
+## ludzika" panel. Also requires adjacency to an already-owned hex
+## (GameManager.annex_hex()) - checked here too, so the button is greyed out
+## instead of only failing after being clicked.
 func _can_annex_selected_hex() -> bool:
 	var hex = MapData.get_hex(selected_hex_id)
 	if hex == null or hex.owner_id != -1:
 		return false
-	if _find_own_ludzik_at(selected_hex_id) == null:
+	if _find_own_unit_at(selected_hex_id) == null:
 		return false
 	return GameManager.has_adjacent_owned_hex(selected_hex_id, active_player.player_id)
 
 
-## Koszt aneksacji w MP dla danego gracza, pomniejszony o ewentualny bonus z
-## drzewka umiejętności (skill "territorial_logistics"), nigdy poniżej 1.
-## Parametryzowane graczem (nie tylko `active_player`), bo automatyczna
-## aneksacja (`_auto_annex_hex`) może zajść dla dowolnego gracza podczas
-## kontynuacji trasy po przeliczeniu rundy, nie tylko aktualnie kontrolowanego.
+## Annexation cost in MP for a given player, reduced by any skill tree bonus
+## (the "territorial_logistics" skill), never below 1. Parameterized by
+## player (not just `active_player`), because automatic annexation
+## (`_auto_annex_hex`) can happen for any player during route continuation
+## after a round is resolved, not only the one currently in control.
 func _effective_annex_cost_for(player_id: int) -> int:
 	var player = GameManager.get_player(player_id)
 	var reduction = player.annex_cost_reduction if player != null else 0
 	return maxi(1, GameBalance.ANNEX_MP_COST - reduction)
 
 
-## Przejęcie terytorium (PvP) - sekcja 5 GDD / Faza 9 (update): tak jak
-## aneksacja, wymaga teraz fizycznej obecności ludzika na polu - stąd
-## "Przejmij teren gracza" żyje w panelu "Trasa ludzika"
-## (`route_takeover_button`), pojawiając się TAM, gdzie zwykle "Zaanektuj",
-## tylko dla pól należącego do innego gracza. Skoro dwóch różnych graczy nie
-## może nigdy stać jednocześnie na tym samym heksie (`_blocked_hexes_for`
-## blokuje ruch symetrycznie w obie strony), samo stanie na wrogim polu już
-## DOWODZI, że broniący go ludzik akurat go nie patroluje - osobne
-## sprawdzenie "funkcji obronnej" (sekcja 3 GDD) nie jest już potrzebne,
-## efektywnie przeniosło się do blokady ruchu.
+## Territory takeover (PvP) - GDD section 5 / Phase 9 (update): like
+## annexation, now requires physical presence of a unit on the hex - hence
+## "Przejmij teren gracza" (take over territory) lives in the "Trasa
+## ludzika" panel (`route_takeover_button`), appearing where "Zaanektuj"
+## normally does, but only for hexes owned by another player. Since two
+## different players can never stand on the same hex at the same time
+## (`_blocked_hexes_for` blocks movement symmetrically both ways), merely
+## standing on an enemy hex already PROVES that the unit defending it isn't
+## currently patrolling it - a separate "defensive function" check (GDD
+## section 3) is no longer needed, it has effectively moved into the
+## movement block.
 ##
-## Koszt MP jest identyczny jak przy aneksacji i pobierany od razu - w
-## przeciwieństwie do aneksacji NIE jest zwracany przy porażce z powodu
-## niewystarczającego prestiżu (`"insufficient_prestige"`), bo to wciąż
-## realna próba z realną (choć inną) karą - patrz GameManager.attempt_takeover().
-## Zwracany jest tylko przy "twardych" błędach (pole niczyje/już twoje).
+## The MP cost is identical to annexation and deducted immediately - unlike
+## annexation, it is NOT refunded on failure due to insufficient prestige
+## (`"insufficient_prestige"`), because that's still a real attempt with a
+## real (if different) penalty - see GameManager.attempt_takeover(). It is
+## only refunded on "hard" errors (the hex is unclaimed/already yours).
 func _on_takeover_pressed() -> void:
 	var hex_id = selected_hex_id
-	var ludzik = _find_own_ludzik_at(hex_id)
-	if ludzik == null:
+	var unit = _find_own_unit_at(hex_id)
+	if unit == null:
 		info_label.text = "Musisz stać ludzikiem na polu %s, żeby przejąć je siłą." % hex_id
 		return
 
 	var cost = _effective_annex_cost_for(active_player.player_id)
-	if not ludzik.spend_movement_points(cost):
+	if not unit.spend_movement_points(cost):
 		info_label.text = "Brak punktów ruchu na przejęcie terenu (koszt: %d)." % cost
-		_refresh_ludzik_action_ui()
+		_refresh_unit_action_ui()
 		return
 
 	var result = GameManager.attempt_takeover(hex_id, active_player.player_id)
@@ -911,7 +926,7 @@ func _on_takeover_pressed() -> void:
 		)
 		_update_stats_labels()
 	else:
-		ludzik.refund_movement_points(cost)
+		unit.refund_movement_points(cost)
 		var reason_text = {
 			"no_owner": "pole nie ma właściciela - użyj Aneksacji.",
 			"already_owner": "to już twoje pole.",
@@ -919,17 +934,18 @@ func _on_takeover_pressed() -> void:
 		}.get(result["reason"], result["reason"])
 		info_label.text = "Nie udało się przejąć %s (%s)." % [hex_id, reason_text]
 
-	_refresh_ludzik_action_ui()
+	_refresh_unit_action_ui()
 
 
-## Czy zaznaczony heks da się przejąć siłą ludzikiem, który akurat go stoi -
-## wspólna logika dla stanu przycisku "Przejmij teren gracza" w panelu
-## "Trasa ludzika" (analogicznie do `_can_annex_selected_hex()`).
+## Whether the selected hex can be taken over by force by the unit currently
+## standing on it - shared logic for the "Przejmij teren gracza" button's
+## state in the "Trasa ludzika" panel (analogous to
+## `_can_annex_selected_hex()`).
 func _can_takeover_selected_hex() -> bool:
 	var hex = MapData.get_hex(selected_hex_id)
 	if hex == null or hex.owner_id == -1 or hex.owner_id == active_player.player_id or hex.is_capital:
 		return false
-	return _find_own_ludzik_at(selected_hex_id) != null
+	return _find_own_unit_at(selected_hex_id) != null
 
 
 func _on_repair_pressed() -> void:
@@ -949,9 +965,9 @@ func _on_harvest_slider_changed(value: float) -> void:
 	harvest_value_label.text = "%d%%" % int(value)
 
 
-## Wydobycie lasu (Faza 5, sekcja 6.1 GDD) - działa na dowolnym, już
-## zaanektowanym polu leśnym gracza, z dowolnej odległości (patrz komentarz
-## na górze pliku); nie trzeba na nim stać.
+## Forest harvesting (Phase 5, GDD section 6.1) - works on any already
+## annexed forest hex the player owns, from any distance (see the comment at
+## the top of the file); the player doesn't need to stand on it.
 func _on_harvest_pressed() -> void:
 	var hex_id = selected_hex_id
 	var percent = harvest_slider.value
@@ -970,7 +986,7 @@ func _on_harvest_pressed() -> void:
 	_refresh_action_panel()
 
 
-## --- Karta Miasta (Faza 8) ---
+## --- City Card (Phase 8) ---
 
 func _on_city_card_pressed() -> void:
 	city_card_panel.open_for_player(active_player)
@@ -980,56 +996,56 @@ func _on_city_building_unlocked() -> void:
 	_update_stats_labels()
 
 
-## --- Drzewko Umiejętności (nowość, patrz komentarz na górze pliku) ---
+## --- Skill Tree (new, see the comment at the top of the file) ---
 
 func _on_skill_tree_pressed() -> void:
 	skill_tree_panel.open_for_player(active_player)
 
 
-## Reaguje na odblokowanie skilla w SkillTreePanel. Efekty "czysto danowe"
-## (promień widzenia, próg bezpiecznej wycinki, koszt aneksacji, MP
-## PRZYSZŁYCH ludzików) są już zaaplikowane na PlayerData przez
-## GameManager.unlock_skill() - tu dopinamy tylko te dwa efekty, które
-## wymagają dostępu do węzłów sceny, których GameManager celowo nie zna.
+## Reacts to a skill being unlocked in SkillTreePanel. "Pure data" effects
+## (vision radius, safe harvesting threshold, annexation cost, MP for FUTURE
+## units) are already applied to PlayerData by GameManager.unlock_skill() -
+## here we only handle the two effects that need access to scene nodes,
+## which GameManager deliberately doesn't know about.
 func _on_skill_unlocked(skill: SkillData) -> void:
 	match skill.effect_type:
-		SkillData.EffectType.EXTRA_LUDZIK:
-			_recruit_extra_ludzik(active_player)
+		SkillData.EffectType.EXTRA_UNIT:
+			_recruit_extra_unit(active_player)
 		SkillData.EffectType.MOVEMENT_POINTS_BONUS:
-			# Bonus dla PRZYSZŁYCH ludzików już jest na PlayerData
-			# (player.movement_points_bonus) - tu retroaktywnie podbijamy
-			# JUŻ ISTNIEJĄCYCH, żeby efekt był odczuwalny od razu.
+			# The bonus for FUTURE units is already on PlayerData
+			# (player.movement_points_bonus) - here we retroactively bump up
+			# the ones that ALREADY EXIST, so the effect is felt immediately.
 			var bonus = int(skill.effect_amount)
-			for l in player_ludziks.get(active_player.player_id, []):
-				l.movement_points_max += bonus
-				l.movement_points_current += bonus
+			for u in player_units.get(active_player.player_id, []):
+				u.movement_points_max += bonus
+				u.movement_points_current += bonus
 			_update_mp_label()
 		_:
-			pass  # VISION_RADIUS_BONUS / FOREST_THRESHOLD_BONUS / ANNEX_COST_REDUCTION - nic więcej do zrobienia tutaj
+			pass  # VISION_RADIUS_BONUS / FOREST_THRESHOLD_BONUS / ANNEX_COST_REDUCTION - nothing more to do here
 	_update_stats_labels()
 
 
-## Skill "extra_ludzik" - rekrutuje kolejnego Ludzika w mieście startowym
-## gracza. Model danych `player_ludziks: player_id -> Array[Ludzik]` był od
-## początku na to przygotowany (patrz komentarz na górze pliku) - to
-## pierwsze miejsce, które faktycznie z tego korzysta.
-func _recruit_extra_ludzik(player: PlayerData) -> void:
+## The "extra_unit" skill - recruits another Unit in the player's starting
+## city. The `player_units: player_id -> Array[Unit]` data model was
+## designed for this from the start (see the comment at the top of the
+## file) - this is the first place that actually makes use of it.
+func _recruit_extra_unit(player: PlayerData) -> void:
 	var setup = _find_player_setup(player.player_id)
 	if setup.is_empty():
 		return
 
-	var ludzik = Ludzik.new()
-	add_child(ludzik)
-	_configure_ludzik(ludzik, player, setup)
-	ludzik.movement_points_max = GameBalance.LUDZIK_MOVEMENT_POINTS_MAX + player.movement_points_bonus
-	ludzik.reset_movement_points()
+	var unit = Unit.new()
+	add_child(unit)
+	_configure_unit(unit, player, setup)
+	unit.movement_points_max = GameBalance.UNIT_MOVEMENT_POINTS_MAX + player.movement_points_bonus
+	unit.reset_movement_points()
 
 	var spawn_hex_id = _resolve_start_hex(setup, player.player_name)
-	ludzik.place_on_hex(spawn_hex_id)
+	unit.place_on_hex(spawn_hex_id)
 
-	if not player_ludziks.has(player.player_id):
-		player_ludziks[player.player_id] = []
-	player_ludziks[player.player_id].append(ludzik)
+	if not player_units.has(player.player_id):
+		player_units[player.player_id] = []
+	player_units[player.player_id].append(unit)
 
 	_reveal_around(spawn_hex_id, player.player_id)
 	_refresh_map_view()
@@ -1043,7 +1059,7 @@ func _find_player_setup(player_id: int) -> Dictionary:
 	return {}
 
 
-## --- Gracz aktywny i runda (rozdzielone - patrz turn_manager.gd) ---
+## --- Active player and rounds (separated - see turn_manager.gd) ---
 
 func _on_player_selected(index: int) -> void:
 	var player_id = player_selector.get_item_id(index)
@@ -1051,17 +1067,17 @@ func _on_player_selected(index: int) -> void:
 
 
 func _on_end_round_pressed() -> void:
-	TurnManager.end_round()  # NIE zmienia, który gracz jest kontrolowany
+	TurnManager.end_round()  # does NOT change which player is in control
 
 
-## Aktualizuje panel akcji wg aktualnie ZAZNACZONEGO heksu (niekoniecznie
-## tego, na którym stoi ludzik - patrz `selected_hex_id`). Tekst opisowy jest
-## bramkowany mgłą wojny (te same 3 poziomy co `_on_hex_hovered()` niżej) -
-## dopóki pole nie jest choć "seen", widać wyłącznie jego ID i typ terenu, bez
-## etykiety/właściciela/budynku/poziomu zasobu. Przyciski akcji NIE są tu
-## bramkowane - działają na prawdziwym stanie pola (żeby np. przejęcie
-## terenu przeciwnika było w ogóle możliwe), tylko opis tekstowy chroni
-## informację o tym, co się na nim znajduje.
+## Updates the action panel based on the currently SELECTED hex (not
+## necessarily the one a unit is standing on - see `selected_hex_id`). The
+## descriptive text is gated by fog of war (the same 3 levels as
+## `_on_hex_hovered()` below) - until the hex is at least SEEN, only its ID
+## and terrain type are visible, without the label/owner/building/resource
+## level. Action buttons are NOT gated here - they act on the hex's actual
+## state (so that e.g. taking over enemy territory is possible at all),
+## only the text description protects information about what's on it.
 func _refresh_action_panel() -> void:
 	var hex = MapData.get_hex(selected_hex_id)
 	if hex == null:
@@ -1095,21 +1111,21 @@ func _refresh_action_panel() -> void:
 	harvest_button.disabled = not is_owned_by_me
 
 
-## Panel "Trasa ludzika" - widoczny tylko przy zaznaczonym ludziku, trzy
-## stany trasy: (1) niepotwierdzony podgląd -> długość/koszt + Potwierdź/
-## Anuluj; (2) trasa już zatwierdzona i w toku (mogła zostać wstrzymana
-## brakiem MP albo blokadą - wróci do niej `_continue_all_queued_routes` na
-## starcie kolejnej rundy) -> postęp + Anuluj; (3) nic zaplanowane ->
-## podpowiedź. To JEDYNE miejsce, gdzie da się zaanektować/przejąć pole
-## (oba przyciski usunięte z głównego panelu akcji, bo obie akcje wymagają
-## fizycznej obecności). "Zaanektuj" i "Przejmij teren gracza" są wzajemnie
-## wykluczające się (widoczny dokładnie jeden, zależnie od tego, czy
-## zaznaczony heks jest niczyj czy wrogi) - stąd też przełącznik "Anektuj
-## napotkane pola" (Ludzik.auto_annex), zaznaczający automatycznie KAŻDY
-## niczyj heks, przez który ten ludzik przejdzie podczas wykonywania trasy
-## (patrz _advance_queued_route/_auto_annex_hex).
+## The "Trasa ludzika" (unit route) panel - only visible with a unit
+## selected, three route states: (1) an unconfirmed preview -> length/cost +
+## Confirm/Cancel; (2) an already confirmed, in-progress route (may have
+## been paused by lack of MP or a block - `_continue_all_queued_routes` will
+## get back to it at the start of the next round) -> progress + Cancel; (3)
+## nothing planned -> a hint. This is the ONLY place a hex can be
+## annexed/taken over (both buttons removed from the main action panel,
+## since both actions require physical presence). "Zaanektuj" and "Przejmij
+## teren gracza" are mutually exclusive (exactly one visible, depending on
+## whether the selected hex is unclaimed or hostile) - hence also the
+## "Anektuj napotkane pola" toggle (Unit.auto_annex), which automatically
+## annexes EVERY unclaimed hex this unit passes through while executing a
+## route (see _advance_queued_route/_auto_annex_hex).
 func _refresh_route_panel() -> void:
-	if selected_ludzik == null:
+	if selected_unit == null:
 		route_panel.visible = false
 		return
 
@@ -1124,19 +1140,20 @@ func _refresh_route_panel() -> void:
 
 	route_takeover_button.visible = is_enemy_owned
 	route_takeover_button.disabled = not _can_takeover_selected_hex()
-	# Koszt MP jest znany z góry (tyle co aneksacja), ale koszt prestiżowy
-	# zależy od prestiżu OBROŃCY, którego nie widać w UI (sekcja "Decyzje
-	# projektowe" w README) - stąd dymek celowo nie podaje dokładnej liczby.
+	# The MP cost is known up front (the same as annexation), but the
+	# prestige cost depends on the DEFENDER's prestige, which isn't shown in
+	# the UI (see the "Decyzje projektowe" section of the README) - hence
+	# the tooltip deliberately doesn't give an exact number.
 	route_takeover_button.tooltip_text = (
 		"Koszt: %d MP oraz nieznana liczba prestiżu (zależy od siły przeciwnika)."
 		% _effective_annex_cost_for(active_player.player_id)
 	)
 
-	auto_annex_checkbox.button_pressed = selected_ludzik.auto_annex
+	auto_annex_checkbox.button_pressed = selected_unit.auto_annex
 
-	if preview_route_ludzik == selected_ludzik and preview_route.size() > 1:
-		var cost = _route_cost(preview_route, selected_ludzik)
-		var rounds = _route_rounds_needed(cost, selected_ludzik)
+	if preview_route_unit == selected_unit and preview_route.size() > 1:
+		var cost = _route_cost(preview_route, selected_unit)
+		var rounds = _route_rounds_needed(cost, selected_unit)
 		var target_note = ""
 		if preview_target_hex_id != "" and preview_route[-1] != preview_target_hex_id:
 			target_note = " (najbliżej jak się da - %s jest zajęte przez przeciwnika)" % preview_target_hex_id
@@ -1144,54 +1161,55 @@ func _refresh_route_panel() -> void:
 			"Podgląd trasy do %s%s: %d pól, koszt %d MP - zajmie %s (masz %d MP)."
 			% [
 				preview_route[-1], target_note, preview_route.size() - 1, cost,
-				_format_rounds(rounds), selected_ludzik.movement_points_current
+				_format_rounds(rounds), selected_unit.movement_points_current
 			]
 		)
 		confirm_route_button.visible = true
 		cancel_route_button.visible = true
 		cancel_route_button.text = "Anuluj podgląd"
-	elif not selected_ludzik.queued_route.is_empty():
-		var remaining_cost = _remaining_route_cost(selected_ludzik.queued_route, selected_ludzik)
-		var rounds = _route_rounds_needed(remaining_cost, selected_ludzik)
+	elif not selected_unit.queued_route.is_empty():
+		var remaining_cost = _remaining_route_cost(selected_unit.queued_route, selected_unit)
+		var rounds = _route_rounds_needed(remaining_cost, selected_unit)
 		var true_target = (
-			selected_ludzik.route_destination if selected_ludzik.route_destination != ""
-			else selected_ludzik.queued_route[-1]
+			selected_unit.route_destination if selected_unit.route_destination != ""
+			else selected_unit.queued_route[-1]
 		)
 		var target_note = ""
-		if true_target != selected_ludzik.queued_route[-1]:
-			target_note = " (na razie do %s - %s jest zajęte przez przeciwnika)" % [selected_ludzik.queued_route[-1], true_target]
+		if true_target != selected_unit.queued_route[-1]:
+			target_note = " (na razie do %s - %s jest zajęte przez przeciwnika)" % [selected_unit.queued_route[-1], true_target]
 		route_info_label.text = "Trasa w toku do %s%s: pozostało %d pól, zajmie jeszcze %s." % [
-			true_target, target_note, selected_ludzik.queued_route.size(), _format_rounds(rounds)
+			true_target, target_note, selected_unit.queued_route.size(), _format_rounds(rounds)
 		]
 		confirm_route_button.visible = false
 		cancel_route_button.visible = true
 		cancel_route_button.text = "Anuluj trasę"
-	elif selected_ludzik.route_destination != "":
-		if selected_ludzik.route_destination == selected_ludzik.current_hex_id:
-			# Dotarł na miejsce, ale zabrakło MP na automatyczną aneksację tego
-			# pola w poprzedniej rundzie (patrz _advance_queued_route) - to
-			# INNY stan niż "cel zajęty przez przeciwnika" niżej, mimo że oba
-			# mają puste `queued_route` i ustawiony `route_destination`.
+	elif selected_unit.route_destination != "":
+		if selected_unit.route_destination == selected_unit.current_hex_id:
+			# Arrived, but ran out of MP for automatic annexation of this
+			# hex last round (see _advance_queued_route) - this is a
+			# DIFFERENT state than "destination occupied by the enemy"
+			# below, even though both have an empty `queued_route` and a
+			# set `route_destination`.
 			route_info_label.text = (
 				"Ludzik dotarł na miejsce (%s), ale brakuje MP na aneksację - zaanektuje automatycznie, gdy tylko starczy."
-				% selected_ludzik.route_destination
+				% selected_unit.route_destination
 			)
 		else:
 			route_info_label.text = (
 				"Ludzik czeka na miejscu - pole %s jest obecnie zajęte przez przeciwnika. Trasa ruszy dalej automatycznie, gdy się zwolni."
-				% selected_ludzik.route_destination
+				% selected_unit.route_destination
 			)
 		confirm_route_button.visible = false
 		cancel_route_button.visible = true
 		cancel_route_button.text = "Anuluj trasę"
-	elif _current_hex_needs_auto_annex(selected_ludzik):
-		# Bez żadnej aktywnej trasy (np. po Anuluj), ale wciąż czeka na MP,
-		# żeby automatycznie zaanektować pole, na którym akurat stoi - patrz
-		# _continue_all_queued_routes(), które i tak co rundę spróbuje to
-		# dokończyć niezależnie od tego, czy trasa istnieje.
+	elif _current_hex_needs_auto_annex(selected_unit):
+		# No active route (e.g. after Cancel), but still waiting on MP to
+		# automatically annex the hex it's currently standing on - see
+		# _continue_all_queued_routes(), which will try to finish this every
+		# round regardless of whether a route exists.
 		route_info_label.text = (
 			"Ludzik czeka na miejscu (%s) - zaanektuje automatycznie, gdy tylko starczy MP."
-			% selected_ludzik.current_hex_id
+			% selected_unit.current_hex_id
 		)
 		confirm_route_button.visible = false
 		cancel_route_button.visible = false
@@ -1201,51 +1219,52 @@ func _refresh_route_panel() -> void:
 		cancel_route_button.visible = false
 
 
-## Sumaryczny koszt MP przejścia `path` (pomija indeks 0 - to heks startowy,
-## na którym ludzik już stoi, wejście na niego nic nie kosztuje).
-func _route_cost(path: Array[String], ludzik: Ludzik) -> int:
-	return _remaining_route_cost(path.slice(1), ludzik)
+## Total MP cost of walking `path` (skips index 0 - the starting hex the
+## unit is already standing on, entering it costs nothing).
+func _route_cost(path: Array[String], unit: Unit) -> int:
+	return _remaining_route_cost(path.slice(1), unit)
 
 
-## Jak `_route_cost`, ale bez pomijania pierwszego elementu - do użycia na
-## `Ludzik.queued_route`, który (w odróżnieniu od podglądu `preview_route`)
-## NIE zawiera heksa startowego. Jeśli `ludzik.auto_annex` jest włączone
-## ("Anektuj napotkane pola"), dolicza też koszt automatycznej aneksacji
-## KAŻDEGO obecnie niczyjego pola na trasie - stąd trasa z włączonym
-## auto-anektowaniem wychodzi droższa w MP, więc "musi czekać dłużej" (więcej
-## rund, zanim faktycznie dotrze do celu). To oszacowanie z góry: faktyczna
-## aneksacja po drodze może się nie udać (np. brak sąsiedztwa z już
-## posiadanym polem - patrz GameManager.annex_hex), ale jako podgląd trasy
-## jest wystarczająco dokładne.
-func _remaining_route_cost(remaining: Array[String], ludzik: Ludzik) -> int:
+## Like `_route_cost`, but without skipping the first element - for use on
+## `Unit.queued_route`, which (unlike the `preview_route` preview) does NOT
+## include the starting hex. If `unit.auto_annex` is enabled ("Anektuj
+## napotkane pola"), also adds the cost of automatically annexing EVERY
+## currently unclaimed hex on the route - hence a route with auto-annexation
+## enabled comes out more expensive in MP, so it "has to wait longer" (more
+## rounds before actually reaching the destination). This is an upfront
+## estimate: the actual annexation along the way may fail (e.g. no adjacency
+## to an already-owned hex - see GameManager.annex_hex), but it's accurate
+## enough as a route preview.
+func _remaining_route_cost(remaining: Array[String], unit: Unit) -> int:
 	var total = 0
-	var annex_cost = _effective_annex_cost_for(ludzik.player_id)
+	var annex_cost = _effective_annex_cost_for(unit.player_id)
 	for hex_id in remaining:
 		var hex = MapData.get_hex(hex_id)
 		if hex == null:
 			continue
 		total += hex.get_movement_cost()
-		if ludzik.auto_annex and hex.owner_id == -1:
+		if unit.auto_annex and hex.owner_id == -1:
 			total += annex_cost
 	return total
 
 
-## Liczba rund potrzebnych, żeby ludzik zdołał wydać `cost` punktów ruchu -
-## 1, jeśli starczy AKTUALNYCH punktów w tej rundzie, inaczej ta runda plus
-## tyle KOLEJNYCH pełnych rund (każda dająca `movement_points_max` świeżych
-## punktów), ile trzeba na resztę. Używane do dokładnego wyświetlenia "zajmie
-## X rund(ę)" zamiast dotychczasowego binarnego "starczy w tej rundzie" /
-## "potrwa kilka rund".
-func _route_rounds_needed(cost: int, ludzik: Ludzik) -> int:
-	if cost <= ludzik.movement_points_current:
+## Number of rounds needed for a unit to spend `cost` movement points - 1 if
+## the CURRENT points this round are enough, otherwise this round plus as
+## many FULL rounds after it (each giving `movement_points_max` fresh
+## points) as needed for the rest. Used to display the exact "will take X
+## round(s)" instead of the old binary "fits this round" / "will take
+## several rounds".
+func _route_rounds_needed(cost: int, unit: Unit) -> int:
+	if cost <= unit.movement_points_current:
 		return 1
-	var remaining = cost - ludzik.movement_points_current
-	var per_round = maxi(1, ludzik.movement_points_max)
+	var remaining = cost - unit.movement_points_current
+	var per_round = maxi(1, unit.movement_points_max)
 	return 1 + (remaining + per_round - 1) / per_round
 
 
-## Polska odmiana "rundę"/"rundy"/"rund" po liczebniku (np. "1 rundę",
-## "3 rundy", "5 rund", "12 rund", "22 rundy").
+## Polish inflection of "rundę"/"rundy"/"rund" (round) after a number (e.g.
+## "1 rundę", "3 rundy", "5 rund", "12 rund", "22 rundy") - this label is
+## player-facing, so it stays in Polish.
 static func _format_rounds(n: int) -> String:
 	var word: String
 	if n == 1:
@@ -1258,18 +1277,19 @@ static func _format_rounds(n: int) -> String:
 
 
 func _update_mp_label() -> void:
-	var ludzik = selected_ludzik
-	if ludzik == null or ludzik.player_id != active_player.player_id:
-		ludzik = _primary_ludzik_for(active_player.player_id)
-	if ludzik == null:
+	var unit = selected_unit
+	if unit == null or unit.player_id != active_player.player_id:
+		unit = _primary_unit_for(active_player.player_id)
+	if unit == null:
 		mp_label.text = "Punkty ruchu: -"
 	else:
-		mp_label.text = "Punkty ruchu: %d / %d" % [ludzik.movement_points_current, ludzik.movement_points_max]
+		mp_label.text = "Punkty ruchu: %d / %d" % [unit.movement_points_current, unit.movement_points_max]
 
 
-## Prestiż + runda w jednej etykiecie, WSZYSTKIE zasoby gracza w drugiej
-## (update - wcześniej pokazywało tylko drewno, reszta zdobytych surowców
-## była niewidoczna w UI mimo że gracz faktycznie je posiadał).
+## Prestige + round in one label, ALL of the player's resources in the other
+## (update - previously only showed wood, the rest of the collected
+## resources were invisible in the UI even though the player actually owned
+## them).
 func _update_stats_labels() -> void:
 	prestige_label.text = "Prestiż: %d | Runda: %d" % [active_player.prestige, TurnManager.round_number]
 

@@ -1,15 +1,15 @@
 class_name PlayerSetup
 extends RefCounted
-## Lista graczy startowych hotseat - id, nazwa, miasto, heks bazowy, kolor
-## pionka. Wspólne źródło prawdy dla scenes/start_screen.gd (wybór miast
-## przed rozpoczęciem gry) i scenes/game_map_controller.gd (rejestracja
-## graczy) - żeby oba miejsca zawsze zgadzały się co do tego, jakie miasta,
-## kolejność ID i kolory istnieją.
+## List of the hotseat starting players - id, name, city, base hex, token
+## color. Shared source of truth for scenes/start_screen.gd (city selection
+## before the game starts) and scenes/game_map_controller.gd (player
+## registration) - so both places always agree on which cities, ID order,
+## and colors exist.
 ##
-## Wszystkie 6 miast z sekcji 7 GDD. Opcjonalny klucz "sprite" (ścieżka
-## res://...) podmienia domyślne kółko na obrazek pionka - patrz
-## Ludzik.sprite_texture w ludzik.gd. Bez tego klucza rysowane jest kółko w
-## kolorze "color".
+## All 6 cities from GDD section 7. The optional "sprite" key (a res://...
+## path) swaps the default circle for a token image - see
+## Unit.sprite_texture in unit.gd. Without this key, a circle in "color" is
+## drawn instead.
 const LIST = [
 	{"id": 1, "name": "Gracz 1", "city": "Wrocław", "start_hex": "H18", "color": Color(0.9, 0.2, 0.2)},
 	{"id": 2, "name": "Gracz 2", "city": "Szczecin", "start_hex": "A7", "color": Color(0.2, 0.4, 0.9)},

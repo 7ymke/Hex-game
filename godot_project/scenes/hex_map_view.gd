@@ -1,27 +1,30 @@
 class_name HexMapView
 extends Node2D
-## Faza 2 (wizualizacja) + Faza 3 (mgła wojny) planu implementacji.
-## Rysuje siatkę heksów kolorowaną wg typu terenu, z trójpoziomową mgłą wojny
-## (sekcja 2.2 GDD, HexData.FogState): UNEXPLORED = całkiem zakryty, SEEN =
-## widoczny typ terenu ale przyciemniony (bez szczegółów), ANNEXED = w pełni
-## odkryty (etykieta z ID, budynek/zasób). Heksy z właścicielem dostają
-## dodatkowo grubszą obwódkę w kolorze drużyny (widoczną od progu SEEN - ten
-## sam co widoczność ludzika przeciwnika w game_map_controller.gd).
+## Phase 2 (visualization) + Phase 3 (fog of war) of the implementation plan.
+## Draws the hex grid colored by terrain type, with three-level fog of war
+## (GDD section 2.2, HexData.FogState): UNEXPLORED = fully hidden, SEEN =
+## terrain type visible but dimmed (no details), ANNEXED = fully revealed
+## (ID label, building/resource). Owned hexes additionally get a thicker
+## outline in the team's color (visible from the SEEN threshold onward -
+## the same threshold used for enemy unit visibility in
+## game_map_controller.gd).
 
 signal hex_clicked(hex_id: String)
-signal hex_hovered(hex_id: String)  # pusty string = kursor poza siatką
+signal hex_hovered(hex_id: String)  # empty string = cursor outside the grid
 
 @export var viewing_player_id: int = 1
 
-## Heks aktualnie zaznaczony w UI (Faza 6+ update - akcje na polu działają na
-## zaznaczonym heksie, niekoniecznie tym, na którym stoi ludzik) - rysowany z
-## wyróżniającą obwódką, żeby było widać, czego dotyczy panel akcji.
+## The hex currently selected in the UI (Phase 6+ update - field actions act
+## on the selected hex, not necessarily the one a unit is standing on) -
+## drawn with a highlighted outline, so it's clear what the action panel
+## refers to.
 @export var selected_hex_id: String = ""
 
-## Trasa (Faza 10+ update, panel "Trasa ludzika" w game_map_controller.gd) -
-## dwie osobne listy hex_id, żeby podgląd (jeszcze niepotwierdzony) i trasa
-## już zatwierdzona/w toku (może trwać kilka rund) miały wyraźnie różny
-## wygląd. Pierwszy element to zawsze bieżący heks ludzika.
+## Route (Phase 10+ update, the "Trasa ludzika" (unit route) panel in
+## game_map_controller.gd) - two separate hex_id lists, so the preview
+## (not yet confirmed) and the confirmed/in-progress route (which can span
+## several rounds) look clearly different. The first element is always the
+## unit's current hex.
 @export var preview_route_hex_ids: Array[String] = []
 @export var queued_route_hex_ids: Array[String] = []
 
@@ -72,11 +75,11 @@ func _draw_hex(hex: HexData) -> void:
 	var outline = corners.duplicate()
 	outline.append(corners[0])
 
-	# Kolor drużyny wokół pól, które przejęła - ten sam próg mgły co
-	# widoczność ludzika przeciwnika (fog != UNEXPLORED, sekcja 2.2 GDD):
-	# wystarczy, że pole kiedyś znalazło się w zasięgu widzenia, nie trzeba
-	# go samemu zaanektować. Rysowany grubszą linią POD zwykłą/zaznaczoną
-	# obwódką, żeby obie były widoczne naraz.
+	# Team color around hexes it has annexed - the same fog threshold as
+	# enemy unit visibility (fog != UNEXPLORED, GDD section 2.2): it's enough
+	# for the hex to have once been within vision range, it doesn't need to
+	# be annexed by you yourself. Drawn as a thicker line UNDER the
+	# normal/selected outline, so both are visible at once.
 	if fog != HexData.FogState.UNEXPLORED and hex.owner_id != -1:
 		var owner = GameManager.get_player(hex.owner_id)
 		if owner != null:
@@ -92,10 +95,11 @@ func _draw_hex(hex: HexData) -> void:
 		)
 
 
-## Rysuje trasę jako linię łączącą środki kolejnych heksów + kropkę na każdym
-## z nich (pierwszy element listy to bieżący heks ludzika). Podgląd i trasa w
-## toku są rysowane osobno (patrz _draw()), więc obie mogą być widoczne
-## naraz, gdy gracz przegląda inną trasę niż aktualnie wykonywana.
+## Draws a route as a line connecting the centers of consecutive hexes, plus
+## a dot on each of them (the first list element is always the unit's
+## current hex). The preview and the in-progress route are drawn separately
+## (see _draw()), so both can be visible at once when the player is
+## previewing a different route than the one currently executing.
 func _draw_route(route_hex_ids: Array[String], color: Color) -> void:
 	if route_hex_ids.size() < 2:
 		return
@@ -123,9 +127,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		hex_hovered.emit(hex.hex_id if hex != null else "")
 
 
-## Używa get_global_mouse_position() (poprawnie uwzględnia transform kamery -
-## zoom/pan z camera_controller.gd), a nie surowego event.position/global_position,
-## które są współrzędnymi ekranu/okna i NIE uwzględniają kamery.
+## Uses get_global_mouse_position() (correctly accounts for the camera
+## transform - zoom/pan from camera_controller.gd), not the raw
+## event.position/global_position, which are screen/window coordinates and
+## do NOT account for the camera.
 func _hex_under_mouse() -> HexData:
 	var local_pos: Vector2 = to_local(get_global_mouse_position())
 	var coord = HexGridUtils.pixel_to_offset(local_pos, GameBalance.HEX_SIZE)

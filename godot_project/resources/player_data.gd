@@ -1,7 +1,8 @@
 class_name PlayerData
 extends Resource
-## Stan pojedynczego gracza. Prestiż jako jedna, centralna waluta (sekcja 4 GDD)
-## - buduje Kartę Miasta, płaci za przejęcia terenu, i jest karana za dewastację.
+## State of a single player. Prestige as one central currency (GDD section 4)
+## - builds the City Card, pays for territory takeovers, and is penalized for
+## environmental damage.
 
 @export var player_id: int = -1
 @export var player_name: String = ""
@@ -9,23 +10,24 @@ extends Resource
 
 @export var prestige: int = 100
 
-## Kolor drużyny - ten sam co pionek Ludzika (patrz PLAYER_SETUP w
-## game_map_controller.gd), używany też do obrysowania posiadanych heksów na
-## mapie (hex_map_view.gd), żeby terytorium było widoczne bez klikania.
+## Team color - the same one used for the player's Unit token (see
+## PLAYER_SETUP in game_map_controller.gd), also used to outline owned hexes
+## on the map (hex_map_view.gd) so territory is visible without clicking.
 @export var color: Color = Color.WHITE
 
-## HexData.ResourceType(int) -> ilość(float). Osobne kategorie surowców (sekcja 6 GDD)
-## - np. gaz i węgiel NIE są tą samą walutą, mimo podobnego zastosowania.
+## HexData.ResourceType(int) -> amount(float). Separate resource categories
+## (GDD section 6) - e.g. gas and coal are NOT the same currency, despite
+## similar uses.
 @export var resources: Dictionary = {}
 
 @export var unlocked_city_buildings: Array[String] = []
 
-## Drzewko umiejętności (scripts/skill_tree_data.gd) - id-ki odblokowanych
-## skilli, plus akumulatory efektów "czysto danowych" (bez potrzeby dostępu
-## do węzłów sceny), aplikowane wprost przez GameManager.unlock_skill().
-## Efekty, które WYMAGAJĄ dostępu do sceny (nowy węzeł Ludzik, retroaktywny
-## bonus MP na już istniejących ludzikach), aplikuje zamiast tego
-## game_map_controller._on_skill_unlocked() - patrz SkillData.EffectType.
+## Skill tree (scripts/skill_tree_data.gd) - ids of unlocked skills, plus
+## accumulators for "pure data" effects (no need for scene node access),
+## applied directly by GameManager.unlock_skill(). Effects that DO need
+## access to the scene (a new Unit node, a retroactive MP bonus on existing
+## units) are instead applied by
+## game_map_controller._on_skill_unlocked() - see SkillData.EffectType.
 @export var unlocked_skills: Array[String] = []
 @export var movement_points_bonus: int = 0
 @export var vision_radius_bonus: int = 0
@@ -58,6 +60,6 @@ func pay_costs(costs: Dictionary) -> bool:
 	return true
 
 
-## Zmienia prestiż, nie pozwalając mu spaść poniżej zera.
+## Changes prestige, never letting it drop below zero.
 func modify_prestige(amount: int) -> void:
 	prestige = maxi(prestige + amount, 0)

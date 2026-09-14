@@ -1,15 +1,17 @@
 extends Node
 ## Autoload: TurnManager
-## Struktura tur (sekcja 8 GDD: "ruchy graczy na przemian LUB jednocześnie,
-## następnie przeliczenie rundy" - GDD explicite dopuszcza obie kolejności).
+## Turn structure (GDD section 8: "players move in alternation OR
+## simultaneously, then the round is resolved" - the GDD explicitly allows
+## either order).
 ##
-## Update: kontrola nad graczem i przeliczenie rundy to teraz dwie CAŁKOWICIE
-## niezależne rzeczy. "Zmiana gracza" w UI wybiera KONKRETNEGO gracza wprost
-## (`switch_to_player`) - nie ma już cyklicznego "następny gracz" ani pojęcia
-## "tura gracza" blokującej resztę. "Zakończ rundę" (`end_round`) przelicza
-## rundę (regeneracja lasu, dochód, odnowienie MP wszystkich ludzików) w
-## dowolnym momencie, niezależnie od tego, który gracz jest akurat kontrolowany
-## - runda nie zmienia, kto jest aktywny.
+## Update: control over the active player and round resolution are now two
+## COMPLETELY independent things. The "Zmiana gracza" (change player) UI
+## control switches control to a SPECIFIC player directly
+## (`switch_to_player`) - there is no more cyclic "next player", nor a
+## "player's turn" concept blocking everything else. "Zakończ rundę" (end
+## round) (`end_round`) resolves the round (forest regrowth, income,
+## refreshing MP for all units) at any moment, independent of which player
+## is currently in control - resolving a round does not change who is active.
 
 signal round_ended(round_number: int)
 signal player_turn_started(player_id: int)
@@ -32,8 +34,8 @@ func get_current_player_id() -> int:
 	return player_order[current_player_index]
 
 
-## Przełącza kontrolę na WYBRANEGO gracza (np. z listy w UI) - swobodny wybór,
-## nie cykliczne przechodzenie po kolei.
+## Switches control to the CHOSEN player (e.g. from a list in the UI) - a
+## free choice, not cycling through them in order.
 func switch_to_player(player_id: int) -> void:
 	var index = player_order.find(player_id)
 	if index == -1:
@@ -42,8 +44,8 @@ func switch_to_player(player_id: int) -> void:
 	player_turn_started.emit(get_current_player_id())
 
 
-## Przelicza rundę na żądanie (przycisk "Zakończ rundę") - NIE zmienia, który
-## gracz jest aktualnie kontrolowany.
+## Resolves the round on demand (the "Zakończ rundę" / end round button) -
+## does NOT change which player is currently in control.
 func end_round() -> void:
 	_process_forest_regeneration()
 	_process_resource_income()
@@ -67,7 +69,8 @@ func _process_forest_regeneration() -> void:
 			hex.generates_prestige = true
 
 
-## Stały dochód z zasobów poza lasem (sekcja 6 GDD - las jest wyjątkiem).
+## Steady income from resources other than forest (GDD section 6 - forest is
+## the exception).
 func _process_resource_income() -> void:
 	for hex: HexData in MapData.hexes.values():
 		if hex.owner_id == -1 or hex.is_forest():

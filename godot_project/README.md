@@ -52,7 +52,7 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
    "Kontrolujesz" w lewym górnym rogu):
    - **Lewy klik na własnego ludzika** → zaznacza go: lekko się powiększa i
      podświetla pierścieniem (rozmiar/kolor/grubość tweakowalne w
-     `GameBalance.LUDZIK_SELECTED_SCALE` / `_HIGHLIGHT_COLOR` / `_WIDTH`),
+     `GameBalance.UNIT_SELECTED_SCALE` / `_HIGHLIGHT_COLOR` / `_WIDTH`),
      albo odznacza, jeśli już był zaznaczony. Zaznaczenie służy WYŁĄCZNIE do
      wydawania rozkazów ruchu.
    - **Lewy klik na dowolny inny heks**, mając ludzika zaznaczonego → NIE
@@ -61,7 +61,7 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
      **Potwierdź trasę** w nowym panelu "Trasa ludzika" (prawy dolny róg)
      faktycznie rusza ludzika, krok po kroku, zużywając punkty ruchu WG
      KOSZTU TERENU (płynny, animowany ruch - konfigurowalna prędkość
-     `GameBalance.LUDZIK_MOVE_SPEED_PX_PER_SEC`). Jeśli trasa jest dłuższa
+     `GameBalance.UNIT_MOVE_SPEED_PX_PER_SEC`). Jeśli trasa jest dłuższa
      niż starczy jednorazowego zapasu MP, wykonana zostaje jej część, a
      reszta zostaje zapamiętana (linia zmienia kolor na pomarańczowy) i
      **kontynuowana automatycznie po każdym kolejnym "Zakończ rundę"**, aż do
@@ -92,7 +92,7 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
      tego pola; ludzik dojdzie tam i CZEKA (panel pokazuje "Ludzik czeka na
      miejscu..."), aż gracz anuluje trasę albo przeciwnik się przesunie
      (wykryte automatycznie przy kolejnym przeliczeniu rundy, patrz wyżej) -
-     prawdziwy cel trasy trzyma `Ludzik.route_destination`, osobno od
+     prawdziwy cel trasy trzyma `Unit.route_destination`, osobno od
      praktycznego `queued_route`, które może kończyć się wcześniej.
    - **Lewy klik na heks bez zaznaczonego ludzika** → tylko zaznacza to pole
      (żółta obwódka) do inspekcji/akcji - NIE przesuwa nikogo.
@@ -197,7 +197,7 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
    aneksacja, wydobycie lasu, tura) **plus** Faz 6-9 (drugi gracz, blokada
    ruchu przez `HexPathfinder`, przejęcie terytorium, kara za strefę
    chronioną, odblokowanie budynku Karty Miasta) — wszystko jako czytelne
-   logi w konsoli, bo w tym trybie nie ma węzłów `Ludzik`/kamery do klikania.
+   logi w konsoli, bo w tym trybie nie ma węzłów `Unit`/kamery do klikania.
 
 ## Co jest w środku
 
@@ -245,12 +245,12 @@ godot_project/
 │   │                              # + podświetlenie zaznaczonego pola + obwódka
 │   │                              # w kolorze drużyny-właściciela + podgląd/trasa
 │   ├── camera_controller.gd     # pan (PPM) / zoom (scroll)
-│   ├── ludzik.gd                 # wizualny pionek gracza: płynny ruch (Tween),
+│   ├── unit.gd                   # wizualny pionek gracza: płynny ruch (Tween),
 │   │                              # własne MP, zaznaczenie (skala + podświetlenie),
 │   │                              # zatwierdzona trasa wielorundowa (queued_route)
 │   │                              # - jeden na gracza na start, ale
-│   │                              # player_ludziks w kontrolerze to już
-│   │                              # Array[Ludzik] per gracz (skill "Drugi ludzik"
+│   │                              # player_units w kontrolerze to już
+│   │                              # Array[Unit] per gracz (skill "Drugi ludzik"
 │   │                              # dodaje kolejnego bez zmian w reszcie logiki)
 │   ├── city_card_panel.gd        # UI Karty Miasta (osobny ekran, sekcja 7 GDD)
 │   ├── skill_tree_panel.gd       # UI Drzewka Umiejętności - radialny graf,
@@ -335,7 +335,7 @@ i **ma w pełni nieprzezroczyste tło** (tak jak reszta paneli - alpha=1 w
 **Węzły to na razie kropki** (nowość) - `scenes/skill_node_dot.gd`
 (`SkillNodeDot`) rysuje domyślnie kolorowe kółko (kolor zależny od stanu:
 zablokowany / stać cię na niego / odblokowany), ale ma gotowy slot
-`sprite_texture` (ten sam wzorzec co `Ludzik.sprite_texture`) - podmiana na
+`sprite_texture` (ten sam wzorzec co `Unit.sprite_texture`) - podmiana na
 obrazki w przyszłości to tylko przypisanie tekstur, bez zmiany reszty logiki.
 
 **Szczegóły w jednym współdzielonym okienku** (nowość, zamiast rozwijanej
@@ -405,7 +405,7 @@ Efekty dzielą się na dwie kategorie:
   `SkillTreePanel.skill_unlocked` (sygnał) doprasza o to
   `game_map_controller._on_skill_unlocked()`. "Drugi ludzik" to pierwsze
   miejsce w grze, które faktycznie korzysta z architektury
-  `player_ludziks: player_id -> Array[Ludzik]`, przygotowanej pod ten
+  `player_units: player_id -> Array[Unit]`, przygotowanej pod ten
   upgrade od samego początku (patrz komentarz na górze `game_map_controller.gd`).
 
 ### Wygląd UI - jeden plik do edycji (nowość)
@@ -495,6 +495,47 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **`Ludzik` -> `Unit`; kod ogólnie po angielsku** (nowość - na życzenie:
+  "w kodzie ludzik nie ma być zapisywane jako ludzik tylko unit, ogólnie
+  staraj się aby było po angielsku"). Zakres: identyfikatory w kodzie
+  (nazwy klas/plików/zmiennych/funkcji/węzłów sceny) oraz komentarze -
+  angielski; tekst widoczny GRACZOWI (etykiety UI, przyciski, komunikaty w
+  `info_label` itd.) zostaje po polsku, bo to język samej gry.
+  - Plik `scenes/ludzik.gd` -> `scenes/unit.gd`, `class_name Ludzik` ->
+    `class_name Unit`, węzeł sceny `$Ludzik` w `main.tscn` -> `$Unit`.
+  - Wszystkie identyfikatory w kodzie: `player_ludziks` -> `player_units`,
+    `selected_ludzik` -> `selected_unit`, `preview_route_ludzik` ->
+    `preview_route_unit`, `_ludzik_at()` -> `_unit_at()`,
+    `_find_own_ludzik_at()` -> `_find_own_unit_at()`,
+    `_configure_ludzik()` -> `_configure_unit()`,
+    `_recruit_extra_ludzik()` -> `_recruit_extra_unit()`,
+    `_refresh_ludzik_action_ui()` -> `_refresh_unit_action_ui()`,
+    `_update_ludzik_visibility()` -> `_update_unit_visibility()`,
+    `_primary_ludzik_for()` -> `_primary_unit_for()`,
+    `_set_selected_ludzik()` -> `_set_selected_unit()`,
+    `GameBalance.LUDZIK_*` -> `GameBalance.UNIT_*`,
+    `SkillData.EffectType.EXTRA_LUDZIK` -> `EXTRA_UNIT` (oraz skill id
+    `"extra_ludzik"` -> `"extra_unit"` w `skill_tree_data.gd` - to
+    wewnętrzny klucz, nigdy niepokazywany graczowi, w odróżnieniu od
+    widocznej nazwy skilla "Drugi ludzik", która zostaje po polsku).
+  - Komentarze przetłumaczone na angielski we wszystkich plikach, które i
+    tak wymagały dotknięcia przy tej zmianie (`game_map_controller.gd`,
+    `unit.gd`, `game_manager.gd`, `turn_manager.gd`, `hex_map_view.gd`,
+    `hex_pathfinder.gd`, `game_balance.gd`, `skill_tree_data.gd`,
+    `skill_data.gd`, `player_data.gd`, `player_setup.gd`,
+    `skill_node_dot.gd`, `main_test.gd`) - w tym diagnostyczne `print()` w
+    `main_test.gd` (scena testowa dla developera, nigdy nieuruchamiana przez
+    gracza, więc traktowana jak komentarz/log, nie tekst gry). Pliki BEZ
+    żadnego odwołania do "ludzik" (np. `hex_data.gd`, `hex_grid_utils.gd`,
+    `city_buildings_data.gd`, `skill_tree_panel.gd`) pozostały nietknięte -
+    tłumaczenie całego README/reszty komentarzy w projekcie to osobne,
+    znacznie większe zadanie, o które nikt nie prosił.
+  - README: zaktualizowane wszystkie odwołania do faktycznych symboli kodu
+    (nazwy klas/funkcji/zmiennych/plików/węzłów w znacznikach \`kod\`), np.
+    \`player_ludziks\` -> \`player_units\`, \`Array[Ludzik]\` ->
+    \`Array[Unit]\`, \`scenes/ludzik.gd\` -> \`scenes/unit.gd\`. Reszta
+    polskiej prozy (opis mechanik dla czytelnika, np. panel "Trasa ludzika")
+    zostaje bez zmian - to opis TREŚCI gry po polsku, nie odwołanie do kodu.
 - **Przegląd i porządki w całym kodzie** (nowość - czysto techniczny przegląd
   jakości, bez zmian w rozgrywce). Cały `godot_project/` (24 pliki `.gd`)
   przejrzany pod kątem duplikacji, martwego kodu i drobnych niespójności:
@@ -513,14 +554,14 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
     przeniesiona na `HexData.format_resource_costs()` (bo to `HexData`
     właściciel `RESOURCE_DISPLAY_NAMES`, z którego korzysta).
   - **Usunięta duplikacja tworzenia Ludzika** - `_setup_players()` i
-    `_recruit_extra_ludzik()` osobno powtarzały ten sam kod nadawania
+    `_recruit_extra_unit()` osobno powtarzały ten sam kod nadawania
     koloru/obrazka nowemu węzłowi Ludzik i ten sam fallback na brakujący
-    heks startowy; wydzielone do `_configure_ludzik()`/`_resolve_start_hex()`.
+    heks startowy; wydzielone do `_configure_unit()`/`_resolve_start_hex()`.
   - **Wspólny ogon UI po akcji ludzika** - `_on_annex_pressed()` i
     `_on_takeover_pressed()` kończyły się (na każdej z czterech możliwych
     ścieżek: brak MP / sukces / porażka) tym samym trio
     `_update_mp_label()`/`_refresh_action_panel()`/`_refresh_route_panel()` -
-    wydzielone do `_refresh_ludzik_action_ui()`.
+    wydzielone do `_refresh_unit_action_ui()`.
   - **`city_buildings_data.gd` z 6 prawie identycznych funkcji na jedną
     tabelę** - `_wroclaw()`/`_szczecin()`/... plus `match` w
     `get_buildings()` zastąpione jedną stałą `CITY_BUILDINGS` (miasto ->
@@ -602,7 +643,7 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 - **Dokładna liczba rund do celu; trasa przelicza się co rundę; można
   celować w pole zajęte przez przeciwnika** (nowość). Trzy powiązane zmiany
   w `game_map_controller.gd`:
-  1. `_route_rounds_needed(cost, ludzik)` zastępuje dawne binarne "starczy w
+  1. `_route_rounds_needed(cost, unit)` zastępuje dawne binarne "starczy w
      tej rundzie"/"potrwa kilka rund" dokładnym wyliczeniem: 1, jeśli
      `cost <= movement_points_current`, inaczej ta runda plus
      `ceil((cost - movement_points_current) / movement_points_max)` kolejnych
@@ -610,8 +651,8 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
      `_format_rounds()` ("1 rundę" / "2-4 rundy" / "5+ rund", z wyjątkiem
      11-14 zawsze "rund"). Użyte zarówno dla podglądu, jak i trasy w toku
      (`_remaining_route_cost()` - jak `_route_cost()`, ale bez pomijania
-     indeksu 0, bo `Ludzik.queued_route` nie zawiera heksa startowego).
-  2. `Ludzik.route_destination` to nowe pole trzymające PRAWDZIWY cel
+     indeksu 0, bo `Unit.queued_route` nie zawiera heksa startowego).
+  2. `Unit.route_destination` to nowe pole trzymające PRAWDZIWY cel
      zatwierdzonej trasy, osobno od `queued_route` (praktyczna, aktualnie
      wykonywana ścieżka - może kończyć się wcześniej niż prawdziwy cel, patrz
      punkt 3). `_continue_all_queued_routes()` woła nowe `_recompute_route()`
@@ -646,8 +687,8 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   więc stolica żadnego gracza nie da się nigdy podbić, niezależnie od
   przewagi prestiżowej atakującego.
 - **Podgląd kosztu trasy uwzględnia auto-aneksację** (nowość).
-  `_route_cost()` w `game_map_controller.gd` przyjął parametr `ludzik` - jeśli
-  `ludzik.auto_annex` jest włączone, dolicza do sumy MP koszt aneksacji
+  `_route_cost()` w `game_map_controller.gd` przyjął parametr `unit` - jeśli
+  `unit.auto_annex` jest włączone, dolicza do sumy MP koszt aneksacji
   (`_effective_annex_cost_for()`) każdego OBECNIE niczyjego pola na
   podglądanej trasie, nie tylko koszt samego ruchu. To celowo tylko
   OSZACOWANIE z góry (nie symuluje kaskadowo, że wcześniejsza aneksacja może
@@ -700,7 +741,7 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   poprzedniej iteracji). `scenes/skill_node_dot.gd` (`SkillNodeDot`) rysuje
   domyślnie kolorowe kółko (kolor zależny od stanu - zablokowany/stać cię
   na niego/odblokowany), z gotowym slotem `sprite_texture` (ten sam wzorzec
-  co `Ludzik.sprite_texture`) pod przyszłą podmianę na obrazki, bez zmiany
+  co `Unit.sprite_texture`) pod przyszłą podmianę na obrazki, bez zmiany
   reszty logiki. Nazwa/opis/koszt/przycisk odblokowania przeniesione z
   osobnej karty per skill do JEDNEGO współdzielonego `SkillPopup`,
   pozycjonowanego obok aktualnego węzła (`_position_popup_near()` -
@@ -742,7 +783,7 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   "Trasa ludzika"), nie ogólnego panelu pola. `route_annex_button` (już tam
   od poprzedniej iteracji) zostaje jedynym sposobem na ręczną aneksację.
   Nowy przełącznik `AutoAnnexCheckBox` ("Anektuj napotkane pola",
-  `Ludzik.auto_annex`, per-ludzik) sprawia, że `_advance_queued_route()`
+  `Unit.auto_annex`, per-ludzik) sprawia, że `_advance_queued_route()`
   automatycznie aneksuje KAŻDY niczyj heks, na który dany ludzik wejdzie w
   trakcie wykonywania trasy (`_auto_annex_hex()`, ten sam mechanizm
   płatności co ręczna aneksacja) - bez potrzeby zatrzymywania się i klikania
@@ -774,7 +815,7 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   nieprzezroczyste (`bg_color` alpha 0.92 -> 1 w `theme/ui_theme.tres`).
 - **Poprawka: crash po "Potwierdź trasę"** (bug, nie feature).
   `_update_route_overlay()` w `game_map_controller.gd` budował listę heksów
-  trasy operatorem `[selected_ludzik.current_hex_id] + selected_ludzik.queued_route`
+  trasy operatorem `[selected_unit.current_hex_id] + selected_unit.queued_route`
   - konkatenacja `+` NIETYPOWANEGO literału Array z otypowanym
   `Array[String]` rzuca w Godot 4.2 błędem typowania w runtime (w
   przeciwieństwie do zwykłego przypisania `x: Array[String] = jakiś_array`,
@@ -807,7 +848,7 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   w `game_map_controller.gd` liczy trasę z `HexPathfinder` i tylko ją
   POKAZUJE (`hex_map_view.preview_route_hex_ids`, żółta linia), czekając na
   **Potwierdź trasę** w nowym panelu "Trasa ludzika". Po potwierdzeniu trasa
-  trafia na `Ludzik.queued_route` (nie do kontrolera - musi przetrwać zmianę
+  trafia na `Unit.queued_route` (nie do kontrolera - musi przetrwać zmianę
   zaznaczenia/gracza) i wykonuje się przez `_advance_queued_route()` na tyle
   kroków, ile starczy AKTUALNYCH punktów ruchu; jeśli trasa jest dłuższa,
   reszta zostaje zapamiętana (rysowana pomarańczową linią,
@@ -834,7 +875,7 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   Ludzik, retroaktywny bonus MP na istniejących), zgłaszane sygnałem
   `SkillTreePanel.skill_unlocked` do `game_map_controller._on_skill_unlocked()`.
   Skill "Drugi ludzik" to pierwsze miejsce w grze faktycznie korzystające z
-  `player_ludziks: player_id -> Array[Ludzik]` - architektury przygotowanej
+  `player_units: player_id -> Array[Unit]` - architektury przygotowanej
   pod ten upgrade od samego początku (patrz "Punkty ruchu przeniesione..."
   niżej).
 - **UI skaluje się z oknem** (nowość) - `project.godot` (`[display]`)
@@ -849,7 +890,7 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   `H18`, Szczecin `A7`, Warszawa `R12`, Kraków `O22`, Gdańsk `L3`, Poznań
   `G12`), każdy z osobnym kolorem pionka i kompletem budynków Karty Miasta
   w `city_buildings_data.gd`. Cała logika ruchu/mgły/akcji/tur/PvP była od
-  początku napisana generycznie (pętle po `players`/`player_ludziks`, bez
+  początku napisana generycznie (pętle po `players`/`player_units`, bez
   założenia "dokładnie dwóch graczy"), więc przejście z 2 na 6 to była
   wyłącznie kwestia dopisania DANYCH - żadnych zmian w logice sterowania,
   ruchu, mgły, akcji na polu czy tur. Który skład faktycznie gra wybiera się
@@ -863,7 +904,7 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   filtruje `PLAYER_SETUP` (teraz alias na `PlayerSetup.LIST`) po tej liście;
   pusta lista (uruchomienie `main.tscn` z pominięciem ekranu startowego, np.
   F6 w edytorze) oznacza "wszyscy", więc stary sposób testowania nadal działa
-  bez zmian. Uwaga na indeksowanie węzła `$Ludzik` już obecnego w scenie -
+  bez zmian. Uwaga na indeksowanie węzła `$Unit` już obecnego w scenie -
   przypisywany jest pierwszemu FAKTYCZNIE zarejestrowanemu graczowi (po
   filtrze), nie pierwszemu wpisowi w `PLAYER_SETUP`, żeby nie zostawał
   osierocony, gdy gracz #1 (Wrocław) nie zostanie wybrany.
@@ -912,15 +953,15 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 - **Aneksacja I przejęcie terenu gracza wymagają fizycznej obecności, reszta
   akcji działa zdalnie** (update - poprzednio przejęcie terenu działało z
   dowolnej odległości; teraz, tak jak aneksacja, wymaga stania DOKŁADNIE na
-  polu, sprawdzane przez `_find_own_ludzik_at()`, i kosztuje tyle samo
+  polu, sprawdzane przez `_find_own_unit_at()`, i kosztuje tyle samo
   punktów ruchu, co aneksacja, pobierane z ludzika, który tam stoi). Napraw
   i Wydobądź nadal działają na dowolnym już zaanektowanym WŁASNYM polu z
   dowolnej odległości - "zarządzanie zdalne" terytorium, którego istnienie
   gracz już zna.
-- **Punkty ruchu przeniesione z gracza na ludzika** (`scenes/ludzik.gd`),
+- **Punkty ruchu przeniesione z gracza na ludzika** (`scenes/unit.gd`),
   celowo z myślą o przyszłym upgrade "więcej ludzików na gracza" - każdy
   ludzik ma niezależną pulę, więc dodanie kolejnego to tylko dopisanie go do
-  `player_ludziks[player_id]` (już `Array[Ludzik]`, nie pojedynczy węzeł).
+  `player_units[player_id]` (już `Array[Unit]`, nie pojedynczy węzeł).
   Reset puli na nową rundę przenosi się analogicznie: `TurnManager` już nic
   nie wie o ludzikach - emituje `round_ended`, a `game_map_controller.gd`
   resetuje w reakcji na ten sygnał każdemu ludzikowi z osobna.
@@ -933,15 +974,15 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   zmienia, kto jest kontrolowany - to dwie niezależne akcje. Bezpieczne,
   odkąd MP żyje na ludzikach (nie zeruje się przy zmianie kontroli, tylko
   raz na rundę).
-- **Zaznaczanie/odznaczanie ludzików**: skala (`GameBalance.LUDZIK_SELECTED_SCALE`)
-  + pierścień podświetlenia (`_HIGHLIGHT_COLOR` / `_WIDTH`) w `Ludzik.set_selected()`
+- **Zaznaczanie/odznaczanie ludzików**: skala (`GameBalance.UNIT_SELECTED_SCALE`)
+  + pierścień podświetlenia (`_HIGHLIGHT_COLOR` / `_WIDTH`) w `Unit.set_selected()`
   / `_draw()`, jest rozdzielone od zaznaczenia HEKSA do akcji
   (`game_map_controller.selected_hex_id`, podświetlanego w `hex_map_view.gd`)
   - to dwie osobne rzeczy: zaznaczenie ludzika steruje wyłącznie rozkazami
   ruchu, a akcje na polu (poza aneksacją) działają na zaznaczonym heksie
   niezależnie od tego, czy jakiś ludzik jest akurat zaznaczony.
-- **Płynny ruch** (`Ludzik.animate_to_hex()`) używa `Tween` per krok trasy,
-  z prędkością `GameBalance.LUDZIK_MOVE_SPEED_PX_PER_SEC` (edytowalną też
+- **Płynny ruch** (`Unit.animate_to_hex()`) używa `Tween` per krok trasy,
+  z prędkością `GameBalance.UNIT_MOVE_SPEED_PX_PER_SEC` (edytowalną też
   per-instancja przez eksportowane `move_speed_px_per_sec`). Stan logiczny
   (`current_hex_id`, mgła, blokady) aktualizuje się natychmiast na starcie
   animacji kroku - tylko wizualna pozycja dogania go płynnie w tle, więc
@@ -952,9 +993,9 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   heksów, zgodnie z sekcją 7 GDD. Koszty budynków celowo rozsiane po różnych
   typach zasobów (gaz, miedź, węgiel, drewno, żywność), żeby skompletowanie
   Karty wymagało kontroli wielu regionów.
-- **Obrazek ludzika** (`Ludzik.sprite_texture`, `Texture2D`) - ustaw w
+- **Obrazek ludzika** (`Unit.sprite_texture`, `Texture2D`) - ustaw w
   edytorze (zaznacz węzeł Ludzik w `main.tscn` -> Inspector -> Sprite
-  Texture) albo z kodu (`ludzik.sprite_texture = load("res://...png")`).
+  Texture) albo z kodu (`unit.sprite_texture = load("res://...png")`).
   Bez ustawionego obrazka rysowane jest domyślne kółko w kolorze `color`
   (jak dotąd) - obie ścieżki współistnieją, nic nie trzeba było przepisywać.
   `PLAYER_SETUP` w `game_map_controller.gd` przyjmuje też opcjonalny klucz
@@ -1030,7 +1071,7 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   czeka teraz tylko na warstwę sieciową (ENet), nie na dane mapy ani na
   logikę wielu graczy, która już istnieje i działa lokalnie.
 - **Ludzik przeciwnika widoczny tylko na odkrytym polu** (update - wcześniej
-  widoczny zawsze, niezależnie od mgły). `game_map_controller._update_ludzik_visibility()`
+  widoczny zawsze, niezależnie od mgły). `game_map_controller._update_unit_visibility()`
   ustawia `Node2D.visible` każdego CUDZEGO ludzika wg fog_state aktywnego
   (oglądającego) gracza na heksie, na którym ludzik akurat stoi - widoczny,
   jeśli ten heks jest choćby "seen" (kiedyś znalazł się w promieniu widzenia
