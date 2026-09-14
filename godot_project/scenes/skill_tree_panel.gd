@@ -11,7 +11,13 @@ extends CanvasLayer
 ## układ graficzny już na to pozwala).
 ##
 ## Karty są pozycjonowane RĘCZNIE (Control.position), nie w kontenerze typu
-## VBoxContainer - stąd `graph_area` to zwykły Control, nie ScrollContainer.
+## VBoxContainer, i żyją w `graph_content` (a nie bezpośrednio w
+## `graph_area`) - to `graph_content`, którego position/scale steruje
+## skill_graph_view.gd, robi pan/zoom całego grafu naraz (patrz tam).
+##
+## Szczegóły (opis, koszt, przycisk odblokowania) każdej karty są ukryte,
+## dopóki gracz nie najedzie na nią myszką (`mouse_entered`/`mouse_exited`) -
+## na stałe widoczna zostaje tylko nazwa skilla.
 
 signal closed
 signal skill_unlocked(skill: SkillData)
@@ -25,6 +31,7 @@ const RADIUS_SAFETY_MARGIN = 0.85
 @onready var title_label: Label = $Panel/VBox/TitleLabel
 @onready var graph_area: Control = $Panel/VBox/GraphArea
 @onready var graph_view: SkillGraphView = $Panel/VBox/GraphArea/SkillGraphView
+@onready var graph_content: Control = $Panel/VBox/GraphArea/GraphContent
 @onready var close_button: Button = $Panel/VBox/CloseButton
 
 var _current_player: PlayerData
@@ -33,11 +40,13 @@ var _current_player: PlayerData
 func _ready() -> void:
 	visible = false
 	close_button.pressed.connect(_on_close_pressed)
+	graph_view.content_node = graph_content
 
 
 func open_for_player(player: PlayerData) -> void:
 	_current_player = player
 	visible = true
+	graph_view.reset_view()
 	_refresh()
 
 
@@ -47,9 +56,8 @@ func _on_close_pressed() -> void:
 
 
 func _refresh() -> void:
-	for child in graph_area.get_children():
-		if child != graph_view:
-			child.queue_free()
+	for child in graph_content.get_children():
+		child.queue_free()
 
 	if _current_player == null:
 		graph_view.node_centers = []
@@ -75,13 +83,16 @@ func _refresh() -> void:
 
 		var card = _build_card(skills[i])
 		card.position = card_center - CARD_SIZE / 2.0
-		graph_area.add_child(card)
+		graph_content.add_child(card)
 
 	graph_view.hub_center = center
 	graph_view.node_centers = centers
 	graph_view.queue_redraw()
 
 
+## Karta zawsze pokazuje samą nazwę skilla; opis/koszt/przycisk odblokowania
+## (`details`) pojawiają się dopiero po najechaniu myszką - stąd
+## `mouse_entered`/`mouse_exited`, standardowe sygnały Control na hover.
 func _build_card(skill: SkillData) -> Control:
 	var card = PanelContainer.new()
 	card.custom_minimum_size = CARD_SIZE
@@ -97,11 +108,16 @@ func _build_card(skill: SkillData) -> Control:
 	name_label.add_theme_font_size_override("font_size", 16)
 	vbox.add_child(name_label)
 
+	var details = VBoxContainer.new()
+	details.add_theme_constant_override("separation", 6)
+	details.visible = false
+	vbox.add_child(details)
+
 	var info_label = Label.new()
 	info_label.custom_minimum_size = Vector2(CARD_SIZE.x - 24.0, 0)
 	info_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	info_label.text = "%s\nKoszt: %s" % [skill.description, _format_costs(skill.required_resources)]
-	vbox.add_child(info_label)
+	details.add_child(info_label)
 
 	var unlocked = _current_player.unlocked_skills.has(skill.skill_id)
 	var action_button = Button.new()
@@ -112,7 +128,10 @@ func _build_card(skill: SkillData) -> Control:
 		action_button.text = "Odblokuj"
 		action_button.disabled = not _current_player.can_afford(skill.required_resources)
 		action_button.pressed.connect(_on_unlock_pressed.bind(skill))
-	vbox.add_child(action_button)
+	details.add_child(action_button)
+
+	card.mouse_entered.connect(func(): details.visible = true)
+	card.mouse_exited.connect(func(): details.visible = false)
 
 	return card
 

@@ -97,10 +97,6 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
      Rysowana w `hex_map_view.gd` pod zwykłą/żółtą obwódką zaznaczenia, więc
      obie są widoczne naraz.
    - Panel w lewym dolnym rogu pokazuje ZAZNACZONE pole i udostępnia akcje:
-     - **Zaanektuj** — jedyna akcja wymagająca fizycznej obecności: działa
-       TYLKO gdy jeden z twoich ludzików stoi dokładnie na zaznaczonym,
-       niczyim polu. Kosztuje punkty ruchu tego ludzika
-       (`GameBalance.ANNEX_MP_COST`, sekcja 2.2 GDD: "Aneksacja - płatna akcja").
      - **Przejmij teren**, **Napraw budynek**, **Wydobądź drewno** — działają
        na dowolnym zaznaczonym polu (już zaanektowanym - swoim albo cudzym),
        z DOWOLNEJ odległości, bez potrzeby stania na nim ani obok niego.
@@ -116,9 +112,18 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
      - **Drzewko Umiejętności** (nowość) — osobny ekran, analogiczny do Karty
        Miasta, ale WSPÓLNY dla wszystkich miast: 5 permanentnych upgrade'ów
        płatnych surowcami z mapy (patrz sekcja niżej).
-   - Panel "Trasa ludzika" (prawy dolny róg, patrz wyżej) ma też przycisk
-     **Zaanektuj** - skrót do tej samej akcji co w panelu po lewej, żeby po
-     dotarciu na miejsce nie trzeba było przełączać się między panelami.
+   - **Zaanektuj żyje TYLKO w panelu "Trasa ludzika"** (update - usunięte z
+     panelu akcji po lewej, żeby aneksacja - jedyna akcja wymagająca
+     fizycznej obecności ludzika - miała miejsce wyłącznie w UI samego
+     ludzika, nie ogólnego panelu pola). Działa TYLKO gdy jeden z twoich
+     ludzików stoi dokładnie na zaznaczonym, niczyim polu; kosztuje punkty
+     ruchu tego ludzika (`GameBalance.ANNEX_MP_COST`, sekcja 2.2 GDD:
+     "Aneksacja - płatna akcja"). Panel ma też przełącznik **Anektuj
+     napotkane pola** (nowość) - gdy włączony na danym ludziku, automatycznie
+     aneksuje KAŻDE niczyje pole, przez które ten ludzik przejdzie podczas
+     wykonywania trasy (także wielorundowej), bez ręcznego klikania po każdym
+     kroku; brak MP na akurat tę jedną aneksację nie zatrzymuje trasy - po
+     prostu pomija to pole.
    - **Rozwijana lista graczy** ("Zmiana gracza") — wybierz z listy KONKRETNEGO
      gracza, na którego chcesz przełączyć kontrolę (nie ma już cyklicznego
      "następny gracz"). Nie kończy niczyjej tury, nie wpływa na rundę.
@@ -257,10 +262,32 @@ zmiany samego rysowania. Karty są pozycjonowane RĘCZNIE
 `SkillTreePanel._refresh()` tak, żeby zawsze mieściły się w obszarze grafu i
 się nie nakładały (`RADIUS_SAFETY_MARGIN`). Ekran otwiera się jako
 **osobny `CanvasLayer` na jednej z najwyższych warstw** (`layer = 100` -
-wyżej niż Karta Miasta i cała reszta UI) i **przykrywa większość ekranu**
+wyżej niż Karta Miasta i cała reszta UI), **przykrywa większość ekranu**
 (`Panel` z zakotwiczeniem na pełny prostokąt viewportu, 40px marginesu z
 każdej strony - responsywne, nie sztywny rozmiar w pikselach, więc działa
-poprawnie niezależnie od rozmiaru okna, patrz "UI skaluje się z oknem" niżej).
+poprawnie niezależnie od rozmiaru okna, patrz "UI skaluje się z oknem" niżej)
+i **ma w pełni nieprzezroczyste tło** (tak jak reszta paneli - alpha=1 w
+`theme/ui_theme.tres`).
+
+**Nawigacja myszką po grafie** (nowość) - dokładnie jak po mapie: prawy
+przycisk + przeciąganie przesuwa widok, scroll przybliża/oddala
+(`scenes/skill_graph_view.gd`, `MIN_ZOOM`/`MAX_ZOOM`/`ZOOM_STEP`). Karty
+żyją w osobnym kontenerze `GraphContent`, którego `position`/`scale` steruje
+ten sam skrypt - pan/zoom przesuwa i skaluje linie oraz karty naraz, zawsze
+spójnie. Nawigacja jest obsłużona przez `_gui_input()` (standardowy sposób,
+w jaki Controle w Godocie łapią mysz), więc **mapa pod spodem NIE reaguje**,
+dopóki ekran jest otwarty - zdarzenie zostaje pochłonięte tutaj, zanim
+dotrze do kamery mapy (`camera_controller.gd`) czy klikania heksów
+(`hex_map_view.gd`), które obie nasłuchują NIŻEJ (`_unhandled_input`). Żeby
+domknąć też margines dookoła `Panel` (40px, poza samym grafem), doszedł
+`InputBlocker` - niewidoczny, pełnoekranowy `Control` w tej samej warstwie
+CanvasLayer, który pochłania wszystko, czego nie złapał już sam `Panel`.
+
+**Szczegóły skilla tylko na najechanie myszką** (nowość) - karta na stałe
+pokazuje wyłącznie nazwę; opis, koszt i przycisk odblokowania są ukryte
+(`details.visible = false`) i pojawiają się dopiero po `mouse_entered` na
+tej konkretnej karcie (znikają z powrotem na `mouse_exited`) - standardowe
+sygnały hover na `Control`, bez potrzeby własnej obsługi myszy.
 
 Mechanizm płatności jest identyczny jak w Karcie Miasta
 (`PlayerData.can_afford`/`pay_costs`, `GameManager.unlock_skill()` -
@@ -273,7 +300,7 @@ Efekty dzielą się na dwie kategorie:
   `forest_safe_threshold_bonus`, `annex_cost_reduction`,
   `movement_points_bonus`), odczytywane wprost tam, gdzie wcześniej
   odczytywano odpowiednią stałą z `GameBalance` (`_reveal_around()`,
-  `harvest_forest()`, `_effective_annex_cost()` w `game_map_controller.gd`).
+  `harvest_forest()`, `_effective_annex_cost_for()` w `game_map_controller.gd`).
 - **Wymagające dostępu do węzłów sceny** (nowy Ludzik, retroaktywny bonus MP
   na już istniejących ludzikach) - `GameManager` celowo ich nie dotyka (tak
   jak przy MP przy aneksacji - patrz "Decyzje projektowe" niżej);
@@ -370,6 +397,44 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **Aneksacja tylko z UI ludzika + automatyczna aneksacja napotkanych pól**
+  (update). Przycisk "Zaanektuj" usunięty z głównego panelu akcji (nad
+  "Napraw budynek") - aneksacja to jedyna akcja wymagająca fizycznej
+  obecności ludzika (w odróżnieniu od Przejmij/Napraw/Wydobądź, które
+  działają zdalnie), więc logicznie należy do UI samego ludzika (panel
+  "Trasa ludzika"), nie ogólnego panelu pola. `route_annex_button` (już tam
+  od poprzedniej iteracji) zostaje jedynym sposobem na ręczną aneksację.
+  Nowy przełącznik `AutoAnnexCheckBox` ("Anektuj napotkane pola",
+  `Ludzik.auto_annex`, per-ludzik) sprawia, że `_advance_queued_route()`
+  automatycznie aneksuje KAŻDY niczyj heks, na który dany ludzik wejdzie w
+  trakcie wykonywania trasy (`_auto_annex_hex()`, ten sam mechanizm
+  płatności co ręczna aneksacja) - bez potrzeby zatrzymywania się i klikania
+  po każdym kroku. Przy okazji: `_effective_annex_cost()` sparametryzowano
+  na `player_id` (`_effective_annex_cost_for()`) - automatyczna aneksacja
+  może dotyczyć DOWOLNEGO gracza podczas kontynuacji trasy po przeliczeniu
+  rundy, nie tylko aktualnie kontrolowanego (`active_player`), więc musi
+  czytać bonus `annex_cost_reduction` WŁAŚCIWEGO gracza, nie zawsze aktywnego.
+- **Drzewko Umiejętności: nawigacja myszką, szczegóły na hover, pełna
+  nieprzezroczystość, blokada mapy pod spodem** (update wyglądu/UX).
+  `scenes/skill_graph_view.gd` obsługuje teraz PPM+przeciąganie (pan) i
+  scroll (zoom) przez `_gui_input()` - w przeciwieństwie do kamery mapy
+  (`_unhandled_input`, poziom sceny), Control-owy `_gui_input()` pochłania
+  zdarzenie na miejscu, więc mapa pod spodem NIE reaguje, dopóki drzewko
+  jest otwarte. Karty przeniesione do osobnego kontenera `GraphContent`
+  (`mouse_filter = IGNORE`, żeby klik na pustym tle przechodził do
+  `SkillGraphView` leżącego pod spodem, a klik na samej karcie - zostawał na
+  karcie) - `SkillGraphView` steruje jego `position`/`scale`, więc linie
+  (`_draw()` z `draw_set_transform` tymi samymi wartościami) i karty zawsze
+  się zgadzają. Zoom trzyma węzeł "START" wizualnie w miejscu (korekta
+  pozycji przy zmianie skali), tak jak zoom kamery mapy trzyma środek
+  widoku. Dodatkowo pełnoekranowy, niewidoczny `InputBlocker` (osobny
+  `Control` w tej samej warstwie `CanvasLayer`) domyka margines dookoła
+  panelu (40px), żeby NIC nie przeciekało do mapy niezależnie od tego, gdzie
+  dokładnie kończy się `Panel`. Szczegóły skilla (opis/koszt/przycisk) są
+  teraz ukryte domyślnie i pokazują się dopiero na `mouse_entered` karty
+  (znikają na `mouse_exited`) - na stałe widoczna zostaje tylko nazwa.
+  Tło panelu (i reszty paneli, bo to współdzielony motyw) jest teraz w pełni
+  nieprzezroczyste (`bg_color` alpha 0.92 -> 1 w `theme/ui_theme.tres`).
 - **Poprawka: crash po "Potwierdź trasę"** (bug, nie feature).
   `_update_route_overlay()` w `game_map_controller.gd` budował listę heksów
   trasy operatorem `[selected_ludzik.current_hex_id] + selected_ludzik.queued_route`

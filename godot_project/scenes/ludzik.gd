@@ -51,6 +51,14 @@ var is_moving: bool = false
 ## mógł iść przez parę rund". Puste = brak zaplanowanej/trwającej trasy.
 var queued_route: Array[String] = []
 
+## Przełącznik "Anektuj napotkane pola" (panel "Trasa ludzika") - gdy true,
+## game_map_controller._advance_queued_route() automatycznie aneksuje KAŻDY
+## niczyj heks, na który ten ludzik wejdzie podczas wykonywania trasy, bez
+## potrzeby ręcznego klikania "Zaanektuj" po każdym kroku. Per-ludzik (nie
+## per-gracz), bo różni ludzicy tego samego gracza mogą mieć różne role
+## (jeden eksploruje/aneksuje automatycznie, drugi jedzie celowo gdzie indziej).
+var auto_annex: bool = false
+
 
 func _ready() -> void:
 	movement_points_current = movement_points_max

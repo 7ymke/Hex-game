@@ -71,7 +71,6 @@ const PLAYER_SETUP = PlayerSetup.LIST
 @onready var prestige_label: Label = $UI/PrestigeLabel
 @onready var resources_label: Label = $UI/ResourcesLabel
 @onready var hex_info_label: Label = $UI/ActionPanel/VBox/HexInfoLabel
-@onready var annex_button: Button = $UI/ActionPanel/VBox/AnnexButton
 @onready var takeover_button: Button = $UI/ActionPanel/VBox/TakeoverButton
 @onready var repair_button: Button = $UI/ActionPanel/VBox/RepairButton
 @onready var harvest_slider: HSlider = $UI/ActionPanel/VBox/HarvestRow/HarvestSlider
@@ -86,6 +85,7 @@ const PLAYER_SETUP = PlayerSetup.LIST
 @onready var confirm_route_button: Button = $UI/RoutePanel/VBox/ConfirmRouteButton
 @onready var cancel_route_button: Button = $UI/RoutePanel/VBox/CancelRouteButton
 @onready var route_annex_button: Button = $UI/RoutePanel/VBox/RouteAnnexButton
+@onready var auto_annex_checkbox: CheckBox = $UI/RoutePanel/VBox/AutoAnnexCheckBox
 
 var players: Array[PlayerData] = []
 var player_ludziks: Dictionary = {}  # player_id(int) -> Array[Ludzik]
@@ -113,7 +113,6 @@ func _ready() -> void:
 	hex_map_view.hex_clicked.connect(_on_hex_clicked)
 	hex_map_view.hex_hovered.connect(_on_hex_hovered)
 
-	annex_button.pressed.connect(_on_annex_pressed)
 	takeover_button.pressed.connect(_on_takeover_pressed)
 	repair_button.pressed.connect(_on_repair_pressed)
 	harvest_button.pressed.connect(_on_harvest_pressed)
@@ -128,6 +127,7 @@ func _ready() -> void:
 	confirm_route_button.pressed.connect(_on_confirm_route_pressed)
 	cancel_route_button.pressed.connect(_on_cancel_route_pressed)
 	route_annex_button.pressed.connect(_on_annex_pressed)
+	auto_annex_checkbox.toggled.connect(_on_auto_annex_toggled)
 
 	TurnManager.player_turn_started.connect(_on_player_turn_started)
 	TurnManager.round_ended.connect(_on_round_ended)
@@ -416,6 +416,10 @@ func _advance_queued_route(ludzik: Ludzik) -> void:
 		await ludzik.animate_to_hex(next_hex_id)
 		ludzik.queued_route.remove_at(0)
 		_reveal_around(next_hex_id, ludzik.player_id)
+
+		if ludzik.auto_annex and next_hex.owner_id == -1:
+			_auto_annex_hex(ludzik, next_hex_id)
+
 		_update_mp_label()
 		_refresh_map_view()
 
@@ -545,6 +549,11 @@ func _on_hex_hovered(hex_id: String) -> void:
 ## ludzik aktywnego gracza stał dokładnie na tym polu; reszta działa na
 ## dowolnym, już zaanektowanym polu (swoim albo cudzym), z dowolnej odległości.
 
+## Jedyne miejsce, gdzie gracz wydaje polecenie aneksacji - przycisk żyje
+## teraz WYŁĄCZNIE w panelu "Trasa ludzika" (`route_annex_button`), nie w
+## głównym panelu akcji (usunięty stamtąd - aneksacja to czynność ludzika,
+## nie ogólna akcja na zaznaczonym polu, w odróżnieniu od Przejmij/Napraw/
+## Wydobądź, które nie wymagają fizycznej obecności).
 func _on_annex_pressed() -> void:
 	var hex_id = selected_hex_id
 	var ludzik = _find_own_ludzik_at(hex_id)
@@ -552,7 +561,7 @@ func _on_annex_pressed() -> void:
 		info_label.text = "Musisz stać ludzikiem na polu %s, żeby je zaanektować." % hex_id
 		return
 
-	var annex_cost = _effective_annex_cost()
+	var annex_cost = _effective_annex_cost_for(active_player.player_id)
 	if not ludzik.spend_movement_points(annex_cost):
 		info_label.text = "Brak punktów ruchu na aneksację (koszt: %d)." % annex_cost
 		_refresh_action_panel()
@@ -573,10 +582,50 @@ func _on_annex_pressed() -> void:
 	_refresh_route_panel()
 
 
-## Koszt aneksacji w MP, pomniejszony o ewentualny bonus danego gracza z
+## Aneksuje automatycznie napotkany po drodze heks - skrót "Anektuj napotkane
+## pola" w panelu "Trasa ludzika" (Ludzik.auto_annex), wołany z
+## _advance_queued_route() po KAŻDYM kroku trasy. Ten sam mechanizm płatności
+## co ręczna aneksacja (_on_annex_pressed), ale bez dotykania UI/selected_hex_id
+## - może zajść dla DOWOLNEGO ludzika, w tym w trakcie automatycznej
+## kontynuacji trasy po przeliczeniu rundy (_continue_all_queued_routes),
+## niekoniecznie tego aktualnie zaznaczonego. Brak MP na samą aneksację nie
+## przerywa trasy - po prostu pomija to pole i jedzie dalej.
+func _auto_annex_hex(ludzik: Ludzik, hex_id: String) -> void:
+	var annex_cost = _effective_annex_cost_for(ludzik.player_id)
+	if not ludzik.spend_movement_points(annex_cost):
+		return
+
+	var result = GameManager.annex_hex(hex_id, ludzik.player_id)
+	if result["success"]:
+		_reveal_around(hex_id, ludzik.player_id)
+		info_label.text = "Automatycznie zaanektowano %s." % hex_id
+	else:
+		ludzik.refund_movement_points(annex_cost)
+
+
+func _on_auto_annex_toggled(pressed: bool) -> void:
+	if selected_ludzik != null:
+		selected_ludzik.auto_annex = pressed
+
+
+## Czy zaznaczony heks da się zaanektować ludzikiem, który akurat go stoi -
+## wspólna logika dla stanu przycisku "Zaanektuj" w panelu "Trasa ludzika".
+func _can_annex_selected_hex() -> bool:
+	var hex = MapData.get_hex(selected_hex_id)
+	if hex == null or hex.owner_id != -1:
+		return false
+	return _find_own_ludzik_at(selected_hex_id) != null
+
+
+## Koszt aneksacji w MP dla danego gracza, pomniejszony o ewentualny bonus z
 ## drzewka umiejętności (skill "territorial_logistics"), nigdy poniżej 1.
-func _effective_annex_cost() -> int:
-	return maxi(1, GameBalance.ANNEX_MP_COST - active_player.annex_cost_reduction)
+## Parametryzowane graczem (nie tylko `active_player`), bo automatyczna
+## aneksacja (`_auto_annex_hex`) może zajść dla dowolnego gracza podczas
+## kontynuacji trasy po przeliczeniu rundy, nie tylko aktualnie kontrolowanego.
+func _effective_annex_cost_for(player_id: int) -> int:
+	var player = GameManager.get_player(player_id)
+	var reduction = player.annex_cost_reduction if player != null else 0
+	return maxi(1, GameBalance.ANNEX_MP_COST - reduction)
 
 
 ## Przejęcie terytorium (PvP) - sekcja 5 GDD / Faza 9. Działa z dowolnej
@@ -744,7 +793,6 @@ func _refresh_action_panel() -> void:
 	var hex = MapData.get_hex(selected_hex_id)
 	if hex == null:
 		hex_info_label.text = "Zaznacz pole (kliknij na mapie)."
-		annex_button.disabled = true
 		takeover_button.visible = false
 		repair_button.disabled = true
 		harvest_slider.visible = false
@@ -775,9 +823,6 @@ func _refresh_action_panel() -> void:
 
 	var is_owned_by_me = hex.owner_id == active_player.player_id
 	var is_owned_by_enemy = hex.owner_id != -1 and not is_owned_by_me
-	var standing_here = _find_own_ludzik_at(selected_hex_id) != null
-
-	annex_button.disabled = not (standing_here and hex.owner_id == -1)
 
 	takeover_button.visible = is_owned_by_enemy
 	takeover_button.disabled = not (is_owned_by_enemy and _ludzik_at(selected_hex_id) == null)
@@ -796,17 +841,19 @@ func _refresh_action_panel() -> void:
 ## Anuluj; (2) trasa już zatwierdzona i w toku (mogła zostać wstrzymana
 ## brakiem MP albo blokadą - wróci do niej `_continue_all_queued_routes` na
 ## starcie kolejnej rundy) -> postęp + Anuluj; (3) nic zaplanowane ->
-## podpowiedź. Zawiera też skrót do aneksacji (ten sam handler co w panelu
-## akcji), żeby nie trzeba było przełączać się między panelami po dotarciu
-## na miejsce - stąd MUSI być wołane PO `_refresh_action_panel()`, żeby
-## `annex_button.disabled` było już aktualne.
+## podpowiedź. To JEDYNE miejsce, gdzie da się zaanektować pole (przycisk
+## "Zaanektuj" usunięty z głównego panelu akcji) - stąd też przełącznik
+## "Anektuj napotkane pola" (Ludzik.auto_annex), zaznaczający automatycznie
+## KAŻDY niczyj heks, przez który ten ludzik przejdzie podczas wykonywania
+## trasy (patrz _advance_queued_route/_auto_annex_hex).
 func _refresh_route_panel() -> void:
 	if selected_ludzik == null:
 		route_panel.visible = false
 		return
 
 	route_panel.visible = true
-	route_annex_button.disabled = annex_button.disabled
+	route_annex_button.disabled = not _can_annex_selected_hex()
+	auto_annex_checkbox.button_pressed = selected_ludzik.auto_annex
 
 	if preview_route_ludzik == selected_ludzik and preview_route.size() > 1:
 		var cost = _route_cost(preview_route)

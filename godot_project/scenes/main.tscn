@@ -91,9 +91,6 @@ theme_override_constants/separation = 6
 autowrap_mode = 2
 text = "Wybierz pole."
 
-[node name="AnnexButton" type="Button" parent="UI/ActionPanel/VBox"]
-text = "Zaanektuj"
-
 [node name="TakeoverButton" type="Button" parent="UI/ActionPanel/VBox"]
 text = "Przejmij teren"
 
@@ -154,6 +151,9 @@ text = "Anuluj trasę"
 [node name="RouteAnnexButton" type="Button" parent="UI/RoutePanel/VBox"]
 text = "Zaanektuj"
 
+[node name="AutoAnnexCheckBox" type="CheckBox" parent="UI/RoutePanel/VBox"]
+text = "Anektuj napotkane pola"
+
 [node name="CityCardPanel" type="CanvasLayer" parent="."]
 layer = 10
 script = ExtResource("5")
@@ -188,6 +188,10 @@ text = "Zamknij"
 layer = 100
 script = ExtResource("6")
 
+[node name="InputBlocker" type="Control" parent="SkillTreePanel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
 [node name="Panel" type="PanelContainer" parent="SkillTreePanel"]
 theme = ExtResource("7")
 anchor_right = 1.0
@@ -212,8 +216,10 @@ clip_contents = true
 [node name="SkillGraphView" type="Control" parent="SkillTreePanel/Panel/VBox/GraphArea"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-mouse_filter = 2
 script = ExtResource("8")
+
+[node name="GraphContent" type="Control" parent="SkillTreePanel/Panel/VBox/GraphArea"]
+mouse_filter = 2
 
 [node name="CloseButton" type="Button" parent="SkillTreePanel/Panel/VBox"]
 text = "Zamknij"
