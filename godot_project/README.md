@@ -318,7 +318,8 @@ wyzwalacze:
 - **Kliknięcie** węzła PRZYPINA okienko (`_pinned = true`) - zostaje
   widoczne niezależnie od dalszego hovera, dopóki gracz nie kliknie w INNY
   węzeł (który przejmuje przypięcie) - kliknięcie poza jakimkolwiek węzłem
-  nic nie zmienia.
+  nic nie zmienia. Kliknięcie węzła, którego okienko WŁAŚNIE jest pokazane
+  (przypięte albo tylko najechane), działa jak przełącznik i je zamyka.
 
 **Nawigacja myszką po grafie** (nowość) - dokładnie jak po mapie: prawy
 przycisk + przeciąganie przesuwa widok, scroll przybliża/oddala
@@ -484,6 +485,9 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   przejście myszką z węzła NA okienko po przycisk nie powodowało migotania);
   kliknięcie węzła PRZYPINA okienko (`_pinned = true`) - zostaje widoczne
   niezależnie od dalszego hovera, dopóki gracz nie kliknie w INNY węzeł.
+  Kliknięcie węzła, którego okienko WŁAŚNIE jest pokazane, działa jak
+  przełącznik (toggle) i je zamyka - `_on_dot_clicked()` porównuje kliknięty
+  skill z `_shown_skill`.
 - **Przejęcie terenu gracza: wymaga fizycznej obecności, zawsze da się
   spróbować, nowy wzór na konsekwencje przegranej próby** (update, sekcja 5
   GDD). `GameManager.attempt_takeover()` przestał być twardą blokadą przy

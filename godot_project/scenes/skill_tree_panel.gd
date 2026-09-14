@@ -28,7 +28,9 @@ extends CanvasLayer
 ## - **Klik** na węzeł PRZYPINA okienko (`_pinned = true`) - zostaje widoczne
 ##   niezależnie od dalszego hovera, dopóki gracz nie kliknie w INNY węzeł
 ##   (który przejmuje przypięcie) - zgodnie z życzeniem: "znika dopiero jak
-##   kliknę w inną [kropkę]".
+##   kliknę w inną [kropkę]". Klik na węzeł, którego okienko WŁAŚNIE jest
+##   pokazane (przypięte albo tylko najechane) działa jak przełącznik i je
+##   zamyka (`_on_dot_clicked`).
 
 signal closed
 signal skill_unlocked(skill: SkillData)
@@ -179,7 +181,15 @@ func _schedule_hide_check() -> void:
 		_hide_popup()
 
 
+## Klik na węzeł, którego okienko już jest pokazane (przypięte albo tylko
+## najechane), ZAMYKA je - drugie kliknięcie tego samego węzła działa jak
+## przełącznik. Klik na inny węzeł (albo gdy nic nie jest pokazane) przypina
+## nowe okienko, tak jak dotąd.
 func _on_dot_clicked(skill: SkillData) -> void:
+	if _shown_skill == skill:
+		_pinned = false
+		_hide_popup()
+		return
 	_pinned = true
 	_show_popup_for(skill)
 
