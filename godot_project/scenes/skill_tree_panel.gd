@@ -213,11 +213,13 @@ func _hide_popup() -> void:
 ## Ustawia okienko obok środka danego węzła, w lokalnych współrzędnych
 ## `graph_area` - `dot.get_global_rect()` już uwzględnia bieżący pan/zoom
 ## grafu (position/scale `graph_content`), więc nie trzeba tej transformacji
-## liczyć ręcznie. Przycięte do granic `graph_area`, żeby okienko nigdy nie
-## wystawało poza (i nie ginęło) pod `clip_contents`.
+## liczyć ręcznie. UWAGA: `Control` (w przeciwieństwie do `Node2D`) NIE ma
+## metod `to_local()`/`to_global()` - trzeba ręcznie odwrócić
+## `get_global_transform()`. Wynik przycięty do granic `graph_area`, żeby
+## okienko nigdy nie wystawało poza (i nie ginęło) pod `clip_contents`.
 func _position_popup_near(dot: SkillNodeDot) -> void:
 	var dot_center_global = dot.get_global_rect().get_center()
-	var local_point = graph_area.to_local(dot_center_global)
+	var local_point = graph_area.get_global_transform().affine_inverse() * dot_center_global
 	var area_size: Vector2 = graph_area.custom_minimum_size
 
 	var popup_pos = local_point + POPUP_OFFSET
