@@ -19,7 +19,12 @@ extends CanvasLayer
 ## Szczegóły (nazwa, opis, koszt, przycisk odblokowania) pokazują się w
 ## JEDNYM współdzielonym "okienku" (`skill_popup`, pozycjonowanym obok
 ## aktualnego węzła), nie w samych węzłach - stąd węzły mogą być tak małe
-## jak kropki. Dwa niezależne wyzwalacze:
+## jak kropki. `skill_popup` żyje w `graph_content` (tak jak same węzły), NIE
+## bezpośrednio w `graph_area` - dzięki temu dziedziczy pan/zoom całego grafu
+## dokładnie tak samo jak węzeł, którego dotyczy: jego pozycja i skala
+## WZGLĘDEM drzewka nigdy się nie zmieniają przy przesuwaniu/zoomowaniu
+## (patrz `_position_popup_near()`), bez potrzeby ręcznego przeliczania przy
+## każdym evencie pan/zoom. Dwa niezależne wyzwalacze pokazania okienka:
 ## - **Hover** (`mouse_entered`/`mouse_exited` na węźle) pokazuje okienko
 ##   TYMCZASOWO - znika, gdy mysz zjedzie i z węzła, i z samego okienka
 ##   (`_popup_hovered`), z jednoklatkowym opóźnieniem (`_schedule_hide_check`),
@@ -45,16 +50,15 @@ const RADIUS_SAFETY_MARGIN = 0.85
 ## zachodzi na węzeł (nie zostawia "martwej strefy" między nimi), żeby
 ## przejście myszką z węzła na okienko nie traciło hovera.
 const POPUP_OFFSET = Vector2(18, -12)
-const POPUP_SIZE_ESTIMATE = Vector2(260, 160)
 
 @onready var title_label: Label = $Panel/VBox/TitleLabel
 @onready var graph_area: Control = $Panel/VBox/GraphArea
 @onready var graph_view: SkillGraphView = $Panel/VBox/GraphArea/SkillGraphView
 @onready var graph_content: Control = $Panel/VBox/GraphArea/GraphContent
-@onready var skill_popup: PanelContainer = $Panel/VBox/GraphArea/SkillPopup
-@onready var popup_name_label: Label = $Panel/VBox/GraphArea/SkillPopup/VBox/PopupNameLabel
-@onready var popup_info_label: Label = $Panel/VBox/GraphArea/SkillPopup/VBox/PopupInfoLabel
-@onready var popup_unlock_button: Button = $Panel/VBox/GraphArea/SkillPopup/VBox/PopupUnlockButton
+@onready var skill_popup: PanelContainer = $Panel/VBox/GraphArea/GraphContent/SkillPopup
+@onready var popup_name_label: Label = $Panel/VBox/GraphArea/GraphContent/SkillPopup/VBox/PopupNameLabel
+@onready var popup_info_label: Label = $Panel/VBox/GraphArea/GraphContent/SkillPopup/VBox/PopupInfoLabel
+@onready var popup_unlock_button: Button = $Panel/VBox/GraphArea/GraphContent/SkillPopup/VBox/PopupUnlockButton
 @onready var close_button: Button = $Panel/VBox/CloseButton
 
 var _current_player: PlayerData
@@ -94,7 +98,12 @@ func _on_close_pressed() -> void:
 
 
 func _refresh() -> void:
+	# `skill_popup` jest teraz też dzieckiem `graph_content` (patrz komentarz
+	# na górze pliku) - pomijamy je tutaj, żeby go nie zniszczyć razem ze
+	# starymi kropkami.
 	for child in graph_content.get_children():
+		if child == skill_popup:
+			continue
 		child.queue_free()
 	_dots.clear()
 
@@ -124,6 +133,12 @@ func _refresh() -> void:
 		dot.position = dot_center - DOT_SIZE / 2.0
 		graph_content.add_child(dot)
 		_dots[skills[i].skill_id] = dot
+
+	# `skill_popup` musi zawsze być rysowane NAD kropkami - nowe kropki
+	# dodane pętlą wyżej trafiają na koniec listy dzieci `graph_content`
+	# (rysowane później = na wierzchu), więc bez tego mogłyby wizualnie
+	# zasłonić okienko, gdyby się z nim pokrywały.
+	graph_content.move_child(skill_popup, -1)
 
 	graph_view.hub_center = center
 	graph_view.node_centers = centers
@@ -220,22 +235,21 @@ func _hide_popup() -> void:
 	skill_popup.visible = false
 
 
-## Ustawia okienko obok środka danego węzła, w lokalnych współrzędnych
-## `graph_area` - `dot.get_global_rect()` już uwzględnia bieżący pan/zoom
-## grafu (position/scale `graph_content`), więc nie trzeba tej transformacji
-## liczyć ręcznie. UWAGA: `Control` (w przeciwieństwie do `Node2D`) NIE ma
-## metod `to_local()`/`to_global()` - trzeba ręcznie odwrócić
-## `get_global_transform()`. Wynik przycięty do granic `graph_area`, żeby
-## okienko nigdy nie wystawało poza (i nie ginęło) pod `clip_contents`.
+## Ustawia okienko obok środka danego węzła, W LOKALNYCH (NIEPRZESKALOWANYCH)
+## współrzędnych `graph_content` - `skill_popup` jest teraz DZIECKIEM
+## `graph_content` (tak jak same węzły/kropki), nie osobnym sąsiadem w
+## `graph_area`, więc automatycznie dziedziczy jego `position`/`scale` (pan i
+## zoom liczony w skill_graph_view.gd) dokładnie tak samo jak kropki -
+## okienko "trzyma się" swojego węzła i skaluje razem z całym drzewkiem przy
+## przesuwaniu/zoomowaniu, bez potrzeby ręcznego przeliczania position przy
+## każdym evencie pan/zoom (patrz życzenie: okienko nie zmienia pozycji ani
+## skali WZGLĘDEM drzewka). `dot.position` jest już w tym samym lokalnym
+## układzie współrzędnych (ustawiane w `_refresh()` z tych samych `centers`,
+## co `graph_view.node_centers`), więc nie trzeba żadnej konwersji
+## global/local - w przeciwieństwie do poprzedniej wersji tej metody.
 func _position_popup_near(dot: SkillNodeDot) -> void:
-	var dot_center_global = dot.get_global_rect().get_center()
-	var local_point = graph_area.get_global_transform().affine_inverse() * dot_center_global
-	var area_size: Vector2 = graph_area.custom_minimum_size
-
-	var popup_pos = local_point + POPUP_OFFSET
-	popup_pos.x = clampf(popup_pos.x, 0.0, maxf(0.0, area_size.x - POPUP_SIZE_ESTIMATE.x))
-	popup_pos.y = clampf(popup_pos.y, 0.0, maxf(0.0, area_size.y - POPUP_SIZE_ESTIMATE.y))
-	skill_popup.position = popup_pos
+	var dot_center_local = dot.position + DOT_SIZE / 2.0
+	skill_popup.position = dot_center_local + POPUP_OFFSET
 
 
 func _on_popup_unlock_pressed() -> void:

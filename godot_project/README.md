@@ -334,10 +334,20 @@ obrazki w przyszłości to tylko przypisanie tekstur, bez zmiany reszty logiki.
 
 **Szczegóły w jednym współdzielonym okienku** (nowość, zamiast rozwijanej
 karty) - nazwa, opis, koszt i przycisk odblokowania pokazują się w
-`SkillPopup`, pozycjonowanym obok aktualnego węzła
-(`_position_popup_near()`, przez `get_global_rect()` węzła - uwzględnia
-bieżący pan/zoom grafu bez ręcznego przeliczania). Dwa niezależne
-wyzwalacze:
+`SkillPopup`, pozycjonowanym obok aktualnego węzła (`_position_popup_near()`).
+`SkillPopup` jest DZIECKIEM `GraphContent` (tak jak same węzły), nie osobnym
+sąsiadem w `GraphArea` - dzięki temu automatycznie dziedziczy pan/zoom
+całego grafu (`position`/`scale` sterowane przez `skill_graph_view.gd`)
+dokładnie tak samo jak węzeł, którego dotyczy: **pozycja i skala okienka
+względem drzewka nigdy się nie zmieniają** przy przesuwaniu/przybliżaniu
+widoku (update - wcześniej okienko było osobnym sąsiadem `GraphContent` w
+`GraphArea`, więc podczas pan/zoom "odklejało się" od swojego węzła, bo jego
+pozycja była liczona tylko raz, w momencie pokazania). `_refresh()` (które
+niszczy i buduje węzły od zera przy każdym odświeżeniu) świadomie POMIJA
+`skill_popup` przy czyszczeniu starych dzieci `GraphContent` i za każdym
+razem przenosi je na koniec listy dzieci (`move_child(skill_popup, -1)`),
+żeby zawsze rysowało się NAD nowo dodanymi węzłami, a nie pod nimi. Dwa
+niezależne wyzwalacze:
 - **Najechanie myszką** na węzeł pokazuje okienko TYMCZASOWO - znika, gdy
   mysz zjedzie i z węzła, i z samego okienka (jednoklatkowe opóźnienie w
   `_schedule_hide_check()`, żeby przejście myszką z węzła NA okienko - np.
@@ -470,6 +480,30 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **Okienko szczegółów skilla trzyma pozycję/skalę względem drzewka przy
+  pan/zoom** (nowość). Wcześniej `SkillPopup` był sąsiadem `GraphContent`
+  wewnątrz `GraphArea` - jego pozycja liczyła się RAZ, w momencie pokazania
+  (`get_global_rect()` węzła, zamieniane na lokalne współrzędne `GraphArea`),
+  więc podczas przeciągania/zoomowania grafu (które przesuwa/skaluje tylko
+  `GraphContent`) okienko zostawało na starym miejscu, "odklejając się" od
+  swojego węzła. Naprawione przez przeniesienie `SkillPopup` w
+  `scenes/main.tscn` tak, żeby był DZIECKIEM `GraphContent`, dokładnie jak
+  same węzły - automatycznie dziedziczy wtedy `position`/`scale` grafu bez
+  żadnego dodatkowego kodu przy evencie pan/zoom. `_position_popup_near()`
+  w `skill_tree_panel.gd` mogła się dzięki temu znacznie uprościć: zamiast
+  konwersji global→local przez odwróconą transformację (`_position_popup_near`
+  liczyła to explicite od czasu naprawy błędu `to_local` na `Control`),
+  liczy pozycję bezpośrednio w tych samych LOKALNYCH, nieprzeskalowanych
+  współrzędnych `GraphContent`, co `dot.position` (`dot_center_local =
+  dot.position + DOT_SIZE / 2.0`). Reparenting wymagał dwóch dodatkowych
+  poprawek w `_refresh()` (które za każdym odświeżeniem niszczy i buduje
+  węzły od zera): (1) pętla czyszcząca stare dzieci `GraphContent` musi
+  jawnie POMIJAĆ `skill_popup` (inaczej `_refresh()` niszczyłoby też samo
+  okienko, bo teraz jest jednym z jej dzieci); (2) po dobudowaniu nowych
+  węzłów `skill_popup` jest przenoszone na koniec listy dzieci
+  (`graph_content.move_child(skill_popup, -1)`), żeby zawsze rysowało się
+  NAD nimi, a nie pod nimi (nowe węzły trafiają na koniec listy = rysowane
+  później = domyślnie na wierzchu).
 - **Dokładna liczba rund do celu; trasa przelicza się co rundę; można
   celować w pole zajęte przez przeciwnika** (nowość). Trzy powiązane zmiany
   w `game_map_controller.gd`:
