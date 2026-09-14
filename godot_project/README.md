@@ -349,14 +349,23 @@ razem przenosi je na koniec listy dzieci (`move_child(skill_popup, -1)`),
 żeby zawsze rysowało się NAD nowo dodanymi węzłami, a nie pod nimi. Dwa
 niezależne wyzwalacze:
 - **Najechanie myszką** na węzeł pokazuje okienko TYMCZASOWO - znika, gdy
-  mysz zjedzie i z węzła, i z samego okienka (jednoklatkowe opóźnienie w
-  `_schedule_hide_check()`, żeby przejście myszką z węzła NA okienko - np.
-  żeby kliknąć przycisk - nie powodowało migotania).
+  mysz zjedzie i z węzła, i z samego okienka, dopiero po
+  `HOVER_HIDE_DELAY_SEC` (0.35s, PRAWDZIWY timer - update, wcześniej jedna
+  klatka - `_schedule_hide_check()`) - żeby przejście myszką z węzła NA
+  okienko (np. żeby kliknąć "Odblokuj") zdążyło faktycznie dojść do okienka,
+  zanim ono zniknie, nawet jeśli po drodze jest chwila, gdy mysz nie jest
+  nad żadnym z nich (jedna klatka wystarczała tylko na zbieg dwóch zdarzeń w
+  tym samym momencie, nie na ruch myszką trwający dłużej).
 - **Kliknięcie** węzła PRZYPINA okienko (`_pinned = true`) - zostaje
   widoczne niezależnie od dalszego hovera, dopóki gracz nie kliknie w INNY
   węzeł (który przejmuje przypięcie) - kliknięcie poza jakimkolwiek węzłem
-  nic nie zmienia. Kliknięcie węzła, którego okienko WŁAŚNIE jest pokazane
-  (przypięte albo tylko najechane), działa jak przełącznik i je zamyka.
+  nic nie zmienia. Tylko kliknięcie węzła, którego okienko jest AKTUALNIE
+  PRZYPIĘTE (drugi klik z rzędu na ten sam węzeł), działa jak przełącznik i
+  je zamyka - pierwszy klik na węzeł, którego okienko jest na razie
+  pokazane TYLKO z hovera (jeszcze nieprzypięte), tylko je przypina, zamiast
+  zamykać (update - wcześniej warunek zamykania sprawdzał tylko
+  `_shown_skill == skill`, prawdziwe niezależnie od `_pinned`, więc pierwszy
+  klik na węzeł, którego okienko właśnie pokazał hover, zamykał je od razu).
 
 **Nawigacja myszką po grafie** (nowość) - dokładnie jak po mapie: prawy
 przycisk + przeciąganie przesuwa widok, scroll przybliża/oddala
@@ -480,6 +489,34 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **Poprawki znikania/przypinania okienka szczegółów skilla** (dwie
+  powiązane naprawy błędów w `skill_tree_panel.gd`):
+  1. **Okienko znikało, zanim mysz zdążyła do niego dojechać.** Ruch myszką
+     z węzła (hover, jeszcze nieprzypięte) w stronę okienka - np. żeby
+     kliknąć "Odblokuj" - generuje `mouse_exited` węzła i `mouse_entered`
+     okienka jako osobne zdarzenia, między którymi realnie mija czas
+     ruchu myszką. `_schedule_hide_check()` czekała tylko JEDNĄ KLATKĘ przed
+     sprawdzeniem, czy schować okienko - to wystarczało na zbieg dwóch
+     zdarzeń w tym samym momencie, ale nie na dłuższy ruch myszką przez
+     ewentualną przerwę między obszarem węzła i okienka, więc okienko
+     potrafiło zniknąć, zanim kursor faktycznie dotarł do przycisku. Zmiana:
+     `await get_tree().process_frame` -> `await get_tree().create_timer(
+     HOVER_HIDE_DELAY_SEC).timeout` (nowa stała, 0.35s) - prawdziwe opóźnienie
+     w sekundach zamiast jednej klatki. Stan (`_pinned`/`_hovered_skill`/
+     `_popup_hovered`) jest i tak sprawdzany DOPIERO po odczekaniu, więc jeśli
+     mysz w międzyczasie zdążyła dotrzeć do węzła/okienka, odczyt to wykryje
+     i okienko zostanie - nie trzeba dodatkowo anulować wcześniej
+     zaplanowanych sprawdzeń przy każdym nowym hoverze.
+  2. **Pierwszy klik na węzeł, którego okienko właśnie pokazał hover, od
+     razu je zamykał** (zamiast przypinać) - `_on_dot_clicked()` sprawdzał
+     tylko `_shown_skill == skill`, co jest PRAWDĄ już od samego hovera
+     (`_on_dot_hovered()` ustawia `_shown_skill` przez `_show_popup_for()`),
+     więc "pierwszy" klik zachowywał się jak przełącznik "drugiego" kliku i
+     zamykał okienko, zamiast je przypiąć. Naprawione dodaniem warunku
+     `_pinned` do sprawdzenia: `if _pinned and _shown_skill == skill` -
+     zamyka TYLKO drugi klik z rzędu na już PRZYPIĘTY węzeł; pierwszy klik
+     na węzeł pokazany tylko z hovera teraz poprawnie przypina okienko
+     (`_pinned = true`), więc odjazd myszką gdzie indziej już go nie chowa.
 - **Okienko szczegółów skilla trzyma pozycję/skalę względem drzewka przy
   pan/zoom** (nowość). Wcześniej `SkillPopup` był sąsiadem `GraphContent`
   wewnątrz `GraphArea` - jego pozycja liczyła się RAZ, w momencie pokazania
@@ -584,17 +621,14 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   co `Ludzik.sprite_texture`) pod przyszłą podmianę na obrazki, bez zmiany
   reszty logiki. Nazwa/opis/koszt/przycisk odblokowania przeniesione z
   osobnej karty per skill do JEDNEGO współdzielonego `SkillPopup`,
-  pozycjonowanego obok aktualnego węzła (`_position_popup_near()`, przez
-  `dot.get_global_rect()` - uwzględnia bieżący pan/zoom grafu bez ręcznego
-  przeliczania transformacji). Dwa niezależne wyzwalacze: najechanie
-  myszką pokazuje okienko TYMCZASOWO (znika, gdy mysz zjedzie i z węzła, i z
-  okienka - `_schedule_hide_check()` z jednoklatkowym opóźnieniem, żeby
-  przejście myszką z węzła NA okienko po przycisk nie powodowało migotania);
-  kliknięcie węzła PRZYPINA okienko (`_pinned = true`) - zostaje widoczne
-  niezależnie od dalszego hovera, dopóki gracz nie kliknie w INNY węzeł.
-  Kliknięcie węzła, którego okienko WŁAŚNIE jest pokazane, działa jak
-  przełącznik (toggle) i je zamyka - `_on_dot_clicked()` porównuje kliknięty
-  skill z `_shown_skill`.
+  pozycjonowanego obok aktualnego węzła (`_position_popup_near()` -
+  mechanizm pozycjonowania i dokładne zasady chowania/przypinania okienka
+  zmieniły się w kolejnych update'ach, patrz nowsze wpisy wyżej w tej
+  sekcji). Dwa niezależne wyzwalacze: najechanie myszką pokazuje okienko
+  TYMCZASOWO (znika, gdy mysz zjedzie i z węzła, i z okienka -
+  `_schedule_hide_check()`); kliknięcie węzła PRZYPINA okienko
+  (`_pinned = true`) - zostaje widoczne niezależnie od dalszego hovera,
+  dopóki gracz nie kliknie w INNY węzeł.
 - **Przejęcie terenu gracza: wymaga fizycznej obecności, zawsze da się
   spróbować, nowy wzór na konsekwencje przegranej próby** (update, sekcja 5
   GDD). `GameManager.attempt_takeover()` przestał być twardą blokadą przy

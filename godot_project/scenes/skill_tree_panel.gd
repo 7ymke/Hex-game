@@ -26,16 +26,22 @@ extends CanvasLayer
 ## (patrz `_position_popup_near()`), bez potrzeby ręcznego przeliczania przy
 ## każdym evencie pan/zoom. Dwa niezależne wyzwalacze pokazania okienka:
 ## - **Hover** (`mouse_entered`/`mouse_exited` na węźle) pokazuje okienko
-##   TYMCZASOWO - znika, gdy mysz zjedzie i z węzła, i z samego okienka
-##   (`_popup_hovered`), z jednoklatkowym opóźnieniem (`_schedule_hide_check`),
-##   żeby przejście myszką z węzła NA okienko (żeby np. kliknąć przycisk) nie
-##   powodowało migotania.
+##   TYMCZASOWO - znika dopiero, gdy mysz faktycznie odjedzie i z węzła, i z
+##   samego okienka (`_popup_hovered`), z KRÓTKIM opóźnieniem w czasie (nie
+##   jednej klatce - patrz `_schedule_hide_check`), żeby przejście myszką z
+##   węzła NA okienko (żeby np. kliknąć "Odblokuj") zdążyło faktycznie dojść
+##   do okienka, zanim ono zniknie - nawet jeśli po drodze jest chwila, gdy
+##   mysz nie jest nad żadnym z nich.
 ## - **Klik** na węzeł PRZYPINA okienko (`_pinned = true`) - zostaje widoczne
 ##   niezależnie od dalszego hovera, dopóki gracz nie kliknie w INNY węzeł
 ##   (który przejmuje przypięcie) - zgodnie z życzeniem: "znika dopiero jak
-##   kliknę w inną [kropkę]". Klik na węzeł, którego okienko WŁAŚNIE jest
-##   pokazane (przypięte albo tylko najechane) działa jak przełącznik i je
-##   zamyka (`_on_dot_clicked`).
+##   kliknę w inną [kropkę]". Tylko klik na węzeł, którego okienko jest
+##   AKTUALNIE PRZYPIĘTE (czyli DRUGI klik z rzędu na ten sam węzeł) działa
+##   jak przełącznik i je zamyka. PIERWSZY klik na węzeł, którego okienko
+##   jest na razie pokazane TYLKO z hovera (jeszcze nieprzypięte), NIE zamyka
+##   go - przypina je (`_on_dot_clicked`, warunek `_pinned and _shown_skill
+##   == skill`, nie sam `_shown_skill == skill` - inaczej pierwszy klik na
+##   węzeł, którego okienko właśnie pokazał hover, od razu by je zamykał).
 
 signal closed
 signal skill_unlocked(skill: SkillData)
@@ -50,6 +56,9 @@ const RADIUS_SAFETY_MARGIN = 0.85
 ## zachodzi na węzeł (nie zostawia "martwej strefy" między nimi), żeby
 ## przejście myszką z węzła na okienko nie traciło hovera.
 const POPUP_OFFSET = Vector2(18, -12)
+## Ile sekund (nie klatek!) czeka `_schedule_hide_check()`, zanim faktycznie
+## schowa okienko pokazane tylko z hovera - patrz komentarz przy tej funkcji.
+const HOVER_HIDE_DELAY_SEC = 0.35
 
 @onready var title_label: Label = $Panel/VBox/TitleLabel
 @onready var graph_area: Control = $Panel/VBox/GraphArea
@@ -186,22 +195,35 @@ func _on_popup_mouse_exited() -> void:
 	_schedule_hide_check()
 
 
-## Opóźnione o jedną klatkę sprawdzenie, czy okienko powinno zniknąć - mysz
-## przechodząca z węzła NA okienko (np. żeby kliknąć przycisk) generuje
-## `mouse_exited` węzła i `mouse_entered` okienka jako osobne zdarzenia; bez
-## tego opóźnienia okienko potrafiłoby zniknąć na ułamek sekundy między nimi.
+## Opóźnione sprawdzenie, czy okienko (pokazane tylko z hovera - przypięte
+## nigdy nie chowa się stąd, patrz warunek `not _pinned`) powinno zniknąć.
+## Mysz przechodząca z węzła NA okienko (np. żeby kliknąć "Odblokuj")
+## generuje `mouse_exited` węzła i `mouse_entered` okienka jako OSOBNE
+## zdarzenia, a między nimi realnie mija czas potrzebny, żeby mysz
+## faktycznie przebyła drogę do okienka - stąd opóźnienie o
+## `HOVER_HIDE_DELAY_SEC` SEKUND (prawdziwy timer, nie tylko jedna klatka -
+## jedna klatka starczała na zbieg dwóch zdarzeń w tym samym momencie, ale
+## nie na ruch myszką trwający dłużej niż to). Stan (`_pinned`,
+## `_hovered_skill`, `_popup_hovered`) jest sprawdzany DOPIERO po
+## odczekaniu, więc jeśli mysz w międzyczasie zdążyła dotrzeć do węzła albo
+## okienka (albo do innego węzła), ten odczyt to wykryje i okienko zostanie -
+## nie trzeba osobno anulować wcześniej zaplanowanych sprawdzeń.
 func _schedule_hide_check() -> void:
-	await get_tree().process_frame
+	await get_tree().create_timer(HOVER_HIDE_DELAY_SEC).timeout
 	if not _pinned and _hovered_skill == null and not _popup_hovered:
 		_hide_popup()
 
 
-## Klik na węzeł, którego okienko już jest pokazane (przypięte albo tylko
-## najechane), ZAMYKA je - drugie kliknięcie tego samego węzła działa jak
-## przełącznik. Klik na inny węzeł (albo gdy nic nie jest pokazane) przypina
-## nowe okienko, tak jak dotąd.
+## Klik na węzeł, którego okienko jest AKTUALNIE PRZYPIĘTE, ZAMYKA je - drugie
+## kliknięcie z rzędu na ten sam węzeł działa jak przełącznik. Klik na węzeł,
+## którego okienko jest na razie pokazane TYLKO z hovera (jeszcze
+## nieprzypięte) NIE zamyka go - PRZYPINA (ten sam efekt, jak gdyby okienko
+## wcześniej nie było widoczne wcale). Bez warunku `_pinned` tutaj pierwszy
+## klik na węzeł, którego okienko właśnie pokazał hover, zamykałby je od
+## razu (bo `_shown_skill` jest już ustawione przez sam hover) - dokładnie
+## tak, jakby to był "drugi" klik, mimo że gracz jeszcze nigdy nie kliknął.
 func _on_dot_clicked(skill: SkillData) -> void:
-	if _shown_skill == skill:
+	if _pinned and _shown_skill == skill:
 		_pinned = false
 		_hide_popup()
 		return
