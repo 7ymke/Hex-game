@@ -46,7 +46,12 @@ const FOREST_REGEN_MIN = 1.0
 const FOREST_REGEN_EXPONENT = 2.0
 
 ## Przejęcie terytorium PvP (sekcja 5 GDD) ----------------------------------
-const TAKEOVER_COST_RATIO = 0.5  # jaki % prestiżu obrońcy płaci atakujący
+## Update: przejęcie wymaga teraz fizycznej obecności (jak aneksacja) i
+## zawsze da się PRÓBOWAĆ, nawet z niewystarczającym prestiżem - patrz
+## game_manager.gd (attempt_takeover) dla pełnej logiki obu gałęzi.
+const TAKEOVER_COST_RATIO = 0.5  # jaki % prestiżu obrońcy płaci atakujący PRZY UDANYM przejęciu
+const TAKEOVER_DEFENDER_LOSS_RATIO = 0.25  # jaki % WŁASNEGO prestiżu traci obrońca przy udanym przejęciu
+const FAILED_TAKEOVER_PENALTY_RATIO = 0.3  # ułamek różnicy (obrońca - atakujący) prestiżu, jaki traci atakujący przy nieudanej próbie
 
 ## Strefy chronione (sekcja 4 GDD) ------------------------------------------
 ## Kara nalicza się dopiero, gdy ktoś faktycznie "zagospodaruje" (zbuduje/

@@ -23,12 +23,14 @@ extends Node2D
 ## tej tablicy - cała reszta (zaznaczanie, blokady ruchu) już iteruje po
 ## tablicach, nie zakłada dokładnie jednego elementu.
 ##
-## Zasięg akcji (update): aneksacja WYMAGA stania dokładnie na polu (płaci
-## punkty ruchu ludzika, który tam stoi) - to jedyna akcja tak ograniczona.
-## Naprawa, wydobycie i przejęcie działają na dowolnym polu należącym do
-## odpowiedniego gracza (już zaanektowanym - swoim albo cudzym), niezależnie
-## od tego, gdzie akurat stoją ludziki - "zarządzanie zdalne" własnym/wrogim
-## terytorium, bez potrzeby fizycznej obecności.
+## Zasięg akcji (update): aneksacja I przejęcie terenu gracza WYMAGAJĄ stania
+## dokładnie na polu (płacą punkty ruchu ludzika, który tam stoi - tyle samo
+## co aneksacja) - oba żyją w panelu "Trasa ludzika", wzajemnie się
+## wykluczając (niczyje pole -> Zaanektuj, wrogie -> Przejmij teren gracza).
+## Naprawa i wydobycie nadal działają na dowolnym już zaanektowanym polu
+## (swoim - naprawa, albo swoim - wydobycie), niezależnie od tego, gdzie
+## akurat stoją ludziki - "zarządzanie zdalne" własnym terytorium, bez
+## potrzeby fizycznej obecności.
 ##
 ## Kontrola gracza i przeliczenie rundy są teraz całkowicie rozdzielone:
 ## "Zmiana gracza" (OptionButton) wybiera KONKRETNEGO gracza wprost z listy,
@@ -71,7 +73,6 @@ const PLAYER_SETUP = PlayerSetup.LIST
 @onready var prestige_label: Label = $UI/PrestigeLabel
 @onready var resources_label: Label = $UI/ResourcesLabel
 @onready var hex_info_label: Label = $UI/ActionPanel/VBox/HexInfoLabel
-@onready var takeover_button: Button = $UI/ActionPanel/VBox/TakeoverButton
 @onready var repair_button: Button = $UI/ActionPanel/VBox/RepairButton
 @onready var harvest_slider: HSlider = $UI/ActionPanel/VBox/HarvestRow/HarvestSlider
 @onready var harvest_value_label: Label = $UI/ActionPanel/VBox/HarvestRow/HarvestValueLabel
@@ -85,6 +86,7 @@ const PLAYER_SETUP = PlayerSetup.LIST
 @onready var confirm_route_button: Button = $UI/RoutePanel/VBox/ConfirmRouteButton
 @onready var cancel_route_button: Button = $UI/RoutePanel/VBox/CancelRouteButton
 @onready var route_annex_button: Button = $UI/RoutePanel/VBox/RouteAnnexButton
+@onready var route_takeover_button: Button = $UI/RoutePanel/VBox/RouteTakeoverButton
 @onready var auto_annex_checkbox: CheckBox = $UI/RoutePanel/VBox/AutoAnnexCheckBox
 
 var players: Array[PlayerData] = []
@@ -113,7 +115,6 @@ func _ready() -> void:
 	hex_map_view.hex_clicked.connect(_on_hex_clicked)
 	hex_map_view.hex_hovered.connect(_on_hex_hovered)
 
-	takeover_button.pressed.connect(_on_takeover_pressed)
 	repair_button.pressed.connect(_on_repair_pressed)
 	harvest_button.pressed.connect(_on_harvest_pressed)
 	harvest_slider.value_changed.connect(_on_harvest_slider_changed)
@@ -127,6 +128,7 @@ func _ready() -> void:
 	confirm_route_button.pressed.connect(_on_confirm_route_pressed)
 	cancel_route_button.pressed.connect(_on_cancel_route_pressed)
 	route_annex_button.pressed.connect(_on_annex_pressed)
+	route_takeover_button.pressed.connect(_on_takeover_pressed)
 	auto_annex_checkbox.toggled.connect(_on_auto_annex_toggled)
 
 	TurnManager.player_turn_started.connect(_on_player_turn_started)
@@ -545,9 +547,10 @@ func _on_hex_hovered(hex_id: String) -> void:
 
 
 ## --- Akcje na polu (Faza 5, 8, 9) ---
-## Działają na `selected_hex_id`. Aneksacja (jedyny wyjątek) wymaga, żeby
-## ludzik aktywnego gracza stał dokładnie na tym polu; reszta działa na
-## dowolnym, już zaanektowanym polu (swoim albo cudzym), z dowolnej odległości.
+## Działają na `selected_hex_id`. Aneksacja i przejęcie terenu gracza (update)
+## wymagają, żeby ludzik aktywnego gracza stał dokładnie na tym polu; Napraw
+## i Wydobądź działają na dowolnym już zaanektowanym WŁASNYM polu, z dowolnej
+## odległości.
 
 ## Jedyne miejsce, gdzie gracz wydaje polecenie aneksacji - przycisk żyje
 ## teraz WYŁĄCZNIE w panelu "Trasa ludzika" (`route_annex_button`), nie w
@@ -628,30 +631,71 @@ func _effective_annex_cost_for(player_id: int) -> int:
 	return maxi(1, GameBalance.ANNEX_MP_COST - reduction)
 
 
-## Przejęcie terytorium (PvP) - sekcja 5 GDD / Faza 9. Działa z dowolnej
-## odległości, o ile broniący heks ludzik AKURAT go nie patroluje - to jedyny
-## mechanizm obrony terytorium (sekcja 3 GDD), zasięg go nie omija.
+## Przejęcie terytorium (PvP) - sekcja 5 GDD / Faza 9 (update): tak jak
+## aneksacja, wymaga teraz fizycznej obecności ludzika na polu - stąd
+## "Przejmij teren gracza" żyje w panelu "Trasa ludzika"
+## (`route_takeover_button`), pojawiając się TAM, gdzie zwykle "Zaanektuj",
+## tylko dla pól należącego do innego gracza. Skoro dwóch różnych graczy nie
+## może nigdy stać jednocześnie na tym samym heksie (`_blocked_hexes_for`
+## blokuje ruch symetrycznie w obie strony), samo stanie na wrogim polu już
+## DOWODZI, że broniący go ludzik akurat go nie patroluje - osobne
+## sprawdzenie "funkcji obronnej" (sekcja 3 GDD) nie jest już potrzebne,
+## efektywnie przeniosło się do blokady ruchu.
+##
+## Koszt MP jest identyczny jak przy aneksacji i pobierany od razu - w
+## przeciwieństwie do aneksacji NIE jest zwracany przy porażce z powodu
+## niewystarczającego prestiżu (`"insufficient_prestige"`), bo to wciąż
+## realna próba z realną (choć inną) karą - patrz GameManager.attempt_takeover().
+## Zwracany jest tylko przy "twardych" błędach (pole niczyje/już twoje).
 func _on_takeover_pressed() -> void:
 	var hex_id = selected_hex_id
+	var ludzik = _find_own_ludzik_at(hex_id)
+	if ludzik == null:
+		info_label.text = "Musisz stać ludzikiem na polu %s, żeby przejąć je siłą." % hex_id
+		return
 
-	if _ludzik_at(hex_id) != null:
-		info_label.text = "Pole %s jest bronione przez stojącego na nim ludzika - nie można go przejąć." % hex_id
+	var cost = _effective_annex_cost_for(active_player.player_id)
+	if not ludzik.spend_movement_points(cost):
+		info_label.text = "Brak punktów ruchu na przejęcie terenu (koszt: %d)." % cost
+		_refresh_action_panel()
+		_refresh_route_panel()
 		return
 
 	var result = GameManager.attempt_takeover(hex_id, active_player.player_id)
 	if result["success"]:
 		_reveal_around(hex_id, active_player.player_id)
-		info_label.text = "Przejęto %s (koszt: -%d prestiżu)." % [hex_id, result["cost"]]
+		info_label.text = "Przejęto %s (koszt: %d MP, -%d prestiżu; obrońca stracił %d prestiżu)." % [
+			hex_id, cost, result["cost"], result["defender_loss"]
+		]
 		_refresh_map_view()
 		_update_stats_labels()
+	elif result["reason"] == "insufficient_prestige":
+		info_label.text = (
+			"Nieudana próba przejęcia %s - za mało prestiżu względem obrońcy (-%d prestiżu za ryzykowną próbę)."
+			% [hex_id, result.get("attacker_penalty", 0)]
+		)
+		_update_stats_labels()
 	else:
+		ludzik.refund_movement_points(cost)
 		var reason_text = {
 			"no_owner": "pole nie ma właściciela - użyj Aneksacji.",
 			"already_owner": "to już twoje pole.",
-			"insufficient_prestige": "za mało prestiżu względem obrońcy.",
 		}.get(result["reason"], result["reason"])
 		info_label.text = "Nie udało się przejąć %s (%s)." % [hex_id, reason_text]
+
+	_update_mp_label()
 	_refresh_action_panel()
+	_refresh_route_panel()
+
+
+## Czy zaznaczony heks da się przejąć siłą ludzikiem, który akurat go stoi -
+## wspólna logika dla stanu przycisku "Przejmij teren gracza" w panelu
+## "Trasa ludzika" (analogicznie do `_can_annex_selected_hex()`).
+func _can_takeover_selected_hex() -> bool:
+	var hex = MapData.get_hex(selected_hex_id)
+	if hex == null or hex.owner_id == -1 or hex.owner_id == active_player.player_id:
+		return false
+	return _find_own_ludzik_at(selected_hex_id) != null
 
 
 func _on_repair_pressed() -> void:
@@ -793,7 +837,6 @@ func _refresh_action_panel() -> void:
 	var hex = MapData.get_hex(selected_hex_id)
 	if hex == null:
 		hex_info_label.text = "Zaznacz pole (kliknij na mapie)."
-		takeover_button.visible = false
 		repair_button.disabled = true
 		harvest_slider.visible = false
 		harvest_value_label.visible = false
@@ -822,10 +865,6 @@ func _refresh_action_panel() -> void:
 			]
 
 	var is_owned_by_me = hex.owner_id == active_player.player_id
-	var is_owned_by_enemy = hex.owner_id != -1 and not is_owned_by_me
-
-	takeover_button.visible = is_owned_by_enemy
-	takeover_button.disabled = not (is_owned_by_enemy and _ludzik_at(selected_hex_id) == null)
 
 	repair_button.disabled = not (is_owned_by_me and hex.building != null and hex.building_damaged)
 
@@ -837,22 +876,42 @@ func _refresh_action_panel() -> void:
 
 
 ## Panel "Trasa ludzika" - widoczny tylko przy zaznaczonym ludziku, trzy
-## stany: (1) niepotwierdzony podgląd trasy -> długość/koszt + Potwierdź/
+## stany trasy: (1) niepotwierdzony podgląd -> długość/koszt + Potwierdź/
 ## Anuluj; (2) trasa już zatwierdzona i w toku (mogła zostać wstrzymana
 ## brakiem MP albo blokadą - wróci do niej `_continue_all_queued_routes` na
 ## starcie kolejnej rundy) -> postęp + Anuluj; (3) nic zaplanowane ->
-## podpowiedź. To JEDYNE miejsce, gdzie da się zaanektować pole (przycisk
-## "Zaanektuj" usunięty z głównego panelu akcji) - stąd też przełącznik
-## "Anektuj napotkane pola" (Ludzik.auto_annex), zaznaczający automatycznie
-## KAŻDY niczyj heks, przez który ten ludzik przejdzie podczas wykonywania
-## trasy (patrz _advance_queued_route/_auto_annex_hex).
+## podpowiedź. To JEDYNE miejsce, gdzie da się zaanektować/przejąć pole
+## (oba przyciski usunięte z głównego panelu akcji, bo obie akcje wymagają
+## fizycznej obecności). "Zaanektuj" i "Przejmij teren gracza" są wzajemnie
+## wykluczające się (widoczny dokładnie jeden, zależnie od tego, czy
+## zaznaczony heks jest niczyj czy wrogi) - stąd też przełącznik "Anektuj
+## napotkane pola" (Ludzik.auto_annex), zaznaczający automatycznie KAŻDY
+## niczyj heks, przez który ten ludzik przejdzie podczas wykonywania trasy
+## (patrz _advance_queued_route/_auto_annex_hex).
 func _refresh_route_panel() -> void:
 	if selected_ludzik == null:
 		route_panel.visible = false
 		return
 
 	route_panel.visible = true
+
+	var hex = MapData.get_hex(selected_hex_id)
+	var is_unclaimed = hex != null and hex.owner_id == -1
+	var is_enemy_owned = hex != null and hex.owner_id != -1 and hex.owner_id != active_player.player_id
+
+	route_annex_button.visible = is_unclaimed
 	route_annex_button.disabled = not _can_annex_selected_hex()
+
+	route_takeover_button.visible = is_enemy_owned
+	route_takeover_button.disabled = not _can_takeover_selected_hex()
+	# Koszt MP jest znany z góry (tyle co aneksacja), ale koszt prestiżowy
+	# zależy od prestiżu OBROŃCY, którego nie widać w UI (sekcja "Decyzje
+	# projektowe" w README) - stąd dymek celowo nie podaje dokładnej liczby.
+	route_takeover_button.tooltip_text = (
+		"Koszt: %d MP oraz nieznana liczba prestiżu (zależy od siły przeciwnika)."
+		% _effective_annex_cost_for(active_player.player_id)
+	)
+
 	auto_annex_checkbox.button_pressed = selected_ludzik.auto_annex
 
 	if preview_route_ludzik == selected_ludzik and preview_route.size() > 1:

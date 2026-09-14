@@ -127,7 +127,23 @@ func damage_protected_area(hex_id: String, player_id: int, damage_scale: float) 
 	return {"success": true, "prestige_penalty": penalty}
 
 
-## Przejęcie terytorium - sekcja 5 GDD.
+## Przejęcie terytorium - sekcja 5 GDD (update). Wymaga fizycznej obecności
+## na polu (sprawdzane przez game_map_controller.gd, tak jak przy aneksacji -
+## GameManager celowo nic nie wie o ludzikach) - to jedyny powód, dla którego
+## dwóch różnych graczy nigdy nie stoi jednocześnie na tym samym heksie, więc
+## osobne sprawdzanie "czy broniący ludzik akurat tu stoi" nie jest już
+## potrzebne (sama fizyczna obecność atakującego to już wyklucza).
+##
+## Zawsze da się PRÓBOWAĆ - w przeciwieństwie do poprzedniej wersji, gdzie
+## niewystarczający prestiż był twardą blokadą bez żadnego skutku. Teraz:
+## - Prestiż atakującego ŚCIŚLE większy niż obrońcy -> sukces: obrońca traci
+##   `TAKEOVER_DEFENDER_LOSS_RATIO` WŁASNEGO prestiżu (koszt bycia podbitym),
+##   atakujący płaci `TAKEOVER_COST_RATIO` prestiżu obrońcy (jak dotąd).
+## - W przeciwnym razie -> nieudana próba: obrońca NIE TRACI NIC, ale
+##   atakujący płaci karę proporcjonalną do przewagi obrońcy (im bardziej
+##   nierówna walka, tym droższa porażka) - "dobry wzór" na to, żeby zniechęcać
+##   do desperackich prób bez faktycznie karania silniejszej strony za to, że
+##   ktoś słabszy spróbował.
 func attempt_takeover(hex_id: String, attacker_id: int) -> Dictionary:
 	var hex = MapData.get_hex(hex_id)
 	if hex == null or hex.owner_id == -1:
@@ -141,16 +157,20 @@ func attempt_takeover(hex_id: String, attacker_id: int) -> Dictionary:
 		return {"success": false, "reason": "invalid_players"}
 
 	if attacker.prestige <= defender.prestige:
-		return {"success": false, "reason": "insufficient_prestige"}
+		var penalty = maxi(1, int(round((defender.prestige - attacker.prestige) * GameBalance.FAILED_TAKEOVER_PENALTY_RATIO)))
+		change_prestige(attacker_id, -penalty)
+		return {"success": false, "reason": "insufficient_prestige", "attacker_penalty": penalty}
 
 	var cost = int(round(defender.prestige * GameBalance.TAKEOVER_COST_RATIO))
+	var defender_loss = int(round(defender.prestige * GameBalance.TAKEOVER_DEFENDER_LOSS_RATIO))
 	change_prestige(attacker_id, -cost)
+	change_prestige(hex.owner_id, -defender_loss)
 
 	var previous_owner = hex.owner_id
 	hex.owner_id = attacker_id
 	hex_ownership_changed.emit(hex_id, attacker_id)
 
-	return {"success": true, "cost": cost, "previous_owner": previous_owner}
+	return {"success": true, "cost": cost, "defender_loss": defender_loss, "previous_owner": previous_owner}
 
 
 ## Odblokowanie budynku charakterystycznego w Karcie Miasta - sekcja 7 GDD.

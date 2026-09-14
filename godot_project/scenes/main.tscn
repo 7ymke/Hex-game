@@ -91,9 +91,6 @@ theme_override_constants/separation = 6
 autowrap_mode = 2
 text = "Wybierz pole."
 
-[node name="TakeoverButton" type="Button" parent="UI/ActionPanel/VBox"]
-text = "Przejmij teren"
-
 [node name="RepairButton" type="Button" parent="UI/ActionPanel/VBox"]
 text = "Napraw budynek"
 
@@ -129,7 +126,7 @@ theme = ExtResource("7")
 offset_left = 480.0
 offset_top = 380.0
 offset_right = 900.0
-offset_bottom = 660.0
+offset_bottom = 700.0
 
 [node name="VBox" type="VBoxContainer" parent="UI/RoutePanel"]
 theme_override_constants/separation = 6
@@ -150,6 +147,9 @@ text = "Anuluj trasę"
 
 [node name="RouteAnnexButton" type="Button" parent="UI/RoutePanel/VBox"]
 text = "Zaanektuj"
+
+[node name="RouteTakeoverButton" type="Button" parent="UI/RoutePanel/VBox"]
+text = "Przejmij teren gracza"
 
 [node name="AutoAnnexCheckBox" type="CheckBox" parent="UI/RoutePanel/VBox"]
 text = "Anektuj napotkane pola"

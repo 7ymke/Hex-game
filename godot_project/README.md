@@ -97,33 +97,46 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
      Rysowana w `hex_map_view.gd` pod zwykłą/żółtą obwódką zaznaczenia, więc
      obie są widoczne naraz.
    - Panel w lewym dolnym rogu pokazuje ZAZNACZONE pole i udostępnia akcje:
-     - **Przejmij teren**, **Napraw budynek**, **Wydobądź drewno** — działają
-       na dowolnym zaznaczonym polu (już zaanektowanym - swoim albo cudzym),
-       z DOWOLNEJ odległości, bez potrzeby stania na nim ani obok niego.
-       Przejęcie terenu dodatkowo wymaga, żeby broniący go ludzik AKURAT na
-       nim nie stał (jedyny mechanizm obrony terytorium, sekcja 3 GDD, nie da
-       się go ominąć) i żeby twój prestiż był ściśle większy niż obrońcy,
-       kosztem prestiżu proporcjonalnym do jego siły (sekcja 5 GDD). Naprawa
-       na terenie chronionym nalicza karę prestiżową (sekcja niżej) - sama
-       aneksacja strefy chronionej już nie karze.
+     - **Napraw budynek**, **Wydobądź drewno** — działają na dowolnym
+       zaznaczonym, już zaanektowanym WŁASNYM polu, z DOWOLNEJ odległości,
+       bez potrzeby stania na nim ani obok niego. Naprawa na terenie
+       chronionym nalicza karę prestiżową (sekcja niżej) - sama aneksacja
+       strefy chronionej już nie karze.
      - **Karta Miasta** — osobny ekran: lista budynków charakterystycznych
        dla miasta aktywnego gracza, każdy z kosztem w zasobach i wartością
        prestiżową po odblokowaniu (sekcja 7 GDD).
      - **Drzewko Umiejętności** (nowość) — osobny ekran, analogiczny do Karty
        Miasta, ale WSPÓLNY dla wszystkich miast: 5 permanentnych upgrade'ów
        płatnych surowcami z mapy (patrz sekcja niżej).
-   - **Zaanektuj żyje TYLKO w panelu "Trasa ludzika"** (update - usunięte z
-     panelu akcji po lewej, żeby aneksacja - jedyna akcja wymagająca
-     fizycznej obecności ludzika - miała miejsce wyłącznie w UI samego
-     ludzika, nie ogólnego panelu pola). Działa TYLKO gdy jeden z twoich
-     ludzików stoi dokładnie na zaznaczonym, niczyim polu; kosztuje punkty
-     ruchu tego ludzika (`GameBalance.ANNEX_MP_COST`, sekcja 2.2 GDD:
-     "Aneksacja - płatna akcja"). Panel ma też przełącznik **Anektuj
-     napotkane pola** (nowość) - gdy włączony na danym ludziku, automatycznie
-     aneksuje KAŻDE niczyje pole, przez które ten ludzik przejdzie podczas
-     wykonywania trasy (także wielorundowej), bez ręcznego klikania po każdym
-     kroku; brak MP na akurat tę jedną aneksację nie zatrzymuje trasy - po
-     prostu pomija to pole.
+   - **Zaanektuj i Przejmij teren gracza żyją TYLKO w panelu "Trasa ludzika"**
+     (update - oba usunięte z panelu akcji po lewej, żeby obie akcje
+     wymagające fizycznej obecności ludzika miały miejsce wyłącznie w UI
+     samego ludzika, nie ogólnego panelu pola). Wzajemnie się wykluczają,
+     zależnie od tego, kto jest właścicielem zaznaczonego pola: **Zaanektuj**
+     dla pola niczyjego, **Przejmij teren gracza** dla pola innego gracza -
+     oba działają TYLKO gdy jeden z twoich ludzików stoi dokładnie na tym
+     polu i kosztują tyle samo punktów ruchu (`GameBalance.ANNEX_MP_COST`).
+     **Przejęcie terenu gracza** (update, sekcja 5 GDD) wymaga teraz - tak
+     jak aneksacja - fizycznej obecności (poprzednio działało z dowolnej
+     odległości); dymek po najechaniu na przycisk pokazuje, że kosztuje to
+     MP (znaną z góry liczbę) oraz "nieznaną liczbę prestiżu" - dokładna
+     kwota zależy od prestiżu przeciwnika, którego gra celowo nie ujawnia w
+     UI. Zawsze da się spróbować, nawet z niewystarczającym prestiżem:
+     - **Wystarczający prestiż** (ściśle większy niż obrońcy) → sukces:
+       przejmujesz pole, płacisz część prestiżu obrońcy (jak dotąd), a
+       DODATKOWO obrońca traci część WŁASNEGO prestiżu (koszt bycia
+       podbitym) - patrz "Decyzje projektowe" niżej po dokładny wzór.
+     - **Niewystarczający prestiż** → nieudana próba: obrońca NIE TRACI NIC,
+       ale ty tracisz prestiż proporcjonalnie do przewagi obrońcy (im
+       bardziej nierówna próba, tym droższa porażka) - MP i tak zostaje
+       wydane, bo próba faktycznie zaszła.
+     Panel ma też przełącznik **Anektuj napotkane pola** - gdy włączony na
+     danym ludziku, automatycznie aneksuje KAŻDE niczyje pole, przez które
+     ten ludzik przejdzie podczas wykonywania trasy (także wielorundowej),
+     bez ręcznego klikania po każdym kroku; brak MP na akurat tę jedną
+     aneksację nie zatrzymuje trasy - po prostu pomija to pole. (Auto-aneksja
+     dotyczy tylko NICZYJICH pól - przejęcie terenu gracza zawsze wymaga
+     ręcznego kliknięcia, ze względu na jego karny charakter przy porażce.)
    - **Rozwijana lista graczy** ("Zmiana gracza") — wybierz z listy KONKRETNEGO
      gracza, na którego chcesz przełączyć kontrolę (nie ma już cyklicznego
      "następny gracz"). Nie kończy niczyjej tury, nie wpływa na rundę.
@@ -397,6 +410,29 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **Przejęcie terenu gracza: wymaga fizycznej obecności, zawsze da się
+  spróbować, nowy wzór na konsekwencje przegranej próby** (update, sekcja 5
+  GDD). `GameManager.attempt_takeover()` przestał być twardą blokadą przy
+  `attacker.prestige <= defender.prestige` - teraz ZAWSZE coś się dzieje:
+  - **Sukces** (prestiż atakującego ściśle większy niż obrońcy, tak jak
+    dotąd): atakujący płaci `TAKEOVER_COST_RATIO` (50%) prestiżu OBROŃCY
+    (jak dotąd) - NOWOŚĆ: obrońca dodatkowo traci `TAKEOVER_DEFENDER_LOSS_RATIO`
+    (25%) WŁASNEGO prestiżu, koszt samego bycia podbitym (poprzednio obrońca
+    nie tracił nic nawet przy przegranej).
+  - **Porażka** (prestiż atakującego <= obrońcy): pole NIE zmienia
+    właściciela, obrońca NIE TRACI NIC, ale atakujący płaci
+    `FAILED_TAKEOVER_PENALTY_RATIO` (30%) RÓŻNICY między prestiżem obrońcy a
+    atakującego (`maxi(1, ...)` - zawsze co najmniej 1 punkt) - im bardziej
+    nierówna próba, tym droższa porażka, ale nigdy nie karze silniejszej
+    strony za to, że ktoś słabszy spróbował. Wszystkie trzy stałe w
+    `scripts/game_balance.gd`.
+  MP (tyle samo co aneksacja, `_effective_annex_cost_for()`) jest pobierane
+  z góry i - w odróżnieniu od aneksacji - NIE zwracane przy porażce z
+  powodu prestiżu (próba faktycznie zaszła, ma realny koszt), tylko przy
+  "twardych" błędach stanu (pole niczyje/już twoje). Dymek na przycisku
+  "Przejmij teren gracza" (panel "Trasa ludzika") pokazuje MP (znane z góry)
+  i "nieznaną liczbę prestiżu" - dokładny koszt zależy od prestiżu
+  przeciwnika, którego UI celowo nie ujawnia.
 - **Aneksacja tylko z UI ludzika + automatyczna aneksacja napotkanych pól**
   (update). Przycisk "Zaanektuj" usunięty z głównego panelu akcji (nad
   "Napraw budynek") - aneksacja to jedyna akcja wymagająca fizycznej
@@ -564,22 +600,22 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 - **Blokada heksa przez cudzego ludzika** jest wpięta w `HexPathfinder`:
   `game_map_controller.gd` przebudowuje graf A* przed każdym rozkazem ruchu,
   wykluczając heksy aktualnie zajęte przez ludziki INNYCH graczy — więc taki
-  heks nie może być ani przystankiem, ani tranzytem trasy. Przy przejęciu
-  terytorium (Faza 9) jest dodatkowo sprawdzane wprost (`_ludzik_at()`), bo
-  skoro przejęcie działa teraz z dowolnej odległości (niżej), inaczej dałoby
-  się przejąć heks patrolowany przez broniącego ludzika z drugiego końca
-  mapy - zgodnie z "jedynym mechanizmem obrony terytorium" z sekcji 3 GDD to
-  musi pozostać niemożliwe.
-- **Aneksacja wymaga fizycznej obecności, reszta akcji działa zdalnie**
-  (update). Jedyna akcja, w której `game_map_controller.gd` sprawdza, czy
-  jakiś ludzik aktywnego gracza stoi DOKŁADNIE na zaznaczonym polu
-  (`_find_own_ludzik_at()`), to aneksacja - zgodnie z GDD to ona "odsłania
-  budynek/zasób i przejmuje pole", więc wymaga fizycznego zwiadu. Naprawa,
-  wydobycie i przejęcie terytorium działają na dowolnym już zaanektowanym
-  polu (swoim albo cudzym) z dowolnej odległości - potraktowane jako
-  "zarządzanie zdalne" terytorium, którego istnienie/właściciela gracz już
-  zna. Aneksacja dodatkowo kosztuje punkty ruchu
-  (`GameBalance.ANNEX_MP_COST`) pobierane z ludzika, który akurat tam stoi.
+  heks nie może być ani przystankiem, ani tranzytem trasy. Ponieważ blokada
+  działa symetrycznie (z punktu widzenia KAŻDEGO gracza z osobna), dwóch
+  różnych graczy nigdy nie mogą stać jednocześnie na tym samym heksie - od
+  update'u niżej (przejęcie terenu gracza wymaga fizycznej obecności
+  atakującego) to WYSTARCZY jako "jedyny mechanizm obrony terytorium" z
+  sekcji 3 GDD: samo stanie na wrogim polu już dowodzi, że broniący go
+  ludzik akurat go nie patroluje, osobne sprawdzenie w `attempt_takeover()`
+  nie jest już potrzebne.
+- **Aneksacja I przejęcie terenu gracza wymagają fizycznej obecności, reszta
+  akcji działa zdalnie** (update - poprzednio przejęcie terenu działało z
+  dowolnej odległości; teraz, tak jak aneksacja, wymaga stania DOKŁADNIE na
+  polu, sprawdzane przez `_find_own_ludzik_at()`, i kosztuje tyle samo
+  punktów ruchu, co aneksacja, pobierane z ludzika, który tam stoi). Napraw
+  i Wydobądź nadal działają na dowolnym już zaanektowanym WŁASNYM polu z
+  dowolnej odległości - "zarządzanie zdalne" terytorium, którego istnienie
+  gracz już zna.
 - **Punkty ruchu przeniesione z gracza na ludzika** (`scenes/ludzik.gd`),
   celowo z myślą o przyszłym upgrade "więcej ludzików na gracza" - każdy
   ludzik ma niezależną pulę, więc dodanie kolejnego to tylko dopisanie go do
