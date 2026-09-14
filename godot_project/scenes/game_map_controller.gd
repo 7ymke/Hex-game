@@ -185,7 +185,13 @@ func _setup_players() -> void:
 			push_warning("GameMapController: brak heksa startowego %s dla %s" % [start_hex_id, player.player_name])
 			start_hex_id = MapData.hexes.keys()[0]
 
-		GameManager.annex_hex(start_hex_id, player.player_id)
+		# `require_adjacency = false`: gracz jeszcze nic nie posiada, więc
+		# zwykły wymóg "aneksuj tylko sąsiada własnego pola" byłby tu
+		# niespełnialny - patrz GameManager.annex_hex(). Stolica jest też
+		# trwale oznaczona jako chroniona przed przejęciem siłą (PvP) -
+		# GameManager.attempt_takeover().
+		GameManager.annex_hex(start_hex_id, player.player_id, false)
+		MapData.get_hex(start_hex_id).is_capital = true
 		ludzik.place_on_hex(start_hex_id)
 		_reveal_around(start_hex_id, player.player_id)
 
@@ -578,7 +584,11 @@ func _on_annex_pressed() -> void:
 		_refresh_map_view()
 	else:
 		ludzik.refund_movement_points(annex_cost)
-		info_label.text = "Nie udało się zaanektować %s (%s)." % [hex_id, result["reason"]]
+		var reason_text = {
+			"not_adjacent": "pole musi sąsiadować z już posiadanym.",
+			"already_owned": "pole ma już właściciela.",
+		}.get(result["reason"], result["reason"])
+		info_label.text = "Nie udało się zaanektować %s (%s)." % [hex_id, reason_text]
 
 	_update_mp_label()
 	_refresh_action_panel()
@@ -609,15 +619,21 @@ func _auto_annex_hex(ludzik: Ludzik, hex_id: String) -> void:
 func _on_auto_annex_toggled(pressed: bool) -> void:
 	if selected_ludzik != null:
 		selected_ludzik.auto_annex = pressed
+		_refresh_route_panel()  # podgląd kosztu trasy zależy od auto_annex - patrz _route_cost()
 
 
 ## Czy zaznaczony heks da się zaanektować ludzikiem, który akurat go stoi -
 ## wspólna logika dla stanu przycisku "Zaanektuj" w panelu "Trasa ludzika".
+## Wymaga też sąsiedztwa z już posiadanym polem (GameManager.annex_hex()) -
+## sprawdzone tu też, żeby przycisk był wyszarzony zamiast dawać błąd dopiero
+## po kliknięciu.
 func _can_annex_selected_hex() -> bool:
 	var hex = MapData.get_hex(selected_hex_id)
 	if hex == null or hex.owner_id != -1:
 		return false
-	return _find_own_ludzik_at(selected_hex_id) != null
+	if _find_own_ludzik_at(selected_hex_id) == null:
+		return false
+	return GameManager.has_adjacent_owned_hex(selected_hex_id, active_player.player_id)
 
 
 ## Koszt aneksacji w MP dla danego gracza, pomniejszony o ewentualny bonus z
@@ -680,6 +696,7 @@ func _on_takeover_pressed() -> void:
 		var reason_text = {
 			"no_owner": "pole nie ma właściciela - użyj Aneksacji.",
 			"already_owner": "to już twoje pole.",
+			"capital_protected": "stolica miasta jest chroniona przed przejęciem.",
 		}.get(result["reason"], result["reason"])
 		info_label.text = "Nie udało się przejąć %s (%s)." % [hex_id, reason_text]
 
@@ -693,7 +710,7 @@ func _on_takeover_pressed() -> void:
 ## "Trasa ludzika" (analogicznie do `_can_annex_selected_hex()`).
 func _can_takeover_selected_hex() -> bool:
 	var hex = MapData.get_hex(selected_hex_id)
-	if hex == null or hex.owner_id == -1 or hex.owner_id == active_player.player_id:
+	if hex == null or hex.owner_id == -1 or hex.owner_id == active_player.player_id or hex.is_capital:
 		return false
 	return _find_own_ludzik_at(selected_hex_id) != null
 
@@ -915,7 +932,7 @@ func _refresh_route_panel() -> void:
 	auto_annex_checkbox.button_pressed = selected_ludzik.auto_annex
 
 	if preview_route_ludzik == selected_ludzik and preview_route.size() > 1:
-		var cost = _route_cost(preview_route)
+		var cost = _route_cost(preview_route, selected_ludzik)
 		var fits_now = cost <= selected_ludzik.movement_points_current
 		route_info_label.text = (
 			"Podgląd trasy do %s: %d pól, koszt %d MP (masz %d MP - %s)."
@@ -941,13 +958,24 @@ func _refresh_route_panel() -> void:
 
 
 ## Sumaryczny koszt MP przejścia `path` (pomija indeks 0 - to heks startowy,
-## na którym ludzik już stoi, wejście na niego nic nie kosztuje).
-func _route_cost(path: Array[String]) -> int:
+## na którym ludzik już stoi, wejście na niego nic nie kosztuje). Jeśli
+## `ludzik.auto_annex` jest włączone ("Anektuj napotkane pola"), dolicza też
+## koszt automatycznej aneksacji KAŻDEGO obecnie niczyjego pola na trasie -
+## stąd trasa z włączonym auto-anektowaniem wychodzi droższa w MP, więc
+## "musi czekać dłużej" (więcej rund, zanim faktycznie dotrze do celu). To
+## oszacowanie z góry: faktyczna aneksacja po drodze może się nie udać (np.
+## brak sąsiedztwa z już posiadanym polem - patrz GameManager.annex_hex),
+## ale jako podgląd trasy jest wystarczająco dokładne.
+func _route_cost(path: Array[String], ludzik: Ludzik) -> int:
 	var total = 0
+	var annex_cost = _effective_annex_cost_for(ludzik.player_id)
 	for i in range(1, path.size()):
 		var hex = MapData.get_hex(path[i])
-		if hex != null:
-			total += hex.get_movement_cost()
+		if hex == null:
+			continue
+		total += hex.get_movement_cost()
+		if ludzik.auto_annex and hex.owner_id == -1:
+			total += annex_cost
 	return total
 
 

@@ -116,12 +116,20 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
      dla pola niczyjego, **Przejmij teren gracza** dla pola innego gracza -
      oba działają TYLKO gdy jeden z twoich ludzików stoi dokładnie na tym
      polu i kosztują tyle samo punktów ruchu (`GameBalance.ANNEX_MP_COST`).
+     **Aneksacja wymaga też sąsiedztwa** (nowość) - da się zaanektować TYLKO
+     pole graniczące z polem, które już posiadasz (terytorium rośnie spójnie,
+     nie "skacze" po mapie) - `GameManager.has_adjacent_owned_hex()`, ten sam
+     warunek gasi przycisk w UI i blokuje samo działanie. Jedyny wyjątek to
+     startowa stolica gracza, aneksowana automatycznie na starcie gry (nie
+     ma jeszcze czego sąsiadować).
      **Przejęcie terenu gracza** (update, sekcja 5 GDD) wymaga teraz - tak
      jak aneksacja - fizycznej obecności (poprzednio działało z dowolnej
-     odległości); dymek po najechaniu na przycisk pokazuje, że kosztuje to
-     MP (znaną z góry liczbę) oraz "nieznaną liczbę prestiżu" - dokładna
-     kwota zależy od prestiżu przeciwnika, którego gra celowo nie ujawnia w
-     UI. Zawsze da się spróbować, nawet z niewystarczającym prestiżem:
+     odległości) i **nie da się przejąć stolicy** żadnego gracza (chroniona
+     na stałe, `HexData.is_capital`); dymek po najechaniu na przycisk pokazuje,
+     że kosztuje to MP (znaną z góry liczbę) oraz "nieznaną liczbę prestiżu" -
+     dokładna kwota zależy od prestiżu przeciwnika, którego gra celowo nie
+     ujawnia w UI. Zawsze da się spróbować, nawet z niewystarczającym
+     prestiżem:
      - **Wystarczający prestiż** (ściśle większy niż obrońcy) → sukces:
        przejmujesz pole, płacisz część prestiżu obrońcy (jak dotąd), a
        DODATKOWO obrońca traci część WŁASNEGO prestiżu (koszt bycia
@@ -131,12 +139,18 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
        bardziej nierówna próba, tym droższa porażka) - MP i tak zostaje
        wydane, bo próba faktycznie zaszła.
      Panel ma też przełącznik **Anektuj napotkane pola** - gdy włączony na
-     danym ludziku, automatycznie aneksuje KAŻDE niczyje pole, przez które
-     ten ludzik przejdzie podczas wykonywania trasy (także wielorundowej),
-     bez ręcznego klikania po każdym kroku; brak MP na akurat tę jedną
-     aneksację nie zatrzymuje trasy - po prostu pomija to pole. (Auto-aneksja
-     dotyczy tylko NICZYJICH pól - przejęcie terenu gracza zawsze wymaga
-     ręcznego kliknięcia, ze względu na jego karny charakter przy porażce.)
+     danym ludziku, automatycznie aneksuje KAŻDE niczyje pole (i sąsiadujące
+     z już posiadanym - powyższy warunek dotyczy też auto-aneksacji), przez
+     które ten ludzik przejdzie podczas wykonywania trasy (także
+     wielorundowej), bez ręcznego klikania po każdym kroku; brak MP na akurat
+     tę jedną aneksację nie zatrzymuje trasy - po prostu pomija to pole.
+     (Auto-aneksja dotyczy tylko NICZYJICH pól - przejęcie terenu gracza
+     zawsze wymaga ręcznego kliknięcia, ze względu na jego karny charakter
+     przy porażce.) **Podgląd kosztu trasy uwzględnia auto-aneksację**
+     (nowość) - jeśli przełącznik jest włączony, "koszt X MP" pokazywany przy
+     podglądzie trasy dolicza też koszt aneksacji każdego obecnie niczyjego
+     pola na niej, więc trasa z włączonym auto-anektowaniem wychodzi (trafnie)
+     droższa i może wymagać więcej rund, żeby dotrzeć do celu.
    - **Rozwijana lista graczy** ("Zmiana gracza") — wybierz z listy KONKRETNEGO
      gracza, na którego chcesz przełączyć kontrolę (nie ma już cyklicznego
      "następny gracz"). Nie kończy niczyjej tury, nie wpływa na rundę.
@@ -207,9 +221,12 @@ godot_project/
 │   │                              # dodaje kolejnego bez zmian w reszcie logiki)
 │   ├── city_card_panel.gd        # UI Karty Miasta (osobny ekran, sekcja 7 GDD)
 │   ├── skill_tree_panel.gd       # UI Drzewka Umiejętności - radialny graf,
-│   │                              # prawie cały ekran, najwyższa warstwa UI
-│   ├── skill_graph_view.gd       # rysuje węzeł centralny + linie do kart
-│   │                              # (Drzewko Umiejętności) - Control._draw()
+│   │                              # prawie cały ekran, najwyższa warstwa UI,
+│   │                              # jedno współdzielone okienko szczegółów
+│   ├── skill_graph_view.gd       # rysuje węzeł centralny + linie do węzłów
+│   │                              # (Drzewko Umiejętności) + pan/zoom myszką
+│   ├── skill_node_dot.gd         # pojedynczy węzeł drzewka - kropka (na razie),
+│   │                              # gotowa pod podmianę na obrazek (sprite_texture)
 │   └── main_test.tscn / main_test.gd   # smoke test Fazy 0-1 + Faz 6-9 (bez grafiki)
 ├── theme/
 │   └── ui_theme.tres          # WYGLĄD całego UI w jednym miejscu (panele,
@@ -264,13 +281,13 @@ Umiejętności":
 | Logistyka terytorialna | -1 MP kosztu aneksacji (min. 1) | 20 miedzi, 5 uranu |
 
 Ekran wygląda jak **radialny graf** (nie zwykła lista) — centralny węzeł
-"START" i karty umiejętności rozstawione promieniście wokół niego, połączone
+"START" i węzły umiejętności rozstawione promieniście wokół niego, połączone
 liniami (`scenes/skill_graph_view.gd`, rysowane `_draw()`, ten sam wzorzec co
 siatka heksów w `hex_map_view.gd`). Skille są na razie logicznie płaskie
 (żaden nie wymaga odblokowania innego najpierw), ale układ graficzny jest
 gotowy pod prawdziwe zależności w przyszłości - wystarczyłoby dodać do
 `SkillData` listę wymaganych `skill_id` i sprawdzać ją przy odblokowaniu, bez
-zmiany samego rysowania. Karty są pozycjonowane RĘCZNIE
+zmiany samego rysowania. Węzły są pozycjonowane RĘCZNIE
 (`Control.position`, nie w kontenerze) na promieniu wyliczonym w
 `SkillTreePanel._refresh()` tak, żeby zawsze mieściły się w obszarze grafu i
 się nie nakładały (`RADIUS_SAFETY_MARGIN`). Ekran otwiera się jako
@@ -282,11 +299,32 @@ poprawnie niezależnie od rozmiaru okna, patrz "UI skaluje się z oknem" niżej)
 i **ma w pełni nieprzezroczyste tło** (tak jak reszta paneli - alpha=1 w
 `theme/ui_theme.tres`).
 
+**Węzły to na razie kropki** (nowość) - `scenes/skill_node_dot.gd`
+(`SkillNodeDot`) rysuje domyślnie kolorowe kółko (kolor zależny od stanu:
+zablokowany / stać cię na niego / odblokowany), ale ma gotowy slot
+`sprite_texture` (ten sam wzorzec co `Ludzik.sprite_texture`) - podmiana na
+obrazki w przyszłości to tylko przypisanie tekstur, bez zmiany reszty logiki.
+
+**Szczegóły w jednym współdzielonym okienku** (nowość, zamiast rozwijanej
+karty) - nazwa, opis, koszt i przycisk odblokowania pokazują się w
+`SkillPopup`, pozycjonowanym obok aktualnego węzła
+(`_position_popup_near()`, przez `get_global_rect()` węzła - uwzględnia
+bieżący pan/zoom grafu bez ręcznego przeliczania). Dwa niezależne
+wyzwalacze:
+- **Najechanie myszką** na węzeł pokazuje okienko TYMCZASOWO - znika, gdy
+  mysz zjedzie i z węzła, i z samego okienka (jednoklatkowe opóźnienie w
+  `_schedule_hide_check()`, żeby przejście myszką z węzła NA okienko - np.
+  żeby kliknąć przycisk - nie powodowało migotania).
+- **Kliknięcie** węzła PRZYPINA okienko (`_pinned = true`) - zostaje
+  widoczne niezależnie od dalszego hovera, dopóki gracz nie kliknie w INNY
+  węzeł (który przejmuje przypięcie) - kliknięcie poza jakimkolwiek węzłem
+  nic nie zmienia.
+
 **Nawigacja myszką po grafie** (nowość) - dokładnie jak po mapie: prawy
 przycisk + przeciąganie przesuwa widok, scroll przybliża/oddala
-(`scenes/skill_graph_view.gd`, `MIN_ZOOM`/`MAX_ZOOM`/`ZOOM_STEP`). Karty
+(`scenes/skill_graph_view.gd`, `MIN_ZOOM`/`MAX_ZOOM`/`ZOOM_STEP`). Węzły
 żyją w osobnym kontenerze `GraphContent`, którego `position`/`scale` steruje
-ten sam skrypt - pan/zoom przesuwa i skaluje linie oraz karty naraz, zawsze
+ten sam skrypt - pan/zoom przesuwa i skaluje linie oraz węzły naraz, zawsze
 spójnie. Nawigacja jest obsłużona przez `_gui_input()` (standardowy sposób,
 w jaki Controle w Godocie łapią mysz), więc **mapa pod spodem NIE reaguje**,
 dopóki ekran jest otwarty - zdarzenie zostaje pochłonięte tutaj, zanim
@@ -295,12 +333,6 @@ dotrze do kamery mapy (`camera_controller.gd`) czy klikania heksów
 domknąć też margines dookoła `Panel` (40px, poza samym grafem), doszedł
 `InputBlocker` - niewidoczny, pełnoekranowy `Control` w tej samej warstwie
 CanvasLayer, który pochłania wszystko, czego nie złapał już sam `Panel`.
-
-**Szczegóły skilla tylko na najechanie myszką** (nowość) - karta na stałe
-pokazuje wyłącznie nazwę; opis, koszt i przycisk odblokowania są ukryte
-(`details.visible = false`) i pojawiają się dopiero po `mouse_entered` na
-tej konkretnej karcie (znikają z powrotem na `mouse_exited`) - standardowe
-sygnały hover na `Control`, bez potrzeby własnej obsługi myszy.
 
 Mechanizm płatności jest identyczny jak w Karcie Miasta
 (`PlayerData.can_afford`/`pay_costs`, `GameManager.unlock_skill()` -
@@ -410,6 +442,48 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **Aneksacja wymaga sąsiedztwa z własnym terytorium; stolice chronione
+  przed przejęciem** (nowość). `GameManager.annex_hex()` przyjął parametr
+  `require_adjacency: bool = true` - domyślnie odmawia aneksacji pola, które
+  nie graniczy z ŻADNYM polem już należącym do tego gracza
+  (`has_adjacent_owned_hex()`, publiczna metoda, używana też przez
+  `game_map_controller._can_annex_selected_hex()`, żeby przycisk był
+  wyszarzony zamiast dawać błąd dopiero po kliknięciu). Jedyne wywołanie z
+  `require_adjacency = false` to POCZĄTKOWA aneksacja stolicy gracza w
+  `_setup_players()` - w tym momencie gracz jeszcze nic nie posiada, więc
+  normalny wymóg byłby niespełnialny. Ta sama linijka ustawia nowe pole
+  `HexData.is_capital = true` na heksie stolicy - `GameManager.attempt_takeover()`
+  odmawia przejęcia siłą każdego heksa z tą flagą (`"capital_protected"`),
+  więc stolica żadnego gracza nie da się nigdy podbić, niezależnie od
+  przewagi prestiżowej atakującego.
+- **Podgląd kosztu trasy uwzględnia auto-aneksację** (nowość).
+  `_route_cost()` w `game_map_controller.gd` przyjął parametr `ludzik` - jeśli
+  `ludzik.auto_annex` jest włączone, dolicza do sumy MP koszt aneksacji
+  (`_effective_annex_cost_for()`) każdego OBECNIE niczyjego pola na
+  podglądanej trasie, nie tylko koszt samego ruchu. To celowo tylko
+  OSZACOWANIE z góry (nie symuluje kaskadowo, że wcześniejsza aneksacja może
+  odblokować sąsiedztwo dla kolejnej) - wystarczająco dokładne jako
+  informacja "ile MP to zajmie / ile rund to potrwa", a faktyczne
+  wykonanie trasy (`_advance_queued_route`/`_auto_annex_hex`) i tak
+  weryfikuje każdą aneksację osobno w momencie dotarcia na pole. Przełącznik
+  "Anektuj napotkane pola" odświeża teraz też panel trasy po zmianie
+  (`_on_auto_annex_toggled`), żeby podgląd kosztu był zawsze aktualny.
+- **Drzewko Umiejętności: węzły to kropki (gotowe pod obrazki), szczegóły w
+  jednym przypinanym okienku** (update wyglądu/UX, zastępuje karty z
+  poprzedniej iteracji). `scenes/skill_node_dot.gd` (`SkillNodeDot`) rysuje
+  domyślnie kolorowe kółko (kolor zależny od stanu - zablokowany/stać cię
+  na niego/odblokowany), z gotowym slotem `sprite_texture` (ten sam wzorzec
+  co `Ludzik.sprite_texture`) pod przyszłą podmianę na obrazki, bez zmiany
+  reszty logiki. Nazwa/opis/koszt/przycisk odblokowania przeniesione z
+  osobnej karty per skill do JEDNEGO współdzielonego `SkillPopup`,
+  pozycjonowanego obok aktualnego węzła (`_position_popup_near()`, przez
+  `dot.get_global_rect()` - uwzględnia bieżący pan/zoom grafu bez ręcznego
+  przeliczania transformacji). Dwa niezależne wyzwalacze: najechanie
+  myszką pokazuje okienko TYMCZASOWO (znika, gdy mysz zjedzie i z węzła, i z
+  okienka - `_schedule_hide_check()` z jednoklatkowym opóźnieniem, żeby
+  przejście myszką z węzła NA okienko po przycisk nie powodowało migotania);
+  kliknięcie węzła PRZYPINA okienko (`_pinned = true`) - zostaje widoczne
+  niezależnie od dalszego hovera, dopóki gracz nie kliknie w INNY węzeł.
 - **Przejęcie terenu gracza: wymaga fizycznej obecności, zawsze da się
   spróbować, nowy wzór na konsekwencje przegranej próby** (update, sekcja 5
   GDD). `GameManager.attempt_takeover()` przestał być twardą blokadą przy

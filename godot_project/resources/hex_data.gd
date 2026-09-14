@@ -91,6 +91,12 @@ const MOVEMENT_COST = {
 ## -1 = niczyj
 @export var owner_id: int = -1
 
+## Czy to heks stolicy (miasta startowego) jakiegoś gracza - ustawiane raz w
+## game_map_controller._setup_players() dla każdego `start_hex` z
+## PlayerSetup.LIST. Stolice są chronione przed przejęciem siłą (PvP) -
+## patrz GameManager.attempt_takeover().
+@export var is_capital: bool = false
+
 ## Stan mgły wojny per gracz: player_id(int) -> "unexplored" | "seen" | "annexed"
 ## Nie eksportowane celowo - stan rozgrywki, nie dane startowe heksa.
 var fog_state: Dictionary = {}

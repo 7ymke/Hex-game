@@ -221,5 +221,25 @@ script = ExtResource("8")
 [node name="GraphContent" type="Control" parent="SkillTreePanel/Panel/VBox/GraphArea"]
 mouse_filter = 2
 
+[node name="SkillPopup" type="PanelContainer" parent="SkillTreePanel/Panel/VBox/GraphArea"]
+theme = ExtResource("7")
+visible = false
+custom_minimum_size = Vector2(260, 0)
+
+[node name="VBox" type="VBoxContainer" parent="SkillTreePanel/Panel/VBox/GraphArea/SkillPopup"]
+theme_override_constants/separation = 6
+
+[node name="PopupNameLabel" type="Label" parent="SkillTreePanel/Panel/VBox/GraphArea/SkillPopup/VBox"]
+theme_override_font_sizes/font_size = 16
+text = "Nazwa skilla"
+
+[node name="PopupInfoLabel" type="Label" parent="SkillTreePanel/Panel/VBox/GraphArea/SkillPopup/VBox"]
+custom_minimum_size = Vector2(236, 0)
+autowrap_mode = 2
+text = "Opis"
+
+[node name="PopupUnlockButton" type="Button" parent="SkillTreePanel/Panel/VBox/GraphArea/SkillPopup/VBox"]
+text = "Odblokuj"
+
 [node name="CloseButton" type="Button" parent="SkillTreePanel/Panel/VBox"]
 text = "Zamknij"

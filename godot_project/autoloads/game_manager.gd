@@ -44,18 +44,38 @@ func change_prestige(player_id: int, delta: int) -> void:
 ## Same aneksacja strefy chronionej NIE karze już prestiżem (update) - kara
 ## nalicza się dopiero, gdy ktoś faktycznie zabuduje/naprawi budynek na takim
 ## terenie (patrz `repair_building`).
-func annex_hex(hex_id: String, player_id: int) -> Dictionary:
+##
+## Update: aneksować można TYLKO pole sąsiadujące z już posiadanym polem
+## tego samego gracza (terytorium musi rosnąć spójnie, nie "skakać" po
+## mapie) - `require_adjacency` domyślnie true. Jedyny wyjątek to POCZĄTKOWA
+## aneksacja stolicy gracza (`game_map_controller._setup_players()`), gdzie
+## gracz jeszcze NIC nie posiada, więc wymóg sąsiedztwa byłby niespełnialny -
+## tam wywołanie jawnie przekazuje `false`.
+func annex_hex(hex_id: String, player_id: int, require_adjacency: bool = true) -> Dictionary:
 	var hex = MapData.get_hex(hex_id)
 	if hex == null:
 		return {"success": false, "reason": "hex_not_found"}
 	if hex.owner_id != -1:
 		return {"success": false, "reason": "already_owned"}
+	if require_adjacency and not has_adjacent_owned_hex(hex_id, player_id):
+		return {"success": false, "reason": "not_adjacent"}
 
 	hex.owner_id = player_id
 	hex.set_fog_state(player_id, "annexed")
 	hex_ownership_changed.emit(hex_id, player_id)
 
 	return {"success": true, "terrain": hex.terrain_type, "resource": hex.resource_type}
+
+
+## Czy `hex_id` ma choć jednego sąsiada należącego do `player_id` - warunek
+## aneksacji (wyżej) i podstawa stanu przycisku "Zaanektuj" w
+## game_map_controller.gd (`_can_annex_selected_hex()`), żeby UI i faktyczna
+## reguła zawsze się zgadzały.
+func has_adjacent_owned_hex(hex_id: String, player_id: int) -> bool:
+	for neighbor in MapData.get_neighbors(hex_id):
+		if neighbor.owner_id == player_id:
+			return true
+	return false
 
 
 ## Wydobycie lasu - sekcja 6.1 GDD.
@@ -150,6 +170,8 @@ func attempt_takeover(hex_id: String, attacker_id: int) -> Dictionary:
 		return {"success": false, "reason": "no_owner"}
 	if hex.owner_id == attacker_id:
 		return {"success": false, "reason": "already_owner"}
+	if hex.is_capital:
+		return {"success": false, "reason": "capital_protected"}
 
 	var attacker = get_player(attacker_id)
 	var defender = get_player(hex.owner_id)
