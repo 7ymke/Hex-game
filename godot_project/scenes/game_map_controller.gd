@@ -431,30 +431,44 @@ func _on_cancel_route_pressed() -> void:
 ## ludzika z ustawionym `route_destination` - jeśli przeciwnik zmienił
 ## pozycję (odsłonił poprzednio zablokowany cel albo zablokował dotychczasową
 ## ścieżkę), trasa się na to reaguje automatycznie, bez ręcznej interwencji.
+## Poza samą kontynuacją tras (`queued_route` niepuste) woła
+## `_advance_queued_route()` też dla ludzika BEZ żadnej aktywnej trasy, jeśli
+## akurat stoi na polu czekającym na automatyczną aneksację
+## (`_current_hex_needs_auto_annex()`) - patrz komentarz przy
+## `_advance_queued_route()`, dlaczego to osobny, niezależny od
+## `queued_route`/`route_destination` warunek (m.in. pole, na którym ludzik
+## utknął z brakiem MP dokładnie NA celu trasy, już bez żadnych kolejnych
+## kroków w `queued_route`).
 func _continue_all_queued_routes() -> void:
 	for pid in player_ludziks:
 		for l in player_ludziks[pid]:
 			if l.route_destination != "":
 				_recompute_route(l)
-			if not l.queued_route.is_empty():
+			if not l.queued_route.is_empty() or _current_hex_needs_auto_annex(l):
 				await _advance_queued_route(l)
 
 
 ## Przelicza trasę ludzika do jego prawdziwego celu (`route_destination`) na
 ## nowo, aktualnymi blokadami - wołane na starcie każdej rundy
 ## (`_continue_all_queued_routes`). Obsługuje trzy sytuacje: (1) ludzik już
-## stoi na celu (np. dotarł tam skądinąd) -> trasa skończona; (2) jest droga
-## (choćby częściowa, do najbliższego osiągalnego pola, jeśli cel wciąż
-## zablokowany) -> `queued_route` dostaje świeżą ścieżkę; (3) nie ma żadnej
-## drogi (np. ludzik sam jest otoczony) -> `queued_route` pozostaje puste,
-## ludzik czeka w miejscu, spróbuje ponownie w kolejnej rundzie.
+## stoi na celu I nie ma tam już nic do zaanektowania -> trasa skończona;
+## (2) jest droga (choćby częściowa, do najbliższego osiągalnego pola, jeśli
+## cel wciąż zablokowany) -> `queued_route` dostaje świeżą ścieżkę; (3) nie
+## ma żadnej drogi (np. ludzik sam jest otoczony) -> `queued_route` pozostaje
+## puste, ludzik czeka w miejscu, spróbuje ponownie w kolejnej rundzie.
 func _recompute_route(ludzik: Ludzik) -> void:
 	if ludzik.route_destination == "" or ludzik.is_moving:
 		return
 
 	if ludzik.current_hex_id == ludzik.route_destination:
-		ludzik.route_destination = ""
-		ludzik.queued_route = []
+		# Dotarł na miejsce - ALE jeśli to pole wciąż czeka na automatyczną
+		# aneksację (zabrakło MP w poprzedniej rundzie), trasa NIE jest
+		# jeszcze skończona - `route_destination` zostaje ustawiony, żeby
+		# `_continue_all_queued_routes()` wciąż wołało `_advance_queued_route()`
+		# co rundę, aż starczy MP na aneksację (patrz tam).
+		if not _current_hex_needs_auto_annex(ludzik):
+			ludzik.route_destination = ""
+			ludzik.queued_route = []
 		return
 
 	var blocked = _blocked_hexes_for(ludzik.player_id)
@@ -473,19 +487,52 @@ func _recompute_route(ludzik: Ludzik) -> void:
 ## podglądu) - trasa może czekać na wykonanie kilka rund, w międzyczasie
 ## sytuacja na polu mogła się zmienić.
 ##
-## Aneksacja ma PIERWSZEŃSTWO nad samym przejściem: jeśli "Anektuj napotkane
-## pola" jest włączone i pole faktycznie kwalifikuje się do aneksacji
-## (niczyje i sąsiadujące z już posiadanym - patrz GameManager.has_adjacent_owned_hex),
-## ruch na nie i aneksacja liczą się jako JEDNA nierozdzielna akcja - ludzik
-## WOLI POCZEKAĆ do kolejnej rundy (więcej MP), niż wejść na pole i pominąć
-## jego aneksację z braku MP. Pole, które i tak nie kwalifikuje się do
+## Aneksacja pola, na którym ludzik AKTUALNIE stoi, ma PIERWSZEŃSTWO nad
+## dalszym ruchem - sprawdzana na POCZĄTKU KAŻDEJ iteracji pętli (nie tylko
+## raz na starcie funkcji), więc obejmuje też pole, na które ludzik dopiero
+## co wszedł w TEJ SAMEJ rundzie: "wejdź i zaanektuj" nadal dzieje się
+## jednym ciągiem w JEDNEJ rundzie, kiedy starcza MP na oba, a rozdziela się
+## na dwie rundy TYLKO wtedy, gdy naprawdę brakuje MP na samą aneksację -
+## ludzik i tak już zrobił krok naprzód, zamiast bezczynnie stać w miejscu
+## (update - naprawiony błąd: wcześniej "wejście na pole + aneksacja" było
+## JEDNĄ nierozdzielną akcją sprawdzaną PRZED ruchem, więc gdy brakowało MP
+## tylko na aneksację, ludzik w OGÓLE się nie ruszał - marnując w tej rundzie
+## punkty ruchu, które i tak przepadają bezpowrotnie na koniec rundy, zamiast
+## chociaż zrobić krok bliżej celu). Pole, które i tak nie kwalifikuje się do
 ## aneksacji (np. brak sąsiedztwa), nie blokuje ruchu - nie ma na co czekać.
+##
+## Ta sama logika obsługuje też ludzika BEZ żadnego ruchu do wykonania
+## (`queued_route` puste) - w tym przypadku funkcja próbuje TYLKO zaanektować
+## bieżące pole (patrz `_current_hex_needs_auto_annex`/
+## `_continue_all_queued_routes`, które w takiej sytuacji wciąż ją wołają) -
+## dotyczy to zarówno pola będącego prawdziwym celem trasy (dotarł, ale
+## zabrakło MP na aneksację w poprzedniej rundzie), jak i ludzika w ogóle bez
+## aktywnej trasy, który akurat stoi na kwalifikującym się polu (np. inny
+## ludzik tego samego gracza w międzyczasie zaanektował sąsiada).
 func _advance_queued_route(ludzik: Ludzik) -> void:
-	if ludzik.queued_route.is_empty() or ludzik.is_moving:
+	if ludzik.is_moving:
+		return
+	if ludzik.queued_route.is_empty() and not _current_hex_needs_auto_annex(ludzik):
 		return
 
 	ludzik.is_moving = true
-	while not ludzik.queued_route.is_empty():
+	while true:
+		if _current_hex_needs_auto_annex(ludzik):
+			var annex_cost_here = _effective_annex_cost_for(ludzik.player_id)
+			if ludzik.movement_points_current < annex_cost_here:
+				info_label.text = (
+					"Brak punktów ruchu na aneksację %s (potrzeba %d MP) - spróbuje ponownie w kolejnej rundzie."
+					% [ludzik.current_hex_id, annex_cost_here]
+				)
+				break
+			_auto_annex_hex(ludzik, ludzik.current_hex_id)
+			_update_mp_label()
+			_refresh_map_view()
+			continue  # sprawdź od nowa - może kwalifikować się kolejne pole (nie tu), albo można iść dalej
+
+		if ludzik.queued_route.is_empty():
+			break
+
 		var next_hex_id: String = ludzik.queued_route[0]
 		var next_hex = MapData.get_hex(next_hex_id)
 
@@ -500,21 +547,8 @@ func _advance_queued_route(ludzik: Ludzik) -> void:
 			break  # queued_route zostaje - spróbuje ponownie w kolejnej rundzie
 
 		var move_cost = next_hex.get_movement_cost()
-		var will_annex = (
-			ludzik.auto_annex and next_hex.owner_id == -1
-			and GameManager.has_adjacent_owned_hex(next_hex_id, ludzik.player_id)
-		)
-		var annex_cost = _effective_annex_cost_for(ludzik.player_id) if will_annex else 0
-		var required = move_cost + annex_cost
-
-		if ludzik.movement_points_current < required:
-			if will_annex:
-				info_label.text = (
-					"Brak punktów ruchu na wejście i aneksację %s (potrzeba %d MP) - trasa będzie kontynuowana w kolejnej rundzie."
-					% [next_hex_id, required]
-				)
-			else:
-				info_label.text = "Brak punktów ruchu - trasa będzie kontynuowana w kolejnej rundzie."
+		if ludzik.movement_points_current < move_cost:
+			info_label.text = "Brak punktów ruchu - trasa będzie kontynuowana w kolejnej rundzie."
 			break
 
 		ludzik.spend_movement_points(move_cost)
@@ -523,19 +557,23 @@ func _advance_queued_route(ludzik: Ludzik) -> void:
 		ludzik.queued_route.remove_at(0)
 		_reveal_around(next_hex_id, ludzik.player_id)
 
-		if will_annex:
-			_auto_annex_hex(ludzik, next_hex_id)
-
 		_update_mp_label()
 		_refresh_map_view()
+		# Kolejna iteracja pętli od razu sprawdzi `_current_hex_needs_auto_annex()`
+		# dla pola, na które ludzik właśnie wszedł - jeśli starczy MP, zaanektuje
+		# je w TEJ SAMEJ rundzie, zanim spróbuje pójść dalej (patrz komentarz funkcji).
 
 	ludzik.is_moving = false
 	if ludzik == selected_ludzik:
 		_set_selected_hex(ludzik.current_hex_id)
-	if ludzik.queued_route.is_empty():
-		if ludzik.current_hex_id == ludzik.route_destination or ludzik.route_destination == "":
-			ludzik.route_destination = ""
-			info_label.text = "Ludzik dotarł do celu trasy (%s)." % ludzik.current_hex_id
+	if ludzik.route_destination != "" and ludzik.queued_route.is_empty():
+		if ludzik.current_hex_id == ludzik.route_destination:
+			if not _current_hex_needs_auto_annex(ludzik):
+				ludzik.route_destination = ""
+				info_label.text = "Ludzik dotarł do celu trasy (%s)." % ludzik.current_hex_id
+			# W przeciwnym razie dotarł, ale wciąż czeka na MP do aneksacji tego
+			# pola - `route_destination` zostaje, `info_label` ma już właściwy
+			# komunikat ustawiony wyżej w pętli ("Brak punktów ruchu na aneksację...").
 		else:
 			info_label.text = (
 				"Ludzik dotarł najbliżej jak się dało (%s) - czeka, aż pole %s stanie się osiągalne."
@@ -700,14 +738,16 @@ func _on_annex_pressed() -> void:
 	_refresh_route_panel()
 
 
-## Aneksuje automatycznie napotkany po drodze heks - skrót "Anektuj napotkane
-## pola" w panelu "Trasa ludzika" (Ludzik.auto_annex), wołany z
-## _advance_queued_route() po KAŻDYM kroku trasy. Ten sam mechanizm płatności
-## co ręczna aneksacja (_on_annex_pressed), ale bez dotykania UI/selected_hex_id
-## - może zajść dla DOWOLNEGO ludzika, w tym w trakcie automatycznej
-## kontynuacji trasy po przeliczeniu rundy (_continue_all_queued_routes),
-## niekoniecznie tego aktualnie zaznaczonego. Brak MP na samą aneksację nie
-## przerywa trasy - po prostu pomija to pole i jedzie dalej.
+## Aneksuje automatycznie heks, na którym ludzik AKTUALNIE stoi - skrót
+## "Anektuj napotkane pola" w panelu "Trasa ludzika" (Ludzik.auto_annex),
+## wołany z _advance_queued_route() (patrz tam - ZAWSZE poprzedzony
+## sprawdzeniem `_current_hex_needs_auto_annex()` + wystarczającego MP, więc
+## `spend_movement_points()` tutaj w praktyce nigdy nie zawodzi z braku MP;
+## zostaje jako zabezpieczenie). Ten sam mechanizm płatności co ręczna
+## aneksacja (_on_annex_pressed), ale bez dotykania UI/selected_hex_id - może
+## zajść dla DOWOLNEGO ludzika, w tym w trakcie automatycznej kontynuacji
+## trasy po przeliczeniu rundy (_continue_all_queued_routes), niekoniecznie
+## tego aktualnie zaznaczonego.
 func _auto_annex_hex(ludzik: Ludzik, hex_id: String) -> void:
 	var annex_cost = _effective_annex_cost_for(ludzik.player_id)
 	if not ludzik.spend_movement_points(annex_cost):
@@ -719,6 +759,24 @@ func _auto_annex_hex(ludzik: Ludzik, hex_id: String) -> void:
 		info_label.text = "Automatycznie zaanektowano %s." % hex_id
 	else:
 		ludzik.refund_movement_points(annex_cost)
+
+
+## Czy heks, na którym ludzik AKTUALNIE stoi, kwalifikuje się do automatycznej
+## aneksacji (włączone "Anektuj napotkane pola", pole niczyje, sąsiaduje z już
+## posiadanym) - współdzielona przez _advance_queued_route() (priorytet
+## aneksacji nad dalszym ruchem, patrz tam), _continue_all_queued_routes()
+## (decyduje, czy w ogóle wołać _advance_queued_route() dla ludzika BEZ
+## aktywnej trasy - patrz tam) i _recompute_route()/_refresh_route_panel()
+## (żeby nie ogłaszać trasy za skończoną/nie mylić stanu "czeka na MP do
+## aneksacji" ze stanem "czeka, bo cel zajął przeciwnik").
+func _current_hex_needs_auto_annex(ludzik: Ludzik) -> bool:
+	if not ludzik.auto_annex:
+		return false
+	var hex = MapData.get_hex(ludzik.current_hex_id)
+	return (
+		hex != null and hex.owner_id == -1
+		and GameManager.has_adjacent_owned_hex(ludzik.current_hex_id, ludzik.player_id)
+	)
 
 
 func _on_auto_annex_toggled(pressed: bool) -> void:
@@ -1069,13 +1127,34 @@ func _refresh_route_panel() -> void:
 		cancel_route_button.visible = true
 		cancel_route_button.text = "Anuluj trasę"
 	elif selected_ludzik.route_destination != "":
-		route_info_label.text = (
-			"Ludzik czeka na miejscu - pole %s jest obecnie zajęte przez przeciwnika. Trasa ruszy dalej automatycznie, gdy się zwolni."
-			% selected_ludzik.route_destination
-		)
+		if selected_ludzik.route_destination == selected_ludzik.current_hex_id:
+			# Dotarł na miejsce, ale zabrakło MP na automatyczną aneksację tego
+			# pola w poprzedniej rundzie (patrz _advance_queued_route) - to
+			# INNY stan niż "cel zajęty przez przeciwnika" niżej, mimo że oba
+			# mają puste `queued_route` i ustawiony `route_destination`.
+			route_info_label.text = (
+				"Ludzik dotarł na miejsce (%s), ale brakuje MP na aneksację - zaanektuje automatycznie, gdy tylko starczy."
+				% selected_ludzik.route_destination
+			)
+		else:
+			route_info_label.text = (
+				"Ludzik czeka na miejscu - pole %s jest obecnie zajęte przez przeciwnika. Trasa ruszy dalej automatycznie, gdy się zwolni."
+				% selected_ludzik.route_destination
+			)
 		confirm_route_button.visible = false
 		cancel_route_button.visible = true
 		cancel_route_button.text = "Anuluj trasę"
+	elif _current_hex_needs_auto_annex(selected_ludzik):
+		# Bez żadnej aktywnej trasy (np. po Anuluj), ale wciąż czeka na MP,
+		# żeby automatycznie zaanektować pole, na którym akurat stoi - patrz
+		# _continue_all_queued_routes(), które i tak co rundę spróbuje to
+		# dokończyć niezależnie od tego, czy trasa istnieje.
+		route_info_label.text = (
+			"Ludzik czeka na miejscu (%s) - zaanektuje automatycznie, gdy tylko starczy MP."
+			% selected_ludzik.current_hex_id
+		)
+		confirm_route_button.visible = false
+		cancel_route_button.visible = false
 	else:
 		route_info_label.text = "Kliknij pole na mapie, żeby zaplanować trasę."
 		confirm_route_button.visible = false

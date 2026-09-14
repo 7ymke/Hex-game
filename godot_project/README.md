@@ -163,14 +163,20 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
      danym ludziku, automatycznie aneksuje KAŻDE niczyje pole (i sąsiadujące
      z już posiadanym - powyższy warunek dotyczy też auto-aneksacji), przez
      które ten ludzik przejdzie podczas wykonywania trasy (także
-     wielorundowej), bez ręcznego klikania po każdym kroku. **Aneksacja ma
-     pierwszeństwo nad samym przejściem** (nowość) - jeśli danego pola NIE
-     dałoby się zaanektować z braku MP (ale dałoby się na nie wejść), ludzik
-     WOLI POCZEKAĆ do kolejnej rundy (więcej MP), niż wejść na nie i pominąć
-     aneksację - ruch i aneksacja liczą się razem jako jedna nierozdzielna
-     akcja. Pole, które i tak nie kwalifikuje się do aneksacji (np. nie
-     sąsiaduje jeszcze z niczym posiadanym), nie wstrzymuje trasy - nie ma na
-     co czekać, więc ludzik po prostu przez nie przechodzi.
+     wielorundowej), bez ręcznego klikania po każdym kroku. **Aneksacja pola,
+     na którym ludzik AKTUALNIE stoi, ma pierwszeństwo nad dalszym ruchem**
+     (update) - jeśli akurat brakuje MP na aneksację, ludzik NIE idzie dalej
+     pomijając to pole, tylko czeka na nim, aż starczy MP (w kolejnej
+     rundzie). Ludzik NIE marnuje jednak przy tym ruchu, na który akurat MU
+     starcza - wejście na pole i jego aneksacja są osobnymi krokami: gdy
+     starcza MP na oba, dzieją się jedno po drugim w TEJ SAMEJ rundzie (jak
+     dotąd); gdy starcza tylko na wejście, ludzik i tak robi ten krok, a samą
+     aneksację dokańcza na początku kolejnej rundy - zamiast bezczynnie stać
+     w miejscu przez całą rundę tylko dlatego, że nie starczyłoby na oba
+     naraz (MP, których by tak czy inaczej nie zużył, i tak przepadają na
+     koniec rundy). Pole, które i tak nie kwalifikuje się do aneksacji (np.
+     nie sąsiaduje jeszcze z niczym posiadanym), nie wstrzymuje trasy - nie
+     ma na co czekać, więc ludzik po prostu przez nie przechodzi.
      (Auto-aneksja dotyczy tylko NICZYJICH pól - przejęcie terenu gracza
      zawsze wymaga ręcznego kliknięcia, ze względu na jego karny charakter
      przy porażce.) **Podgląd kosztu trasy uwzględnia auto-aneksację**
@@ -599,20 +605,44 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   weryfikuje każdą aneksację osobno w momencie dotarcia na pole. Przełącznik
   "Anektuj napotkane pola" odświeża teraz też panel trasy po zmianie
   (`_on_auto_annex_toggled`), żeby podgląd kosztu był zawsze aktualny.
-- **Aneksacja podczas trasy ma pierwszeństwo nad samym przejściem** (nowość).
-  Wcześniej `_advance_queued_route()` sprawdzał tylko koszt WEJŚCIA na pole -
-  jeśli auto-aneksacja akurat nie miała już MP na samą aneksację, ludzik i
-  tak wchodził na pole, pomijając je (cichy fail w `_auto_annex_hex()`). Teraz,
-  dla pola które FAKTYCZNIE kwalifikuje się do aneksacji (niczyje i
-  sąsiadujące z już posiadanym - `GameManager.has_adjacent_owned_hex()`), ruch
-  i aneksacja liczą się jako JEDNA nierozdzielna akcja: pętla sprawdza
-  `movement_points_current` względem SUMY kosztu wejścia i aneksacji
-  (`required = move_cost + annex_cost`) PRZED ruszeniem się - jeśli nie
-  starcza, trasa zatrzymuje się w miejscu (heks zostaje na początku
-  `queued_route`, nietknięty) zamiast wchodzić i pomijać. Pole, które nie
-  kwalifikuje się do aneksacji z innego powodu (np. brak sąsiedztwa) nadal
-  NIE wstrzymuje ruchu - nie ma sensu czekać na MP, które i tak nie
-  rozwiążą problemu sąsiedztwa.
+- **Aneksacja podczas trasy ma pierwszeństwo nad samym przejściem - ale NIE
+  kosztem zbędnego czekania w miejscu** (update, druga iteracja tej reguły).
+  Pierwsza wersja (opisana niżej w starszym wpisie) traktowała "wejście na
+  pole + aneksacja" jako JEDNĄ nierozdzielną akcję sprawdzaną PRZED ruchem
+  (`required = move_cost + annex_cost`) - to naprawiło cichy fail (ludzik
+  wchodził i pomijał aneksację z braku MP), ale wprowadziło NOWY błąd: jeśli
+  starczało MP na sam ruch, ale nie na aneksację, ludzik w ogóle się nie
+  ruszał, mimo że stał na WŁASNYM, już zaanektowanym terytorium i próbował
+  wejść na sąsiednie pole - a punkty ruchu, których i tak nie zużył, po
+  prostu przepadają na koniec rundy (nie kumulują się), więc całą rundę
+  marnował "na zero" zamiast zrobić chociaż krok bliżej celu. Naprawione
+  przez odwrócenie kolejności sprawdzania: `_advance_queued_route()`
+  sprawdza na POCZĄTKU KAŻDEJ iteracji pętli (nowe `_current_hex_needs_auto_annex()`),
+  czy pole, na którym ludzik AKTUALNIE stoi, kwalifikuje się do aneksacji -
+  jeśli tak i starcza MP, aneksuje je od razu (nawet jeśli to pole, na które
+  dopiero co wszedł w TEJ SAMEJ rundzie - "wejdź i zaanektuj" nadal dzieje
+  się jednym ciągiem, kiedy starcza MP na oba); jeśli nie starcza, pętla
+  ZATRZYMUJE SIĘ TU (priorytet aneksacji wciąż obowiązuje - ludzik NIE idzie
+  dalej, pomijając to pole), ale ruch, który już wykonał w tej rundzie,
+  zostaje - MP nie idą na marne. Aneksacja więc rozkłada się na kolejną
+  rundę TYLKO wtedy, gdy naprawdę brakuje MP na nią samą, nigdy kosztem
+  niewykorzystanego ruchu. Dotyczy to też przypadku, gdy ludzik dotarł już
+  do celu CAŁEJ trasy, ale zabrakło MP na aneksację tego ostatniego pola
+  (`queued_route` puste, `route_destination` zostaje ustawiony, żeby
+  `_continue_all_queued_routes()` próbowało dokończyć aneksację co rundę -
+  patrz `_recompute_route()`), oraz ludzika bez żadnej aktywnej trasy, który
+  akurat stoi na kwalifikującym się polu (np. po ręcznym "Anuluj trasę", albo
+  gdy inny ludzik tego samego gracza w międzyczasie zaanektował sąsiada) -
+  `_continue_all_queued_routes()` woła `_advance_queued_route()` dla KAŻDEGO
+  ludzika z `_current_hex_needs_auto_annex() == true`, nie tylko tych z
+  niepustym `queued_route`. Panel "Trasa ludzika" ma osobny komunikat na ten
+  stan ("Ludzik dotarł na miejsce... ale brakuje MP na aneksację" /
+  "Ludzik czeka na miejscu... zaanektuje automatycznie"), odróżniony od
+  stanu "cel zajęty przez przeciwnika" (ten sam warunek `queued_route.is_empty()
+  and route_destination != ""`, ale inny powód czekania).
+  Pole, które nie kwalifikuje się do aneksacji z innego powodu (np. brak
+  sąsiedztwa) nadal NIE wstrzymuje ruchu - nie ma sensu czekać na MP, które i
+  tak nie rozwiążą problemu sąsiedztwa.
 - **Drzewko Umiejętności: węzły to kropki (gotowe pod obrazki), szczegóły w
   jednym przypinanym okienku** (update wyglądu/UX, zastępuje karty z
   poprzedniej iteracji). `scenes/skill_node_dot.gd` (`SkillNodeDot`) rysuje
