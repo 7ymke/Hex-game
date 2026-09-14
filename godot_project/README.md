@@ -73,6 +73,27 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
      przystanek, ani jako tranzyt trasy (sekcja 3 GDD, "funkcja obronna") -
      sprawdzane zarówno przy planowaniu podglądu, jak i przy KAŻDYM kroku
      trwającej trasy (mogła czekać kilka rund, sytuacja mogła się zmienić).
+     **Dokładna liczba rund** (nowość) - panel "Trasa ludzika" nie pokazuje
+     już binarnego "starczy w tej rundzie"/"potrwa kilka rund", tylko
+     WYLICZONĄ liczbę rund (`_route_rounds_needed()`: ta runda, jeśli
+     starczy aktualnych MP, inaczej ta runda plus tyle kolejnych PEŁNYCH rund
+     - każda dająca `movement_points_max` świeżych punktów - ile trzeba na
+     resztę kosztu), z poprawną polską odmianą ("1 rundę", "3 rundy",
+     "5 rund" - `_format_rounds()`). **Trasa przelicza się na nowo po każdej
+     rundzie** (nowość) - `_continue_all_queued_routes()` woła
+     `_recompute_route()` dla każdej trwającej trasy PRZED próbą jej
+     kontynuacji, świeżymi blokadami (pozycjami wrogich ludzików) - jeśli
+     przeciwnik w międzyczasie zmienił pozycję (zablokował dotychczasową
+     ścieżkę albo odsłonił wcześniej niedostępny cel), trasa się na to
+     automatycznie dostosowuje, bez ręcznej interwencji gracza. **Można
+     zaznaczyć jako cel trasy pole, na którym aktualnie stoi wrogi ludzik**
+     (nowość) - normalnie nieosiągalne, ale zamiast odmówić trasy w ogóle,
+     `_find_path_toward()` liczy ścieżkę do NAJBLIŻSZEGO osiągalnego sąsiada
+     tego pola; ludzik dojdzie tam i CZEKA (panel pokazuje "Ludzik czeka na
+     miejscu..."), aż gracz anuluje trasę albo przeciwnik się przesunie
+     (wykryte automatycznie przy kolejnym przeliczeniu rundy, patrz wyżej) -
+     prawdziwy cel trasy trzyma `Ludzik.route_destination`, osobno od
+     praktycznego `queued_route`, które może kończyć się wcześniej.
    - **Lewy klik na heks bez zaznaczonego ludzika** → tylko zaznacza to pole
      (żółta obwódka) do inspekcji/akcji - NIE przesuwa nikogo.
    - **Prawy przycisk myszy + przeciąganie** → przesuwanie widoku kamery.
@@ -156,7 +177,7 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
      (nowość) - jeśli przełącznik jest włączony, "koszt X MP" pokazywany przy
      podglądzie trasy dolicza też koszt aneksacji każdego obecnie niczyjego
      pola na niej, więc trasa z włączonym auto-anektowaniem wychodzi (trafnie)
-     droższa i może wymagać więcej rund, żeby dotrzeć do celu.
+     droższa i liczba rund pokazana w panelu (patrz wyżej) rośnie odpowiednio.
    - **Rozwijana lista graczy** ("Zmiana gracza") — wybierz z listy KONKRETNEGO
      gracza, na którego chcesz przełączyć kontrolę (nie ma już cyklicznego
      "następny gracz"). Nie kończy niczyjej tury, nie wpływa na rundę.
@@ -449,6 +470,38 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **Dokładna liczba rund do celu; trasa przelicza się co rundę; można
+  celować w pole zajęte przez przeciwnika** (nowość). Trzy powiązane zmiany
+  w `game_map_controller.gd`:
+  1. `_route_rounds_needed(cost, ludzik)` zastępuje dawne binarne "starczy w
+     tej rundzie"/"potrwa kilka rund" dokładnym wyliczeniem: 1, jeśli
+     `cost <= movement_points_current`, inaczej ta runda plus
+     `ceil((cost - movement_points_current) / movement_points_max)` kolejnych
+     pełnych rund - z poprawną polską odmianą liczebnika przez
+     `_format_rounds()` ("1 rundę" / "2-4 rundy" / "5+ rund", z wyjątkiem
+     11-14 zawsze "rund"). Użyte zarówno dla podglądu, jak i trasy w toku
+     (`_remaining_route_cost()` - jak `_route_cost()`, ale bez pomijania
+     indeksu 0, bo `Ludzik.queued_route` nie zawiera heksa startowego).
+  2. `Ludzik.route_destination` to nowe pole trzymające PRAWDZIWY cel
+     zatwierdzonej trasy, osobno od `queued_route` (praktyczna, aktualnie
+     wykonywana ścieżka - może kończyć się wcześniej niż prawdziwy cel, patrz
+     punkt 3). `_continue_all_queued_routes()` woła nowe `_recompute_route()`
+     dla każdego ludzika z ustawionym `route_destination` PRZED próbą
+     kontynuacji trasy każdej rundy - liczy ścieżkę na nowo aktualnymi
+     blokadami (`_blocked_hexes_for()`), więc trasa reaguje na ruch
+     przeciwnika (zablokowanie dotychczasowej ścieżki, odblokowanie
+     wcześniej niedostępnego celu) automatycznie, bez ponownego klikania.
+  3. Nowe `_find_path_toward(from, target, blocked)` pozwala zaznaczyć jako
+     cel trasy pole, na którym AKTUALNIE stoi wrogi ludzik (wcześniej taki
+     klik po prostu odmawiał trasy) - jeśli cel jest zablokowany, szuka
+     zamiast tego najkrótszej ścieżki do najbliższego OSIĄGALNEGO sąsiada
+     celu. Ludzik dochodzi tam i czeka (`queued_route` się opróżnia, ale
+     `route_destination` zostaje ustawiony) - panel "Trasa ludzika" pokazuje
+     wtedy "Ludzik czeka na miejscu...", a kolejne przeliczenie rundy
+     (punkt 2) automatycznie ruszy dalej, gdy tylko cel się zwolni. Ten sam
+     helper liczy zwykłe trasy (gdy cel nie jest zablokowany, po prostu
+     woła pathfinder bezpośrednio), więc `_preview_route_to()` i
+     `_recompute_route()` dzielą jedną logikę.
 - **Aneksacja wymaga sąsiedztwa z własnym terytorium; stolice chronione
   przed przejęciem** (nowość). `GameManager.annex_hex()` przyjął parametr
   `require_adjacency: bool = true` - domyślnie odmawia aneksacji pola, które

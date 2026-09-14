@@ -51,6 +51,16 @@ var is_moving: bool = false
 ## mógł iść przez parę rund". Puste = brak zaplanowanej/trwającej trasy.
 var queued_route: Array[String] = []
 
+## Prawdziwy docelowy heks zatwierdzonej trasy - w odróżnieniu od `queued_route`,
+## który może kończyć się WCZEŚNIEJ (na najbliższym osiągalnym polu), jeśli cel
+## jest w danej chwili zajęty przez wrogiego ludzika. Gdy `queued_route` się
+## opróżni, a `route_destination` wciąż jest ustawiony i różny od
+## `current_hex_id`, ludzik CZEKA na miejscu - game_map_controller.gd próbuje
+## przeliczyć trasę na nowo na koniec każdej rundy (`_recompute_route`), więc
+## gdy tylko cel się zwolni (albo pojawi się inna droga), ludzik ruszy dalej
+## automatycznie. Puste = brak trasy docelowej (albo trasa w pełni ukończona).
+var route_destination: String = ""
+
 ## Przełącznik "Anektuj napotkane pola" (panel "Trasa ludzika") - gdy true,
 ## game_map_controller._advance_queued_route() automatycznie aneksuje KAŻDY
 ## niczyj heks, na który ten ludzik wejdzie podczas wykonywania trasy, bez

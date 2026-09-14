@@ -104,6 +104,10 @@ var selected_hex_id: String = ""
 var preview_route: Array[String] = []
 var preview_route_ludzik: Ludzik = null
 
+## Prawdziwy cel podglądu (może się różnić od `preview_route[-1]`, jeśli cel
+## jest w danej chwili zajęty przez wrogiego ludzika - patrz `_find_path_toward`).
+var preview_target_hex_id: String = ""
+
 var pathfinder = HexPathfinder.new()
 
 
@@ -254,6 +258,7 @@ func _set_selected_ludzik(ludzik: Ludzik) -> void:
 	# nietknięta, bo żyje na samym ludziku, nie tu.
 	preview_route = []
 	preview_route_ludzik = null
+	preview_target_hex_id = ""
 	hex_map_view.preview_route_hex_ids = []
 
 
@@ -321,34 +326,68 @@ func _on_hex_clicked(hex_id: String) -> void:
 	_refresh_route_panel()
 
 
+## Liczy trasę od `from_hex_id` do `target_hex_id` z uwzględnieniem `blocked`
+## (heksy zajęte przez wrogich ludzików - patrz `_blocked_hexes_for`). Jeśli
+## sam `target_hex_id` jest zablokowany (wrogi ludzik stoi dokładnie na
+## celu), zamiast zwracać "brak trasy" szuka NAJBLIŻSZEGO osiągalnego
+## sąsiada celu - pozwala to zaznaczyć pole przeciwnika jako cel trasy: ludzik
+## dojdzie tak blisko, jak się da, i będzie czekał (patrz `_recompute_route`)
+## aż przeciwnik się ruszy albo gracz anuluje trasę. Zwraca pustą tablicę,
+## jeśli nie ma drogi nawet do żadnego sąsiada.
+func _find_path_toward(from_hex_id: String, target_hex_id: String, blocked: Array[String]) -> Array[String]:
+	pathfinder.build(blocked)
+
+	if not blocked.has(target_hex_id):
+		return pathfinder.find_path(from_hex_id, target_hex_id)
+
+	var best_path: Array[String] = []
+	for neighbor in MapData.get_neighbors(target_hex_id):
+		if blocked.has(neighbor.hex_id) or not neighbor.is_passable():
+			continue
+		var candidate = pathfinder.find_path(from_hex_id, neighbor.hex_id)
+		if candidate.size() < 2:
+			continue
+		if best_path.is_empty() or candidate.size() < best_path.size():
+			best_path = candidate
+	return best_path
+
+
 ## Liczy trasę do `target_hex_id` i pokazuje ją jako podgląd (nie rusza
 ## ludzika) - nadpisuje poprzedni, jeszcze niepotwierdzony podgląd. NIE
 ## dotyka zatwierdzonej, trwającej trasy (`ludzik.queued_route`), dopóki
-## gracz nie potwierdzi tego nowego podglądu w panelu.
+## gracz nie potwierdzi tego nowego podglądu w panelu. Cel może być w danej
+## chwili zajęty przez wrogiego ludzika (patrz `_find_path_toward`) -
+## `preview_target_hex_id` wtedy różni się od faktycznego końca
+## `preview_route`, a etykieta informuje, że to tylko "najbliżej jak się da".
 func _preview_route_to(ludzik: Ludzik, target_hex_id: String) -> void:
 	preview_route = []
 	preview_route_ludzik = null
+	preview_target_hex_id = ""
 	hex_map_view.preview_route_hex_ids = []
 
 	if target_hex_id == ludzik.current_hex_id:
 		return
 
 	var blocked = _blocked_hexes_for(ludzik.player_id)
-	pathfinder.build(blocked)
-	var path = pathfinder.find_path(ludzik.current_hex_id, target_hex_id)
+	var path = _find_path_toward(ludzik.current_hex_id, target_hex_id, blocked)
 	if path.size() < 2:
-		if blocked.has(target_hex_id):
-			info_label.text = "Pole %s jest bronione przez ludzika innego gracza - nie można tam wejść." % target_hex_id
-		else:
-			info_label.text = "Brak dostępnej trasy do %s." % target_hex_id
+		info_label.text = "Brak dostępnej trasy do %s." % target_hex_id
 		return
 
 	preview_route = path
 	preview_route_ludzik = ludzik
+	preview_target_hex_id = target_hex_id
 	hex_map_view.preview_route_hex_ids = preview_route
-	info_label.text = (
-		"Podgląd trasy do %s - potwierdź w panelu \"Trasa ludzika\", żeby ludzik ruszył." % target_hex_id
-	)
+
+	if path[-1] != target_hex_id:
+		info_label.text = (
+			"Pole %s jest zajęte przez wrogiego ludzika - podgląd trasy do najbliższego osiągalnego pola (%s); ludzik zaczeka, aż cel się zwolni."
+			% [target_hex_id, path[-1]]
+		)
+	else:
+		info_label.text = (
+			"Podgląd trasy do %s - potwierdź w panelu \"Trasa ludzika\", żeby ludzik ruszył." % target_hex_id
+		)
 
 
 func _on_confirm_route_pressed() -> void:
@@ -357,8 +396,10 @@ func _on_confirm_route_pressed() -> void:
 
 	var ludzik = preview_route_ludzik
 	ludzik.queued_route = preview_route.slice(1)
+	ludzik.route_destination = preview_target_hex_id
 	preview_route = []
 	preview_route_ludzik = null
+	preview_target_hex_id = ""
 	hex_map_view.preview_route_hex_ids = []
 
 	info_label.text = "Trasa zatwierdzona - ludzik rusza."
@@ -371,9 +412,11 @@ func _on_cancel_route_pressed() -> void:
 	if preview_route_ludzik == selected_ludzik and not preview_route.is_empty():
 		preview_route = []
 		preview_route_ludzik = null
+		preview_target_hex_id = ""
 		hex_map_view.preview_route_hex_ids = []
 	elif selected_ludzik != null:
 		selected_ludzik.queued_route = []
+		selected_ludzik.route_destination = ""
 		info_label.text = "Trasa anulowana."
 
 	_refresh_map_view()
@@ -383,12 +426,44 @@ func _on_cancel_route_pressed() -> void:
 ## Kontynuuje WSZYSTKIE zatwierdzone, ale jeszcze nie w pełni wykonane trasy
 ## (dowolnego gracza - hotseat, wszyscy dzielą tę samą oś rund) świeżymi
 ## punktami ruchu - wołane po każdym przeliczeniu rundy, żeby trasa
-## faktycznie "szła" przez kolejne rundy bez ponownego klikania.
+## faktycznie "szła" przez kolejne rundy bez ponownego klikania. Przed
+## kontynuacją PRZELICZA trasę na nowo (`_recompute_route`) dla każdego
+## ludzika z ustawionym `route_destination` - jeśli przeciwnik zmienił
+## pozycję (odsłonił poprzednio zablokowany cel albo zablokował dotychczasową
+## ścieżkę), trasa się na to reaguje automatycznie, bez ręcznej interwencji.
 func _continue_all_queued_routes() -> void:
 	for pid in player_ludziks:
 		for l in player_ludziks[pid]:
+			if l.route_destination != "":
+				_recompute_route(l)
 			if not l.queued_route.is_empty():
 				await _advance_queued_route(l)
+
+
+## Przelicza trasę ludzika do jego prawdziwego celu (`route_destination`) na
+## nowo, aktualnymi blokadami - wołane na starcie każdej rundy
+## (`_continue_all_queued_routes`). Obsługuje trzy sytuacje: (1) ludzik już
+## stoi na celu (np. dotarł tam skądinąd) -> trasa skończona; (2) jest droga
+## (choćby częściowa, do najbliższego osiągalnego pola, jeśli cel wciąż
+## zablokowany) -> `queued_route` dostaje świeżą ścieżkę; (3) nie ma żadnej
+## drogi (np. ludzik sam jest otoczony) -> `queued_route` pozostaje puste,
+## ludzik czeka w miejscu, spróbuje ponownie w kolejnej rundzie.
+func _recompute_route(ludzik: Ludzik) -> void:
+	if ludzik.route_destination == "" or ludzik.is_moving:
+		return
+
+	if ludzik.current_hex_id == ludzik.route_destination:
+		ludzik.route_destination = ""
+		ludzik.queued_route = []
+		return
+
+	var blocked = _blocked_hexes_for(ludzik.player_id)
+	var path = _find_path_toward(ludzik.current_hex_id, ludzik.route_destination, blocked)
+	if path.size() < 2:
+		ludzik.queued_route = []
+		return
+
+	ludzik.queued_route = path.slice(1)
 
 
 ## Wykonuje (dalszy ciąg) zatwierdzonej trasy, tyle kroków, na ile starczy
@@ -458,7 +533,14 @@ func _advance_queued_route(ludzik: Ludzik) -> void:
 	if ludzik == selected_ludzik:
 		_set_selected_hex(ludzik.current_hex_id)
 	if ludzik.queued_route.is_empty():
-		info_label.text = "Ludzik dotarł do celu trasy (%s)." % ludzik.current_hex_id
+		if ludzik.current_hex_id == ludzik.route_destination or ludzik.route_destination == "":
+			ludzik.route_destination = ""
+			info_label.text = "Ludzik dotarł do celu trasy (%s)." % ludzik.current_hex_id
+		else:
+			info_label.text = (
+				"Ludzik dotarł najbliżej jak się dało (%s) - czeka, aż pole %s stanie się osiągalne."
+				% [ludzik.current_hex_id, ludzik.route_destination]
+			)
 	_refresh_action_panel()
 	_refresh_route_panel()
 	_refresh_map_view()
@@ -956,21 +1038,41 @@ func _refresh_route_panel() -> void:
 
 	if preview_route_ludzik == selected_ludzik and preview_route.size() > 1:
 		var cost = _route_cost(preview_route, selected_ludzik)
-		var fits_now = cost <= selected_ludzik.movement_points_current
+		var rounds = _route_rounds_needed(cost, selected_ludzik)
+		var target_note = ""
+		if preview_target_hex_id != "" and preview_route[-1] != preview_target_hex_id:
+			target_note = " (najbliżej jak się da - %s jest zajęte przez przeciwnika)" % preview_target_hex_id
 		route_info_label.text = (
-			"Podgląd trasy do %s: %d pól, koszt %d MP (masz %d MP - %s)."
+			"Podgląd trasy do %s%s: %d pól, koszt %d MP - zajmie %s (masz %d MP)."
 			% [
-				preview_route[-1], preview_route.size() - 1, cost, selected_ludzik.movement_points_current,
-				"starczy w tej rundzie" if fits_now else "potrwa kilka rund"
+				preview_route[-1], target_note, preview_route.size() - 1, cost,
+				_format_rounds(rounds), selected_ludzik.movement_points_current
 			]
 		)
 		confirm_route_button.visible = true
 		cancel_route_button.visible = true
 		cancel_route_button.text = "Anuluj podgląd"
 	elif not selected_ludzik.queued_route.is_empty():
-		route_info_label.text = "Trasa w toku do %s: pozostało %d pól." % [
-			selected_ludzik.queued_route[-1], selected_ludzik.queued_route.size()
+		var remaining_cost = _remaining_route_cost(selected_ludzik.queued_route, selected_ludzik)
+		var rounds = _route_rounds_needed(remaining_cost, selected_ludzik)
+		var true_target = (
+			selected_ludzik.route_destination if selected_ludzik.route_destination != ""
+			else selected_ludzik.queued_route[-1]
+		)
+		var target_note = ""
+		if true_target != selected_ludzik.queued_route[-1]:
+			target_note = " (na razie do %s - %s jest zajęte przez przeciwnika)" % [selected_ludzik.queued_route[-1], true_target]
+		route_info_label.text = "Trasa w toku do %s%s: pozostało %d pól, zajmie jeszcze %s." % [
+			true_target, target_note, selected_ludzik.queued_route.size(), _format_rounds(rounds)
 		]
+		confirm_route_button.visible = false
+		cancel_route_button.visible = true
+		cancel_route_button.text = "Anuluj trasę"
+	elif selected_ludzik.route_destination != "":
+		route_info_label.text = (
+			"Ludzik czeka na miejscu - pole %s jest obecnie zajęte przez przeciwnika. Trasa ruszy dalej automatycznie, gdy się zwolni."
+			% selected_ludzik.route_destination
+		)
 		confirm_route_button.visible = false
 		cancel_route_button.visible = true
 		cancel_route_button.text = "Anuluj trasę"
@@ -981,25 +1083,59 @@ func _refresh_route_panel() -> void:
 
 
 ## Sumaryczny koszt MP przejścia `path` (pomija indeks 0 - to heks startowy,
-## na którym ludzik już stoi, wejście na niego nic nie kosztuje). Jeśli
-## `ludzik.auto_annex` jest włączone ("Anektuj napotkane pola"), dolicza też
-## koszt automatycznej aneksacji KAŻDEGO obecnie niczyjego pola na trasie -
-## stąd trasa z włączonym auto-anektowaniem wychodzi droższa w MP, więc
-## "musi czekać dłużej" (więcej rund, zanim faktycznie dotrze do celu). To
-## oszacowanie z góry: faktyczna aneksacja po drodze może się nie udać (np.
-## brak sąsiedztwa z już posiadanym polem - patrz GameManager.annex_hex),
-## ale jako podgląd trasy jest wystarczająco dokładne.
+## na którym ludzik już stoi, wejście na niego nic nie kosztuje).
 func _route_cost(path: Array[String], ludzik: Ludzik) -> int:
+	return _remaining_route_cost(path.slice(1), ludzik)
+
+
+## Jak `_route_cost`, ale bez pomijania pierwszego elementu - do użycia na
+## `Ludzik.queued_route`, który (w odróżnieniu od podglądu `preview_route`)
+## NIE zawiera heksa startowego. Jeśli `ludzik.auto_annex` jest włączone
+## ("Anektuj napotkane pola"), dolicza też koszt automatycznej aneksacji
+## KAŻDEGO obecnie niczyjego pola na trasie - stąd trasa z włączonym
+## auto-anektowaniem wychodzi droższa w MP, więc "musi czekać dłużej" (więcej
+## rund, zanim faktycznie dotrze do celu). To oszacowanie z góry: faktyczna
+## aneksacja po drodze może się nie udać (np. brak sąsiedztwa z już
+## posiadanym polem - patrz GameManager.annex_hex), ale jako podgląd trasy
+## jest wystarczająco dokładne.
+func _remaining_route_cost(remaining: Array[String], ludzik: Ludzik) -> int:
 	var total = 0
 	var annex_cost = _effective_annex_cost_for(ludzik.player_id)
-	for i in range(1, path.size()):
-		var hex = MapData.get_hex(path[i])
+	for hex_id in remaining:
+		var hex = MapData.get_hex(hex_id)
 		if hex == null:
 			continue
 		total += hex.get_movement_cost()
 		if ludzik.auto_annex and hex.owner_id == -1:
 			total += annex_cost
 	return total
+
+
+## Liczba rund potrzebnych, żeby ludzik zdołał wydać `cost` punktów ruchu -
+## 1, jeśli starczy AKTUALNYCH punktów w tej rundzie, inaczej ta runda plus
+## tyle KOLEJNYCH pełnych rund (każda dająca `movement_points_max` świeżych
+## punktów), ile trzeba na resztę. Używane do dokładnego wyświetlenia "zajmie
+## X rund(ę)" zamiast dotychczasowego binarnego "starczy w tej rundzie" /
+## "potrwa kilka rund".
+func _route_rounds_needed(cost: int, ludzik: Ludzik) -> int:
+	if cost <= ludzik.movement_points_current:
+		return 1
+	var remaining = cost - ludzik.movement_points_current
+	var per_round = maxi(1, ludzik.movement_points_max)
+	return 1 + (remaining + per_round - 1) / per_round
+
+
+## Polska odmiana "rundę"/"rundy"/"rund" po liczebniku (np. "1 rundę",
+## "3 rundy", "5 rund", "12 rund", "22 rundy").
+static func _format_rounds(n: int) -> String:
+	var word: String
+	if n == 1:
+		word = "rundę"
+	elif n % 10 in [2, 3, 4] and not (n % 100 in [12, 13, 14]):
+		word = "rundy"
+	else:
+		word = "rund"
+	return "%d %s" % [n, word]
 
 
 func _update_mp_label() -> void:
