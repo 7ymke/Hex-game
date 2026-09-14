@@ -142,8 +142,14 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
      danym ludziku, automatycznie aneksuje KAŻDE niczyje pole (i sąsiadujące
      z już posiadanym - powyższy warunek dotyczy też auto-aneksacji), przez
      które ten ludzik przejdzie podczas wykonywania trasy (także
-     wielorundowej), bez ręcznego klikania po każdym kroku; brak MP na akurat
-     tę jedną aneksację nie zatrzymuje trasy - po prostu pomija to pole.
+     wielorundowej), bez ręcznego klikania po każdym kroku. **Aneksacja ma
+     pierwszeństwo nad samym przejściem** (nowość) - jeśli danego pola NIE
+     dałoby się zaanektować z braku MP (ale dałoby się na nie wejść), ludzik
+     WOLI POCZEKAĆ do kolejnej rundy (więcej MP), niż wejść na nie i pominąć
+     aneksację - ruch i aneksacja liczą się razem jako jedna nierozdzielna
+     akcja. Pole, które i tak nie kwalifikuje się do aneksacji (np. nie
+     sąsiaduje jeszcze z niczym posiadanym), nie wstrzymuje trasy - nie ma na
+     co czekać, więc ludzik po prostu przez nie przechodzi.
      (Auto-aneksja dotyczy tylko NICZYJICH pól - przejęcie terenu gracza
      zawsze wymaga ręcznego kliknięcia, ze względu na jego karny charakter
      przy porażce.) **Podgląd kosztu trasy uwzględnia auto-aneksację**
@@ -469,6 +475,20 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
   weryfikuje każdą aneksację osobno w momencie dotarcia na pole. Przełącznik
   "Anektuj napotkane pola" odświeża teraz też panel trasy po zmianie
   (`_on_auto_annex_toggled`), żeby podgląd kosztu był zawsze aktualny.
+- **Aneksacja podczas trasy ma pierwszeństwo nad samym przejściem** (nowość).
+  Wcześniej `_advance_queued_route()` sprawdzał tylko koszt WEJŚCIA na pole -
+  jeśli auto-aneksacja akurat nie miała już MP na samą aneksację, ludzik i
+  tak wchodził na pole, pomijając je (cichy fail w `_auto_annex_hex()`). Teraz,
+  dla pola które FAKTYCZNIE kwalifikuje się do aneksacji (niczyje i
+  sąsiadujące z już posiadanym - `GameManager.has_adjacent_owned_hex()`), ruch
+  i aneksacja liczą się jako JEDNA nierozdzielna akcja: pętla sprawdza
+  `movement_points_current` względem SUMY kosztu wejścia i aneksacji
+  (`required = move_cost + annex_cost`) PRZED ruszeniem się - jeśli nie
+  starcza, trasa zatrzymuje się w miejscu (heks zostaje na początku
+  `queued_route`, nietknięty) zamiast wchodzić i pomijać. Pole, które nie
+  kwalifikuje się do aneksacji z innego powodu (np. brak sąsiedztwa) nadal
+  NIE wstrzymuje ruchu - nie ma sensu czekać na MP, które i tak nie
+  rozwiążą problemu sąsiedztwa.
 - **Drzewko Umiejętności: węzły to kropki (gotowe pod obrazki), szczegóły w
   jednym przypinanym okienku** (update wyglądu/UX, zastępuje karty z
   poprzedniej iteracji). `scenes/skill_node_dot.gd` (`SkillNodeDot`) rysuje

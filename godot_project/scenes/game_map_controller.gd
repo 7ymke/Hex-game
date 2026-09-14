@@ -397,6 +397,14 @@ func _continue_all_queued_routes() -> void:
 ## ludzika innego gracza PRZY KAŻDYM kroku (nie tylko przy planowaniu
 ## podglądu) - trasa może czekać na wykonanie kilka rund, w międzyczasie
 ## sytuacja na polu mogła się zmienić.
+##
+## Aneksacja ma PIERWSZEŃSTWO nad samym przejściem: jeśli "Anektuj napotkane
+## pola" jest włączone i pole faktycznie kwalifikuje się do aneksacji
+## (niczyje i sąsiadujące z już posiadanym - patrz GameManager.has_adjacent_owned_hex),
+## ruch na nie i aneksacja liczą się jako JEDNA nierozdzielna akcja - ludzik
+## WOLI POCZEKAĆ do kolejnej rundy (więcej MP), niż wejść na pole i pominąć
+## jego aneksację z braku MP. Pole, które i tak nie kwalifikuje się do
+## aneksacji (np. brak sąsiedztwa), nie blokuje ruchu - nie ma na co czekać.
 func _advance_queued_route(ludzik: Ludzik) -> void:
 	if ludzik.queued_route.is_empty() or ludzik.is_moving:
 		return
@@ -416,16 +424,31 @@ func _advance_queued_route(ludzik: Ludzik) -> void:
 			info_label.text = "Trasa wstrzymana: pole %s jest bronione przez ludzika innego gracza." % next_hex_id
 			break  # queued_route zostaje - spróbuje ponownie w kolejnej rundzie
 
-		var cost = next_hex.get_movement_cost()
-		if not ludzik.spend_movement_points(cost):
-			info_label.text = "Brak punktów ruchu - trasa będzie kontynuowana w kolejnej rundzie."
+		var move_cost = next_hex.get_movement_cost()
+		var will_annex = (
+			ludzik.auto_annex and next_hex.owner_id == -1
+			and GameManager.has_adjacent_owned_hex(next_hex_id, ludzik.player_id)
+		)
+		var annex_cost = _effective_annex_cost_for(ludzik.player_id) if will_annex else 0
+		var required = move_cost + annex_cost
+
+		if ludzik.movement_points_current < required:
+			if will_annex:
+				info_label.text = (
+					"Brak punktów ruchu na wejście i aneksację %s (potrzeba %d MP) - trasa będzie kontynuowana w kolejnej rundzie."
+					% [next_hex_id, required]
+				)
+			else:
+				info_label.text = "Brak punktów ruchu - trasa będzie kontynuowana w kolejnej rundzie."
 			break
+
+		ludzik.spend_movement_points(move_cost)
 
 		await ludzik.animate_to_hex(next_hex_id)
 		ludzik.queued_route.remove_at(0)
 		_reveal_around(next_hex_id, ludzik.player_id)
 
-		if ludzik.auto_annex and next_hex.owner_id == -1:
+		if will_annex:
 			_auto_annex_hex(ludzik, next_hex_id)
 
 		_update_mp_label()
