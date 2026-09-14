@@ -188,9 +188,15 @@ godot_project/
 │   │                              # Array[Ludzik] per gracz (skill "Drugi ludzik"
 │   │                              # dodaje kolejnego bez zmian w reszcie logiki)
 │   ├── city_card_panel.gd        # UI Karty Miasta (osobny ekran, sekcja 7 GDD)
-│   ├── skill_tree_panel.gd       # UI Drzewka Umiejętności (osobny ekran, wspólny
-│   │                              # dla wszystkich miast, analogiczny do Karty Miasta)
+│   ├── skill_tree_panel.gd       # UI Drzewka Umiejętności - radialny graf,
+│   │                              # prawie cały ekran, najwyższa warstwa UI
+│   ├── skill_graph_view.gd       # rysuje węzeł centralny + linie do kart
+│   │                              # (Drzewko Umiejętności) - Control._draw()
 │   └── main_test.tscn / main_test.gd   # smoke test Fazy 0-1 + Faz 6-9 (bez grafiki)
+├── theme/
+│   └── ui_theme.tres          # WYGLĄD całego UI w jednym miejscu (panele,
+│                                # przyciski, etykiety) - edytowalne wizualnie
+│                                # w Godot Theme Editor, podpięte do main.tscn
 ├── data/map_data.json         # wygenerowane przez tools/convert_kml_to_json.py
 └── icon.svg
 ```
@@ -239,6 +245,23 @@ Umiejętności":
 | Rozpoznanie terenu | +1 promień widzenia dla wszystkich ludzików gracza | 15 niklu, 20 gazu |
 | Logistyka terytorialna | -1 MP kosztu aneksacji (min. 1) | 20 miedzi, 5 uranu |
 
+Ekran wygląda jak **radialny graf** (nie zwykła lista) — centralny węzeł
+"START" i karty umiejętności rozstawione promieniście wokół niego, połączone
+liniami (`scenes/skill_graph_view.gd`, rysowane `_draw()`, ten sam wzorzec co
+siatka heksów w `hex_map_view.gd`). Skille są na razie logicznie płaskie
+(żaden nie wymaga odblokowania innego najpierw), ale układ graficzny jest
+gotowy pod prawdziwe zależności w przyszłości - wystarczyłoby dodać do
+`SkillData` listę wymaganych `skill_id` i sprawdzać ją przy odblokowaniu, bez
+zmiany samego rysowania. Karty są pozycjonowane RĘCZNIE
+(`Control.position`, nie w kontenerze) na promieniu wyliczonym w
+`SkillTreePanel._refresh()` tak, żeby zawsze mieściły się w obszarze grafu i
+się nie nakładały (`RADIUS_SAFETY_MARGIN`). Ekran otwiera się jako
+**osobny `CanvasLayer` na jednej z najwyższych warstw** (`layer = 100` -
+wyżej niż Karta Miasta i cała reszta UI) i **przykrywa większość ekranu**
+(`Panel` z zakotwiczeniem na pełny prostokąt viewportu, 40px marginesu z
+każdej strony - responsywne, nie sztywny rozmiar w pikselach, więc działa
+poprawnie niezależnie od rozmiaru okna, patrz "UI skaluje się z oknem" niżej).
+
 Mechanizm płatności jest identyczny jak w Karcie Miasta
 (`PlayerData.can_afford`/`pay_costs`, `GameManager.unlock_skill()` -
 scentralizowana funkcja, ten sam wzorzec co `unlock_city_building()`).
@@ -259,6 +282,43 @@ Efekty dzielą się na dwie kategorie:
   miejsce w grze, które faktycznie korzysta z architektury
   `player_ludziks: player_id -> Array[Ludzik]`, przygotowanej pod ten
   upgrade od samego początku (patrz komentarz na górze `game_map_controller.gd`).
+
+### Wygląd UI - jeden plik do edycji (nowość)
+
+Zamiast kolorów/stylów rozrzuconych po każdym węźle z osobna, wygląd paneli,
+przycisków i etykiet mieszka teraz w jednym pliku: `theme/ui_theme.tres`
+(zasób typu `Theme`, standardowy mechanizm Godota). Otwórz go w edytorze
+Godota (podwójny klik w panelu FileSystem) - dostaniesz wizualny edytor
+motywu, gdzie bez pisania kodu można zmienić:
+
+- tło/obramowanie/zaokrąglenie rogów paneli (`PanelContainer/styles/panel`),
+- wygląd przycisków w 4 stanach - normalny/hover/wciśnięty/zablokowany
+  (`Button/styles/...`),
+- domyślny kolor i rozmiar czcionki etykiet i przycisków
+  (`Label`/`Button` -> `font_colors`/`font_sizes`).
+
+Motyw jest podpięty (`theme = ExtResource(...)`) do głównych paneli w
+`scenes/main.tscn` (`ActionPanel`, `RoutePanel`, `CityCardPanel/Panel`,
+`SkillTreePanel/Panel`) i do luźnych etykiet HUD-u (`InfoLabel`, `TurnLabel`,
+`MPLabel`, `PrestigeLabel`, `ResourcesLabel`) - zmiana w `ui_theme.tres`
+automatycznie obejmuje WSZYSTKIE z nich naraz, bez edytowania każdego węzła
+osobno. Pojedyncze etykiety nadal mogą mieć własne, lokalne nadpisania
+(`theme_override_colors/font_color` itp. w `main.tscn`, np. żółty
+`TurnLabel`) - te wygrywają NAD motywem tam, gdzie są ustawione, więc można
+zarówno zmieniać wszystko naraz (motyw), jak i dostrajać pojedyncze elementy
+(lokalne nadpisanie).
+
+### UI skaluje się z oknem
+
+`project.godot` -> `[display]`: `window/stretch/mode = "canvas_items"`,
+`window/stretch/aspect = "expand"`, bazowa rozdzielczość 1280×800 - zmiana
+rozmiaru okna skaluje całą scenę (mapę i UI) proporcjonalnie, zamiast
+przycinać ją czarnymi pasami albo zostawiać UI w stałym rozmiarze
+pikselowym w rogu ekranu. Panele, które muszą reagować na kształt okna, a
+nie tylko jego rozmiar (np. "przykryj większość ekranu" - Drzewko
+Umiejętności), dodatkowo używają zakotwiczenia na pełny prostokąt
+(`anchor_right = 1.0`, `anchor_bottom = 1.0`, ujemne marginesy) zamiast
+sztywnych pikseli - patrz sekcja "Drzewko Umiejętności" wyżej.
 
 ## Orientacja siatki: flat-top, offset "even-q"
 
@@ -310,6 +370,36 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **Poprawka: crash po "Potwierdź trasę"** (bug, nie feature).
+  `_update_route_overlay()` w `game_map_controller.gd` budował listę heksów
+  trasy operatorem `[selected_ludzik.current_hex_id] + selected_ludzik.queued_route`
+  - konkatenacja `+` NIETYPOWANEGO literału Array z otypowanym
+  `Array[String]` rzuca w Godot 4.2 błędem typowania w runtime (w
+  przeciwieństwie do zwykłego przypisania `x: Array[String] = jakiś_array`,
+  które bezpiecznie konwertuje). Naprawione przez jawnie otypowaną zmienną
+  pośrednią + `append_array()` zamiast operatora `+` - patrz komentarz przy
+  tej funkcji. Jedyne miejsce w kodzie, które używało tego wzorca; reszta
+  łączenia list korzysta z `append()`/`append_array()`.
+- **Motyw UI (`theme/ui_theme.tres`) - jedno miejsce do zmiany wyglądu**
+  (nowość). Wcześniej kolory/style paneli i przycisków były (poza kilkoma
+  lokalnymi nadpisaniami, np. żółty `TurnLabel`) całkowicie domyślne
+  (szary Godot). Teraz jeden zasób `Theme` (`PanelContainer`/`Button`/`Label`
+  - tło, obramowanie, zaokrąglenie, kolor/rozmiar czcionki) podpięty do
+  wszystkich głównych paneli i etykiet HUD-u w `main.tscn` - edytowalny
+  wizualnie w Godot Theme Editor, bez dotykania kodu ani pojedynczych węzłów.
+  Patrz sekcja "Wygląd UI - jeden plik do edycji" wyżej.
+- **Drzewko Umiejętności jako radialny graf, prawie na cały ekran, na
+  najwyższej warstwie** (update wyglądu). Poprzednia wersja była zwykłą,
+  przewijaną listą (`ScrollContainer`/`VBoxContainer`) w panelu o stałym
+  rozmiarze pikselowym. Teraz `scenes/skill_graph_view.gd` (`Control._draw()`,
+  ten sam wzorzec co `hex_map_view.gd`) rysuje węzeł centralny i linie do
+  każdej karty, a `SkillTreePanel._refresh()` rozstawia karty promieniście
+  wokół niego (promień wyliczony geometrycznie z rozmiaru obszaru i karty,
+  żeby zawsze się mieściły i nie nakładały - `RADIUS_SAFETY_MARGIN`). Panel
+  dostał zakotwiczenie na pełny prostokąt viewportu z 40px marginesem (zamiast
+  sztywnych pikseli) - "przykrywa większość ekranu" niezależnie od rozmiaru
+  okna - i `CanvasLayer.layer = 100`, wyraźnie ponad Kartą Miasta
+  (`layer = 10`) i resztą UI, żeby zawsze renderował się na wierzchu.
 - **Trasa wielorundowa z podglądem i potwierdzeniem** (nowość). Klik na polu
   z zaznaczonym ludzikiem już NIE rusza go od razu - `_preview_route_to()`
   w `game_map_controller.gd` liczy trasę z `HexPathfinder` i tylko ją

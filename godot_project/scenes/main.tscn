@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://cmapmain0001"]
+[gd_scene load_steps=9 format=3 uid="uid://cmapmain0001"]
 
 [ext_resource type="Script" path="res://scenes/game_map_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scenes/camera_controller.gd" id="2"]
@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://scenes/ludzik.gd" id="4"]
 [ext_resource type="Script" path="res://scenes/city_card_panel.gd" id="5"]
 [ext_resource type="Script" path="res://scenes/skill_tree_panel.gd" id="6"]
+[ext_resource type="Theme" path="res://theme/ui_theme.tres" id="7"]
+[ext_resource type="Script" path="res://scenes/skill_graph_view.gd" id="8"]
 
 [node name="GameMapController" type="Node2D"]
 script = ExtResource("1")
@@ -25,6 +27,7 @@ script = ExtResource("4")
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="InfoLabel" type="Label" parent="UI"]
+theme = ExtResource("7")
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 760.0
@@ -34,6 +37,7 @@ theme_override_font_sizes/font_size = 16
 text = "Ładowanie..."
 
 [node name="TurnLabel" type="Label" parent="UI"]
+theme = ExtResource("7")
 offset_left = 16.0
 offset_top = 44.0
 offset_right = 500.0
@@ -43,6 +47,7 @@ theme_override_font_sizes/font_size = 16
 text = "Tura gracza: -"
 
 [node name="MPLabel" type="Label" parent="UI"]
+theme = ExtResource("7")
 offset_left = 16.0
 offset_top = 72.0
 offset_right = 300.0
@@ -52,6 +57,7 @@ theme_override_font_sizes/font_size = 16
 text = "Punkty ruchu: -"
 
 [node name="PrestigeLabel" type="Label" parent="UI"]
+theme = ExtResource("7")
 offset_left = 16.0
 offset_top = 100.0
 offset_right = 500.0
@@ -61,6 +67,7 @@ theme_override_font_sizes/font_size = 16
 text = "Prestiż: -"
 
 [node name="ResourcesLabel" type="Label" parent="UI"]
+theme = ExtResource("7")
 offset_left = 16.0
 offset_top = 128.0
 offset_right = 900.0
@@ -71,6 +78,7 @@ theme_override_font_sizes/font_size = 16
 text = "Surowce: -"
 
 [node name="ActionPanel" type="PanelContainer" parent="UI"]
+theme = ExtResource("7")
 offset_left = 16.0
 offset_top = 380.0
 offset_right = 460.0
@@ -120,6 +128,7 @@ text = "Drzewko Umiejętności"
 text = "Zakończ rundę"
 
 [node name="RoutePanel" type="PanelContainer" parent="UI"]
+theme = ExtResource("7")
 offset_left = 480.0
 offset_top = 380.0
 offset_right = 900.0
@@ -150,6 +159,7 @@ layer = 10
 script = ExtResource("5")
 
 [node name="Panel" type="PanelContainer" parent="CityCardPanel"]
+theme = ExtResource("7")
 offset_left = 200.0
 offset_top = 80.0
 offset_right = 900.0
@@ -175,14 +185,17 @@ theme_override_constants/separation = 8
 text = "Zamknij"
 
 [node name="SkillTreePanel" type="CanvasLayer" parent="."]
-layer = 11
+layer = 100
 script = ExtResource("6")
 
 [node name="Panel" type="PanelContainer" parent="SkillTreePanel"]
-offset_left = 200.0
-offset_top = 80.0
-offset_right = 1080.0
-offset_bottom = 720.0
+theme = ExtResource("7")
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = -40.0
 
 [node name="VBox" type="VBoxContainer" parent="SkillTreePanel/Panel"]
 theme_override_constants/separation = 10
@@ -191,14 +204,16 @@ theme_override_constants/separation = 10
 theme_override_font_sizes/font_size = 20
 text = "Drzewko Umiejętności"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="SkillTreePanel/Panel/VBox"]
-custom_minimum_size = Vector2(0, 500)
+[node name="GraphArea" type="Control" parent="SkillTreePanel/Panel/VBox"]
+custom_minimum_size = Vector2(1100, 600)
 size_flags_vertical = 3
+clip_contents = true
 
-[node name="SkillList" type="VBoxContainer" parent="SkillTreePanel/Panel/VBox/ScrollContainer"]
-custom_minimum_size = Vector2(860, 0)
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
+[node name="SkillGraphView" type="Control" parent="SkillTreePanel/Panel/VBox/GraphArea"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("8")
 
 [node name="CloseButton" type="Button" parent="SkillTreePanel/Panel/VBox"]
 text = "Zamknij"

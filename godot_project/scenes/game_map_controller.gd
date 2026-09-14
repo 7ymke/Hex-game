@@ -480,7 +480,13 @@ func _refresh_map_view() -> void:
 ## rundę (patrz komentarz na górze pliku).
 func _update_route_overlay() -> void:
 	if selected_ludzik != null and not selected_ludzik.queued_route.is_empty():
-		hex_map_view.queued_route_hex_ids = [selected_ludzik.current_hex_id] + selected_ludzik.queued_route
+		# UWAGA: celowo NIE `[a] + selected_ludzik.queued_route` - konkatenacja
+		# operatorem `+` literału (nietypowanego Array) z Array[String] potrafi
+		# w Godot 4.2 rzucić błędem typowania w runtime. `append_array()` na
+		# jawnie otypowanej zmiennej jest bezpieczne.
+		var full_route: Array[String] = [selected_ludzik.current_hex_id]
+		full_route.append_array(selected_ludzik.queued_route)
+		hex_map_view.queued_route_hex_ids = full_route
 	else:
 		hex_map_view.queued_route_hex_ids = []
 
