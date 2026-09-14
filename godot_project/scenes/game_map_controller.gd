@@ -34,6 +34,23 @@ extends Node2D
 ## "Zmiana gracza" (OptionButton) wybiera KONKRETNEGO gracza wprost z listy,
 ## "Zakończ rundę" przelicza rundę niezależnie od tego, kto jest kontrolowany
 ## - patrz turn_manager.gd.
+##
+## Trasa wielorundowa (update): klik na polu z zaznaczonym ludzikiem już NIE
+## rusza go od razu - liczy i POKAZUJE podgląd trasy (żółta linia na mapie),
+## czeka na potwierdzenie w nowym panelu "Trasa ludzika". Po potwierdzeniu
+## trasa (`Ludzik.queued_route`) wykonuje się na tyle kroków, ile starczy
+## bieżących MP (linia w kolorze pomarańczowym, dopóki trwa) - jeśli trasa
+## jest dłuższa niż jednorazowy zapas MP, reszta zostaje zapamiętana i
+## kontynuowana AUTOMATYCZNIE po każdym kolejnym "Zakończ rundę"
+## (`_continue_all_queued_routes`), więc nie trzeba jej klikać ponownie.
+##
+## Drzewko umiejętności (nowość): osobny ekran (SkillTreePanel, analogiczny
+## do Karty Miasta) z 5 upgrade'ami płatnymi surowcami z mapy
+## (scripts/skill_tree_data.gd). Efekty "czysto danowe" (promień widzenia,
+## próg bezpiecznej wycinki, koszt aneksacji, MP przyszłych ludzików)
+## aplikuje GameManager.unlock_skill() na PlayerData; efekty wymagające
+## dostępu do węzłów sceny (nowy Ludzik, retroaktywny bonus MP na już
+## istniejących) aplikuje `_on_skill_unlocked()` tutaj.
 
 const VISION_RADIUS = GameBalance.VISION_RADIUS
 
@@ -47,6 +64,7 @@ const PLAYER_SETUP = PlayerSetup.LIST
 
 @onready var hex_map_view: HexMapView = $HexMapView
 @onready var city_card_panel: CityCardPanel = $CityCardPanel
+@onready var skill_tree_panel: SkillTreePanel = $SkillTreePanel
 @onready var info_label: Label = $UI/InfoLabel
 @onready var turn_label: Label = $UI/TurnLabel
 @onready var mp_label: Label = $UI/MPLabel
@@ -60,8 +78,14 @@ const PLAYER_SETUP = PlayerSetup.LIST
 @onready var harvest_value_label: Label = $UI/ActionPanel/VBox/HarvestRow/HarvestValueLabel
 @onready var harvest_button: Button = $UI/ActionPanel/VBox/HarvestButton
 @onready var city_card_button: Button = $UI/ActionPanel/VBox/CityCardButton
+@onready var skill_tree_button: Button = $UI/ActionPanel/VBox/SkillTreeButton
 @onready var player_selector: OptionButton = $UI/ActionPanel/VBox/PlayerSelector
 @onready var end_round_button: Button = $UI/ActionPanel/VBox/EndRoundButton
+@onready var route_panel: PanelContainer = $UI/RoutePanel
+@onready var route_info_label: Label = $UI/RoutePanel/VBox/RouteInfoLabel
+@onready var confirm_route_button: Button = $UI/RoutePanel/VBox/ConfirmRouteButton
+@onready var cancel_route_button: Button = $UI/RoutePanel/VBox/CancelRouteButton
+@onready var route_annex_button: Button = $UI/RoutePanel/VBox/RouteAnnexButton
 
 var players: Array[PlayerData] = []
 var player_ludziks: Dictionary = {}  # player_id(int) -> Array[Ludzik]
@@ -69,6 +93,14 @@ var active_player: PlayerData
 
 var selected_ludzik: Ludzik = null
 var selected_hex_id: String = ""
+
+## Podgląd trasy jeszcze NIEPOTWIERDZONY (patrz komentarz na górze pliku) -
+## transientny stan UI, nie ludzika: `preview_route[0]` to zawsze bieżący
+## heks `preview_route_ludzik`. Trasa już zatwierdzona żyje na samym
+## ludziku (`Ludzik.queued_route`), bo musi przetrwać zmianę
+## zaznaczenia/gracza i kolejne rundy.
+var preview_route: Array[String] = []
+var preview_route_ludzik: Ludzik = null
 
 var pathfinder = HexPathfinder.new()
 
@@ -87,9 +119,15 @@ func _ready() -> void:
 	harvest_button.pressed.connect(_on_harvest_pressed)
 	harvest_slider.value_changed.connect(_on_harvest_slider_changed)
 	city_card_button.pressed.connect(_on_city_card_pressed)
+	skill_tree_button.pressed.connect(_on_skill_tree_pressed)
 	player_selector.item_selected.connect(_on_player_selected)
 	end_round_button.pressed.connect(_on_end_round_pressed)
 	city_card_panel.building_unlocked.connect(_on_city_building_unlocked)
+	skill_tree_panel.skill_unlocked.connect(_on_skill_unlocked)
+
+	confirm_route_button.pressed.connect(_on_confirm_route_pressed)
+	cancel_route_button.pressed.connect(_on_cancel_route_pressed)
+	route_annex_button.pressed.connect(_on_annex_pressed)
 
 	TurnManager.player_turn_started.connect(_on_player_turn_started)
 	TurnManager.round_ended.connect(_on_round_ended)
@@ -100,6 +138,7 @@ func _ready() -> void:
 	TurnManager.setup_player_order(player_ids)
 
 	_on_harvest_slider_changed(harvest_slider.value)
+	_refresh_route_panel()
 
 
 ## Tworzy graczy, ich ludziki i aneksuje im heks startowy. Uwzględnia tylko
@@ -202,6 +241,13 @@ func _set_selected_ludzik(ludzik: Ludzik) -> void:
 	if selected_ludzik != null:
 		selected_ludzik.set_selected(true)
 
+	# Zmiana zaznaczenia ludzika porzuca jego (jeszcze niepotwierdzony)
+	# podgląd trasy - zatwierdzona, trwająca trasa (`queued_route`) zostaje
+	# nietknięta, bo żyje na samym ludziku, nie tu.
+	preview_route = []
+	preview_route_ludzik = null
+	hex_map_view.preview_route_hex_ids = []
+
 
 func _set_selected_hex(hex_id: String) -> void:
 	selected_hex_id = hex_id
@@ -230,8 +276,13 @@ func _on_player_turn_started(player_id: int) -> void:
 	_update_mp_label()
 	_update_stats_labels()
 	_refresh_action_panel()
+	_refresh_route_panel()
 
 
+## Po przeliczeniu rundy świeże punkty ruchu pozwalają automatycznie
+## kontynuować wszystkie zatwierdzone, ale jeszcze nie w pełni wykonane
+## trasy (`_continue_all_queued_routes`) - stąd trasa może "iść przez parę
+## rund" bez ponownego klikania.
 func _on_round_ended(round_number: int) -> void:
 	for pid in player_ludziks:
 		for l in player_ludziks[pid]:
@@ -239,6 +290,10 @@ func _on_round_ended(round_number: int) -> void:
 	_update_mp_label()
 	_update_stats_labels()
 	info_label.text = "Runda zakończona. Rozpoczyna się runda %d." % round_number
+	await _continue_all_queued_routes()
+	_refresh_map_view()
+	_refresh_action_panel()
+	_refresh_route_panel()
 
 
 func _on_hex_clicked(hex_id: String) -> void:
@@ -249,14 +304,24 @@ func _on_hex_clicked(hex_id: String) -> void:
 		# był zaznaczony).
 		_set_selected_ludzik(null if selected_ludzik == own_ludzik else own_ludzik)
 	elif selected_ludzik != null and not selected_ludzik.is_moving:
-		# Klik gdzie indziej, mając zaznaczonego ludzika -> rozkaz ruchu.
-		_command_move(selected_ludzik, hex_id)
+		# Klik gdzie indziej, mając zaznaczonego ludzika -> TYLKO podgląd
+		# trasy (żółta linia), NIE rozkaz ruchu - patrz panel "Trasa ludzika".
+		_preview_route_to(selected_ludzik, hex_id)
 
 	_set_selected_hex(hex_id)
 	_refresh_action_panel()
+	_refresh_route_panel()
 
 
-func _command_move(ludzik: Ludzik, target_hex_id: String) -> void:
+## Liczy trasę do `target_hex_id` i pokazuje ją jako podgląd (nie rusza
+## ludzika) - nadpisuje poprzedni, jeszcze niepotwierdzony podgląd. NIE
+## dotyka zatwierdzonej, trwającej trasy (`ludzik.queued_route`), dopóki
+## gracz nie potwierdzi tego nowego podglądu w panelu.
+func _preview_route_to(ludzik: Ludzik, target_hex_id: String) -> void:
+	preview_route = []
+	preview_route_ludzik = null
+	hex_map_view.preview_route_hex_ids = []
+
 	if target_hex_id == ludzik.current_hex_id:
 		return
 
@@ -270,44 +335,104 @@ func _command_move(ludzik: Ludzik, target_hex_id: String) -> void:
 			info_label.text = "Brak dostępnej trasy do %s." % target_hex_id
 		return
 
-	await _move_along_path(ludzik, path)
+	preview_route = path
+	preview_route_ludzik = ludzik
+	hex_map_view.preview_route_hex_ids = preview_route
+	info_label.text = (
+		"Podgląd trasy do %s - potwierdź w panelu \"Trasa ludzika\", żeby ludzik ruszył." % target_hex_id
+	)
 
 
-func _move_along_path(ludzik: Ludzik, path: Array[String]) -> void:
+func _on_confirm_route_pressed() -> void:
+	if preview_route_ludzik == null or preview_route.size() < 2:
+		return
+
+	var ludzik = preview_route_ludzik
+	ludzik.queued_route = preview_route.slice(1)
+	preview_route = []
+	preview_route_ludzik = null
+	hex_map_view.preview_route_hex_ids = []
+
+	info_label.text = "Trasa zatwierdzona - ludzik rusza."
+	_advance_queued_route(ludzik)  # fire-and-forget, jak dawniej _command_move
+	_refresh_map_view()
+	_refresh_route_panel()
+
+
+func _on_cancel_route_pressed() -> void:
+	if preview_route_ludzik == selected_ludzik and not preview_route.is_empty():
+		preview_route = []
+		preview_route_ludzik = null
+		hex_map_view.preview_route_hex_ids = []
+	elif selected_ludzik != null:
+		selected_ludzik.queued_route = []
+		info_label.text = "Trasa anulowana."
+
+	_refresh_map_view()
+	_refresh_route_panel()
+
+
+## Kontynuuje WSZYSTKIE zatwierdzone, ale jeszcze nie w pełni wykonane trasy
+## (dowolnego gracza - hotseat, wszyscy dzielą tę samą oś rund) świeżymi
+## punktami ruchu - wołane po każdym przeliczeniu rundy, żeby trasa
+## faktycznie "szła" przez kolejne rundy bez ponownego klikania.
+func _continue_all_queued_routes() -> void:
+	for pid in player_ludziks:
+		for l in player_ludziks[pid]:
+			if not l.queued_route.is_empty():
+				await _advance_queued_route(l)
+
+
+## Wykonuje (dalszy ciąg) zatwierdzonej trasy, tyle kroków, na ile starczy
+## AKTUALNYCH punktów ruchu - reszta zostaje w `ludzik.queued_route` do
+## kontynuacji w kolejnej rundzie. Re-weryfikuje przejezdność i blokadę przez
+## ludzika innego gracza PRZY KAŻDYM kroku (nie tylko przy planowaniu
+## podglądu) - trasa może czekać na wykonanie kilka rund, w międzyczasie
+## sytuacja na polu mogła się zmienić.
+func _advance_queued_route(ludzik: Ludzik) -> void:
+	if ludzik.queued_route.is_empty() or ludzik.is_moving:
+		return
+
 	ludzik.is_moving = true
-
-	var i = 1
-	while i < path.size():
-		var next_hex_id: String = path[i]
+	while not ludzik.queued_route.is_empty():
+		var next_hex_id: String = ludzik.queued_route[0]
 		var next_hex = MapData.get_hex(next_hex_id)
 
 		if next_hex == null or not next_hex.is_passable():
-			info_label.text = "Pole %s jest niedostępne dla ruchu." % next_hex_id
+			info_label.text = "Trasa przerwana: pole %s jest niedostępne dla ruchu." % next_hex_id
+			ludzik.queued_route = []
 			break
+
+		var blocker = _ludzik_at(next_hex_id)
+		if blocker != null and blocker.player_id != ludzik.player_id:
+			info_label.text = "Trasa wstrzymana: pole %s jest bronione przez ludzika innego gracza." % next_hex_id
+			break  # queued_route zostaje - spróbuje ponownie w kolejnej rundzie
 
 		var cost = next_hex.get_movement_cost()
 		if not ludzik.spend_movement_points(cost):
-			info_label.text = (
-				"Brak punktów ruchu: wejście na %s kosztuje %d, zostało %d. Trasa przerwana."
-				% [next_hex_id, cost, ludzik.movement_points_current]
-			)
+			info_label.text = "Brak punktów ruchu - trasa będzie kontynuowana w kolejnej rundzie."
 			break
 
 		await ludzik.animate_to_hex(next_hex_id)
+		ludzik.queued_route.remove_at(0)
 		_reveal_around(next_hex_id, ludzik.player_id)
 		_update_mp_label()
 		_refresh_map_view()
-		i += 1
 
 	ludzik.is_moving = false
 	if ludzik == selected_ludzik:
 		_set_selected_hex(ludzik.current_hex_id)
-	info_label.text = "Ludzik dotarł do %s." % ludzik.current_hex_id
+	if ludzik.queued_route.is_empty():
+		info_label.text = "Ludzik dotarł do celu trasy (%s)." % ludzik.current_hex_id
 	_refresh_action_panel()
+	_refresh_route_panel()
+	_refresh_map_view()
 
 
 ## Odsłania mgłę w promieniu widzenia (sekcja 2.2 GDD) - BFS po realnych
 ## sąsiadach, więc liczba "skoków" odpowiada dokładnie odległości heksowej.
+## Promień bazowy (VISION_RADIUS) powiększony o ewentualny bonus danego
+## gracza z drzewka umiejętności (skill "reconnaissance").
 func _reveal_around(center_hex_id: String, player_id: int) -> void:
 	var center = MapData.get_hex(center_hex_id)
 	if center == null:
@@ -318,6 +443,9 @@ func _reveal_around(center_hex_id: String, player_id: int) -> void:
 		"annexed" if center.owner_id == player_id else "seen"
 	)
 
+	var player = GameManager.get_player(player_id)
+	var vision_radius = VISION_RADIUS + (player.vision_radius_bonus if player != null else 0)
+
 	var start_coord = Vector2i(center.axial_q, center.axial_r)
 	var queue: Array[Vector2i] = [start_coord]
 	var distance = {start_coord: 0}
@@ -325,7 +453,7 @@ func _reveal_around(center_hex_id: String, player_id: int) -> void:
 	while not queue.is_empty():
 		var coord: Vector2i = queue.pop_front()
 		var dist: int = distance[coord]
-		if dist >= VISION_RADIUS:
+		if dist >= vision_radius:
 			continue
 		for n in HexGridUtils.offset_neighbors(coord.x, coord.y):
 			if distance.has(n):
@@ -337,13 +465,24 @@ func _reveal_around(center_hex_id: String, player_id: int) -> void:
 			queue.append(n)
 
 
-## Odświeża siatkę heksów I widoczność ludzików przeciwników - te dwie rzeczy
-## zawsze idą razem, bo obie zależą od tego samego stanu mgły wojny. Używaj
-## tego zamiast bezpośredniego hex_map_view.queue_redraw(), gdziekolwiek mgła,
-## widok gracza albo pozycja ludzika mogły się zmienić.
+## Odświeża siatkę heksów, widoczność ludzików przeciwników I podgląd trasy w
+## toku - te rzeczy idą razem, bo wszystkie zależą od stanu, który mógł się
+## właśnie zmienić (mgła, pozycja ludzika, postęp trasy). Używaj tego zamiast
+## bezpośredniego hex_map_view.queue_redraw().
 func _refresh_map_view() -> void:
 	_update_ludzik_visibility()
+	_update_route_overlay()
 	hex_map_view.queue_redraw()
+
+
+## Trasa w toku (już zatwierdzona) zaznaczonego ludzika - rysowana zawsze,
+## niezależnie od tego, czy akurat trwa animacja kroku, czy czeka na kolejną
+## rundę (patrz komentarz na górze pliku).
+func _update_route_overlay() -> void:
+	if selected_ludzik != null and not selected_ludzik.queued_route.is_empty():
+		hex_map_view.queued_route_hex_ids = [selected_ludzik.current_hex_id] + selected_ludzik.queued_route
+	else:
+		hex_map_view.queued_route_hex_ids = []
 
 
 ## Ludzik przeciwnika jest widoczny TYLKO na polu, które aktywny (oglądający)
@@ -407,22 +546,31 @@ func _on_annex_pressed() -> void:
 		info_label.text = "Musisz stać ludzikiem na polu %s, żeby je zaanektować." % hex_id
 		return
 
-	if not ludzik.spend_movement_points(GameBalance.ANNEX_MP_COST):
-		info_label.text = "Brak punktów ruchu na aneksację (koszt: %d)." % GameBalance.ANNEX_MP_COST
+	var annex_cost = _effective_annex_cost()
+	if not ludzik.spend_movement_points(annex_cost):
+		info_label.text = "Brak punktów ruchu na aneksację (koszt: %d)." % annex_cost
 		_refresh_action_panel()
+		_refresh_route_panel()
 		return
 
 	var result = GameManager.annex_hex(hex_id, active_player.player_id)
 	if result["success"]:
 		_reveal_around(hex_id, active_player.player_id)  # "seen" -> "annexed" + ujawnia budynek
-		info_label.text = "Zaanektowano %s (koszt: %d MP)." % [hex_id, GameBalance.ANNEX_MP_COST]
+		info_label.text = "Zaanektowano %s (koszt: %d MP)." % [hex_id, annex_cost]
 		_refresh_map_view()
 	else:
-		ludzik.refund_movement_points(GameBalance.ANNEX_MP_COST)
+		ludzik.refund_movement_points(annex_cost)
 		info_label.text = "Nie udało się zaanektować %s (%s)." % [hex_id, result["reason"]]
 
 	_update_mp_label()
 	_refresh_action_panel()
+	_refresh_route_panel()
+
+
+## Koszt aneksacji w MP, pomniejszony o ewentualny bonus danego gracza z
+## drzewka umiejętności (skill "territorial_logistics"), nigdy poniżej 1.
+func _effective_annex_cost() -> int:
+	return maxi(1, GameBalance.ANNEX_MP_COST - active_player.annex_cost_reduction)
 
 
 ## Przejęcie terytorium (PvP) - sekcja 5 GDD / Faza 9. Działa z dowolnej
@@ -478,7 +626,9 @@ func _on_harvest_pressed() -> void:
 	if result["success"]:
 		var msg = "Wydobyto %.1f drewna z %s." % [result["wood_gained"], hex_id]
 		if result["prestige_penalty"] > 0:
-			msg += " Kara prestiżowa: -%d (przekroczono próg 60%%)." % result["prestige_penalty"]
+			msg += " Kara prestiżowa: -%d (przekroczono próg %.0f%%)." % [
+				result["prestige_penalty"], result["safe_threshold"]
+			]
 		info_label.text = msg
 		_update_stats_labels()
 		_refresh_map_view()
@@ -495,6 +645,74 @@ func _on_city_card_pressed() -> void:
 
 func _on_city_building_unlocked() -> void:
 	_update_stats_labels()
+
+
+## --- Drzewko Umiejętności (nowość, patrz komentarz na górze pliku) ---
+
+func _on_skill_tree_pressed() -> void:
+	skill_tree_panel.open_for_player(active_player)
+
+
+## Reaguje na odblokowanie skilla w SkillTreePanel. Efekty "czysto danowe"
+## (promień widzenia, próg bezpiecznej wycinki, koszt aneksacji, MP
+## PRZYSZŁYCH ludzików) są już zaaplikowane na PlayerData przez
+## GameManager.unlock_skill() - tu dopinamy tylko te dwa efekty, które
+## wymagają dostępu do węzłów sceny, których GameManager celowo nie zna.
+func _on_skill_unlocked(skill: SkillData) -> void:
+	match skill.effect_type:
+		SkillData.EffectType.EXTRA_LUDZIK:
+			_recruit_extra_ludzik(active_player)
+		SkillData.EffectType.MOVEMENT_POINTS_BONUS:
+			# Bonus dla PRZYSZŁYCH ludzików już jest na PlayerData
+			# (player.movement_points_bonus) - tu retroaktywnie podbijamy
+			# JUŻ ISTNIEJĄCYCH, żeby efekt był odczuwalny od razu.
+			var bonus = int(skill.effect_amount)
+			for l in player_ludziks.get(active_player.player_id, []):
+				l.movement_points_max += bonus
+				l.movement_points_current += bonus
+			_update_mp_label()
+		_:
+			pass  # VISION_RADIUS_BONUS / FOREST_THRESHOLD_BONUS / ANNEX_COST_REDUCTION - nic więcej do zrobienia tutaj
+	_update_stats_labels()
+
+
+## Skill "extra_ludzik" - rekrutuje kolejnego Ludzika w mieście startowym
+## gracza. Model danych `player_ludziks: player_id -> Array[Ludzik]` był od
+## początku na to przygotowany (patrz komentarz na górze pliku) - to
+## pierwsze miejsce, które faktycznie z tego korzysta.
+func _recruit_extra_ludzik(player: PlayerData) -> void:
+	var setup = _find_player_setup(player.player_id)
+	if setup.is_empty():
+		return
+
+	var ludzik = Ludzik.new()
+	add_child(ludzik)
+	ludzik.player_id = player.player_id
+	ludzik.color = setup["color"]
+	if setup.has("sprite") and ResourceLoader.exists(setup["sprite"]):
+		ludzik.sprite_texture = load(setup["sprite"])
+	ludzik.movement_points_max = GameBalance.LUDZIK_MOVEMENT_POINTS_MAX + player.movement_points_bonus
+	ludzik.reset_movement_points()
+
+	var spawn_hex_id: String = setup["start_hex"]
+	if MapData.get_hex(spawn_hex_id) == null:
+		spawn_hex_id = MapData.hexes.keys()[0]
+	ludzik.place_on_hex(spawn_hex_id)
+
+	if not player_ludziks.has(player.player_id):
+		player_ludziks[player.player_id] = []
+	player_ludziks[player.player_id].append(ludzik)
+
+	_reveal_around(spawn_hex_id, player.player_id)
+	_refresh_map_view()
+	info_label.text = "Zrekrutowano drugiego ludzika w %s." % player.starting_city
+
+
+func _find_player_setup(player_id: int) -> Dictionary:
+	for setup in PLAYER_SETUP:
+		if setup["id"] == player_id:
+			return setup
+	return {}
 
 
 ## --- Gracz aktywny i runda (rozdzielone - patrz turn_manager.gd) ---
@@ -565,6 +783,60 @@ func _refresh_action_panel() -> void:
 	harvest_value_label.visible = is_forest
 	harvest_button.visible = is_forest
 	harvest_button.disabled = not is_owned_by_me
+
+
+## Panel "Trasa ludzika" - widoczny tylko przy zaznaczonym ludziku, trzy
+## stany: (1) niepotwierdzony podgląd trasy -> długość/koszt + Potwierdź/
+## Anuluj; (2) trasa już zatwierdzona i w toku (mogła zostać wstrzymana
+## brakiem MP albo blokadą - wróci do niej `_continue_all_queued_routes` na
+## starcie kolejnej rundy) -> postęp + Anuluj; (3) nic zaplanowane ->
+## podpowiedź. Zawiera też skrót do aneksacji (ten sam handler co w panelu
+## akcji), żeby nie trzeba było przełączać się między panelami po dotarciu
+## na miejsce - stąd MUSI być wołane PO `_refresh_action_panel()`, żeby
+## `annex_button.disabled` było już aktualne.
+func _refresh_route_panel() -> void:
+	if selected_ludzik == null:
+		route_panel.visible = false
+		return
+
+	route_panel.visible = true
+	route_annex_button.disabled = annex_button.disabled
+
+	if preview_route_ludzik == selected_ludzik and preview_route.size() > 1:
+		var cost = _route_cost(preview_route)
+		var fits_now = cost <= selected_ludzik.movement_points_current
+		route_info_label.text = (
+			"Podgląd trasy do %s: %d pól, koszt %d MP (masz %d MP - %s)."
+			% [
+				preview_route[-1], preview_route.size() - 1, cost, selected_ludzik.movement_points_current,
+				"starczy w tej rundzie" if fits_now else "potrwa kilka rund"
+			]
+		)
+		confirm_route_button.visible = true
+		cancel_route_button.visible = true
+		cancel_route_button.text = "Anuluj podgląd"
+	elif not selected_ludzik.queued_route.is_empty():
+		route_info_label.text = "Trasa w toku do %s: pozostało %d pól." % [
+			selected_ludzik.queued_route[-1], selected_ludzik.queued_route.size()
+		]
+		confirm_route_button.visible = false
+		cancel_route_button.visible = true
+		cancel_route_button.text = "Anuluj trasę"
+	else:
+		route_info_label.text = "Kliknij pole na mapie, żeby zaplanować trasę."
+		confirm_route_button.visible = false
+		cancel_route_button.visible = false
+
+
+## Sumaryczny koszt MP przejścia `path` (pomija indeks 0 - to heks startowy,
+## na którym ludzik już stoi, wejście na niego nic nie kosztuje).
+func _route_cost(path: Array[String]) -> int:
+	var total = 0
+	for i in range(1, path.size()):
+		var hex = MapData.get_hex(path[i])
+		if hex != null:
+			total += hex.get_movement_cost()
+	return total
 
 
 func _update_mp_label() -> void:

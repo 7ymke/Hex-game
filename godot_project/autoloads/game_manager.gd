@@ -83,7 +83,10 @@ func harvest_forest(hex_id: String, player_id: int, harvest_percent: float) -> D
 	player.add_resource(HexData.ResourceType.WOOD, wood_gained)
 
 	# Prestiż: kara i wyłączenie generowania TYLKO przy przekroczeniu progu.
-	var over_harvest: float = harvest_percent - GameBalance.FOREST_SAFE_THRESHOLD_PERCENT
+	# Próg podniesiony o ewentualny bonus z drzewka umiejętności (skill
+	# "advanced_logging" - patrz scripts/skill_tree_data.gd), 0.0 domyślnie.
+	var safe_threshold = GameBalance.FOREST_SAFE_THRESHOLD_PERCENT + player.forest_safe_threshold_bonus
+	var over_harvest: float = harvest_percent - safe_threshold
 	var prestige_penalty = 0
 	if over_harvest > 0.0:
 		prestige_penalty = int(round(over_harvest * GameBalance.FOREST_OVERHARVEST_PENALTY_PER_PERCENT))
@@ -103,6 +106,7 @@ func harvest_forest(hex_id: String, player_id: int, harvest_percent: float) -> D
 		"success": true,
 		"wood_gained": wood_gained,
 		"prestige_penalty": prestige_penalty,
+		"safe_threshold": safe_threshold,
 	}
 
 
@@ -168,6 +172,42 @@ func unlock_city_building(player_id: int, building: Building) -> Dictionary:
 		change_prestige(player_id, building.prestige_value)
 
 	return {"success": true, "prestige_gained": building.prestige_value}
+
+
+## Odblokowanie węzła drzewka umiejętności (scripts/skill_tree_data.gd) -
+## ten sam mechanizm płatności co unlock_city_building() wyżej. Efekty
+## "czysto danowe" (bez potrzeby dostępu do węzłów sceny) są aplikowane
+## wprost tutaj, na akumulatorach PlayerData - żeby były aktywne natychmiast
+## i gotowe do odczytu wszędzie, gdzie już dziś czytamy stałe z GameBalance
+## (harvest_forest wyżej, _reveal_around/_on_annex_pressed w
+## game_map_controller.gd). EXTRA_LUDZIK i retroaktywny bonus MP na już
+## istniejących ludzikach WYMAGAJĄ węzłów sceny, których GameManager celowo
+## nie zna (tak jak MP przy aneksacji) - te aplikuje
+## game_map_controller._on_skill_unlocked() w reakcji na sygnał
+## SkillTreePanel.skill_unlocked, korzystając z `effect_type` zwróconego tu.
+func unlock_skill(player_id: int, skill: SkillData) -> Dictionary:
+	var player = get_player(player_id)
+	if player == null or skill == null:
+		return {"success": false, "reason": "invalid_player_or_skill"}
+	if player.unlocked_skills.has(skill.skill_id):
+		return {"success": false, "reason": "already_unlocked"}
+	if not player.pay_costs(skill.required_resources):
+		return {"success": false, "reason": "cannot_afford"}
+
+	player.unlocked_skills.append(skill.skill_id)
+	match skill.effect_type:
+		SkillData.EffectType.VISION_RADIUS_BONUS:
+			player.vision_radius_bonus += int(skill.effect_amount)
+		SkillData.EffectType.FOREST_THRESHOLD_BONUS:
+			player.forest_safe_threshold_bonus += skill.effect_amount
+		SkillData.EffectType.ANNEX_COST_REDUCTION:
+			player.annex_cost_reduction += int(skill.effect_amount)
+		SkillData.EffectType.MOVEMENT_POINTS_BONUS:
+			player.movement_points_bonus += int(skill.effect_amount)
+		SkillData.EffectType.EXTRA_LUDZIK:
+			pass  # w całości po stronie game_map_controller.gd
+
+	return {"success": true, "effect_type": skill.effect_type}
 
 
 ## Naprawa budynku - sekcja 3 GDD ("może go naprawić i sprawić, że będzie

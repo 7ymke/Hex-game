@@ -20,6 +20,18 @@ extends Resource
 
 @export var unlocked_city_buildings: Array[String] = []
 
+## Drzewko umiejętności (scripts/skill_tree_data.gd) - id-ki odblokowanych
+## skilli, plus akumulatory efektów "czysto danowych" (bez potrzeby dostępu
+## do węzłów sceny), aplikowane wprost przez GameManager.unlock_skill().
+## Efekty, które WYMAGAJĄ dostępu do sceny (nowy węzeł Ludzik, retroaktywny
+## bonus MP na już istniejących ludzikach), aplikuje zamiast tego
+## game_map_controller._on_skill_unlocked() - patrz SkillData.EffectType.
+@export var unlocked_skills: Array[String] = []
+@export var movement_points_bonus: int = 0
+@export var vision_radius_bonus: int = 0
+@export var forest_safe_threshold_bonus: float = 0.0
+@export var annex_cost_reduction: int = 0
+
 
 func add_resource(res_type: HexData.ResourceType, amount: float) -> void:
 	if res_type == HexData.ResourceType.NONE or amount == 0.0:

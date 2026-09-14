@@ -42,6 +42,15 @@ var selected: bool = false
 ## zablokować wydawanie nowego rozkazu ruchu w trakcie trwającego.
 var is_moving: bool = false
 
+## Zatwierdzona trasa (wielorundowa) czekająca na wykonanie - kolejne heksy
+## DO ODWIEDZENIA, bez heksa startowego (ten to już `current_hex_id`).
+## Ustawiana przez game_map_controller.gd po potwierdzeniu podglądu trasy w
+## nowym panelu "Trasa ludzika"; opróżniana krok po kroku w miarę ruchu
+## (`_advance_queued_route`), także automatycznie na starcie każdej kolejnej
+## rundy, jeśli w tej nie starczyło punktów ruchu na całą trasę - stąd "będzie
+## mógł iść przez parę rund". Puste = brak zaplanowanej/trwającej trasy.
+var queued_route: Array[String] = []
+
 
 func _ready() -> void:
 	movement_points_current = movement_points_max

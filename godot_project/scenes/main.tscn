@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://cmapmain0001"]
+[gd_scene load_steps=7 format=3 uid="uid://cmapmain0001"]
 
 [ext_resource type="Script" path="res://scenes/game_map_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scenes/camera_controller.gd" id="2"]
 [ext_resource type="Script" path="res://scenes/hex_map_view.gd" id="3"]
 [ext_resource type="Script" path="res://scenes/ludzik.gd" id="4"]
 [ext_resource type="Script" path="res://scenes/city_card_panel.gd" id="5"]
+[ext_resource type="Script" path="res://scenes/skill_tree_panel.gd" id="6"]
 
 [node name="GameMapController" type="Node2D"]
 script = ExtResource("1")
@@ -110,10 +111,39 @@ text = "Wydobądź drewno"
 [node name="CityCardButton" type="Button" parent="UI/ActionPanel/VBox"]
 text = "Karta Miasta"
 
+[node name="SkillTreeButton" type="Button" parent="UI/ActionPanel/VBox"]
+text = "Drzewko Umiejętności"
+
 [node name="PlayerSelector" type="OptionButton" parent="UI/ActionPanel/VBox"]
 
 [node name="EndRoundButton" type="Button" parent="UI/ActionPanel/VBox"]
 text = "Zakończ rundę"
+
+[node name="RoutePanel" type="PanelContainer" parent="UI"]
+offset_left = 480.0
+offset_top = 380.0
+offset_right = 900.0
+offset_bottom = 660.0
+
+[node name="VBox" type="VBoxContainer" parent="UI/RoutePanel"]
+theme_override_constants/separation = 6
+
+[node name="RouteTitleLabel" type="Label" parent="UI/RoutePanel/VBox"]
+theme_override_font_sizes/font_size = 18
+text = "Trasa ludzika"
+
+[node name="RouteInfoLabel" type="Label" parent="UI/RoutePanel/VBox"]
+autowrap_mode = 2
+text = "Zaznacz ludzika, potem kliknij pole na mapie, żeby zaplanować trasę."
+
+[node name="ConfirmRouteButton" type="Button" parent="UI/RoutePanel/VBox"]
+text = "Potwierdź trasę"
+
+[node name="CancelRouteButton" type="Button" parent="UI/RoutePanel/VBox"]
+text = "Anuluj trasę"
+
+[node name="RouteAnnexButton" type="Button" parent="UI/RoutePanel/VBox"]
+text = "Zaanektuj"
 
 [node name="CityCardPanel" type="CanvasLayer" parent="."]
 layer = 10
@@ -142,4 +172,33 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
 [node name="CloseButton" type="Button" parent="CityCardPanel/Panel/VBox"]
+text = "Zamknij"
+
+[node name="SkillTreePanel" type="CanvasLayer" parent="."]
+layer = 11
+script = ExtResource("6")
+
+[node name="Panel" type="PanelContainer" parent="SkillTreePanel"]
+offset_left = 200.0
+offset_top = 80.0
+offset_right = 1080.0
+offset_bottom = 720.0
+
+[node name="VBox" type="VBoxContainer" parent="SkillTreePanel/Panel"]
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="SkillTreePanel/Panel/VBox"]
+theme_override_font_sizes/font_size = 20
+text = "Drzewko Umiejętności"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="SkillTreePanel/Panel/VBox"]
+custom_minimum_size = Vector2(0, 500)
+size_flags_vertical = 3
+
+[node name="SkillList" type="VBoxContainer" parent="SkillTreePanel/Panel/VBox/ScrollContainer"]
+custom_minimum_size = Vector2(860, 0)
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="CloseButton" type="Button" parent="SkillTreePanel/Panel/VBox"]
 text = "Zamknij"

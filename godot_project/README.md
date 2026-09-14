@@ -3,14 +3,23 @@
 Godot 4.2.2. Zaimplementowane: **Fazy 0-9** z `Plan_Implementacji_Godot.md`
 (fundament, import mapy, wizualizacja, mgła wojny, ludzik i ruch, akcje na
 polu, pełna struktura tur wielu graczy, prestiż jako centralna waluta, Karta
-Miasta, przejęcie terytorium PvP). Gra jest w pełni grywalna w trybie
-jednoosobowym-na-jednym-ekranie (**hotseat**, do 6 graczy — pełna skala
-multiplayer z sekcji 7 GDD) — dokładnie to, co plan implementacji zakłada
-jako cel Faz 0-9, zanim dojdzie warstwa sieciowa (Faza 10).
+Miasta, przejęcie terytorium PvP) **plus dalsze funkcje ponad plan**: ekran
+startowy wyboru miast, trasa wielorundowa z podglądem/potwierdzeniem,
+Drzewko Umiejętności (5 startowych upgrade'ów) i UI skalujące się z oknem.
+Gra jest w pełni grywalna w trybie jednoosobowym-na-jednym-ekranie
+(**hotseat**, do 6 graczy — pełna skala multiplayer z sekcji 7 GDD) —
+dokładnie to, co plan implementacji zakłada jako cel Faz 0-9, zanim dojdzie
+warstwa sieciowa (Faza 10).
 
 Wszystkie liczby do tweakowania balansu (prędkość ludzika, wygląd zaznaczenia,
 punkty ruchu, progi/kary lasu i stref chronionych, koszt przejęcia
 terytorium...) mieszkają w jednym pliku: `scripts/game_balance.gd`.
+
+UI skaluje się z oknem (`project.godot` -> `[display]`: `window/stretch/mode
+= "canvas_items"`, `window/stretch/aspect = "expand"`, bazowa rozdzielczość
+1280×800) - zmiana rozmiaru okna skaluje całą scenę (mapę i UI) proporcjonalnie
+zamiast przycinać ją czarnymi pasami albo zostawiać UI w stałym rozmiarze
+pikselowym w rogu ekranu.
 
 Uwaga stylistyczna: kod celowo NIE używa operatora `:=` (type inference) -
 tylko zwykłego `=` - bo w niektórych konfiguracjach Godota 4.2.2 potrafi on
@@ -46,15 +55,24 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
      `GameBalance.LUDZIK_SELECTED_SCALE` / `_HIGHLIGHT_COLOR` / `_WIDTH`),
      albo odznacza, jeśli już był zaznaczony. Zaznaczenie służy WYŁĄCZNIE do
      wydawania rozkazów ruchu.
-   - **Lewy klik na dowolny inny heks**, mając ludzika zaznaczonego → ludzik
-     płynnie (animowany ruch, konfigurowalna prędkość -
-     `GameBalance.LUDZIK_MOVE_SPEED_PX_PER_SEC`) idzie tam po trasie z
-     pathfindingu, krok po kroku, zużywając punkty ruchu WG KOSZTU TERENU.
-     Punkty ruchu (MP) należą do ludzika, nie do gracza - każdy ludzik ma
-     własną pulę (przygotowane pod przyszły upgrade "więcej ludzików na
-     gracza"). Heks zajęty aktualnie przez ludzika PRZECIWNIKA jest
-     nieprzejezdny - ani jako przystanek, ani jako tranzyt trasy (sekcja 3
-     GDD, "funkcja obronna").
+   - **Lewy klik na dowolny inny heks**, mając ludzika zaznaczonego → NIE
+     rusza go od razu (update) - liczy trasę z pathfindingu i pokazuje jej
+     **podgląd** na mapie (żółta linia + kropki na kolejnych polach). Dopiero
+     **Potwierdź trasę** w nowym panelu "Trasa ludzika" (prawy dolny róg)
+     faktycznie rusza ludzika, krok po kroku, zużywając punkty ruchu WG
+     KOSZTU TERENU (płynny, animowany ruch - konfigurowalna prędkość
+     `GameBalance.LUDZIK_MOVE_SPEED_PX_PER_SEC`). Jeśli trasa jest dłuższa
+     niż starczy jednorazowego zapasu MP, wykonana zostaje jej część, a
+     reszta zostaje zapamiętana (linia zmienia kolor na pomarańczowy) i
+     **kontynuowana automatycznie po każdym kolejnym "Zakończ rundę"**, aż do
+     celu - bez ponownego klikania trasy. Panel pokazuje długość/koszt trasy
+     (albo postęp trasy w toku) i ma przycisk **Anuluj** (podgląd - przed
+     potwierdzeniem, albo całą trwającą trasę - po). Punkty ruchu (MP) należą
+     do ludzika, nie do gracza - każdy ludzik ma własną pulę. Heks zajęty
+     aktualnie przez ludzika PRZECIWNIKA jest nieprzejezdny - ani jako
+     przystanek, ani jako tranzyt trasy (sekcja 3 GDD, "funkcja obronna") -
+     sprawdzane zarówno przy planowaniu podglądu, jak i przy KAŻDYM kroku
+     trwającej trasy (mogła czekać kilka rund, sytuacja mogła się zmienić).
    - **Lewy klik na heks bez zaznaczonego ludzika** → tylko zaznacza to pole
      (żółta obwódka) do inspekcji/akcji - NIE przesuwa nikogo.
    - **Prawy przycisk myszy + przeciąganie** → przesuwanie widoku kamery.
@@ -95,6 +113,12 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
      - **Karta Miasta** — osobny ekran: lista budynków charakterystycznych
        dla miasta aktywnego gracza, każdy z kosztem w zasobach i wartością
        prestiżową po odblokowaniu (sekcja 7 GDD).
+     - **Drzewko Umiejętności** (nowość) — osobny ekran, analogiczny do Karty
+       Miasta, ale WSPÓLNY dla wszystkich miast: 5 permanentnych upgrade'ów
+       płatnych surowcami z mapy (patrz sekcja niżej).
+   - Panel "Trasa ludzika" (prawy dolny róg, patrz wyżej) ma też przycisk
+     **Zaanektuj** - skrót do tej samej akcji co w panelu po lewej, żeby po
+     dotarciu na miejsce nie trzeba było przełączać się między panelami.
    - **Rozwijana lista graczy** ("Zmiana gracza") — wybierz z listy KONKRETNEGO
      gracza, na którego chcesz przełączyć kontrolę (nie ma już cyklicznego
      "następny gracz"). Nie kończy niczyjej tury, nie wpływa na rundę.
@@ -126,7 +150,10 @@ godot_project/
 ├── resources/
 │   ├── hex_data.gd              # class_name HexData (Resource)
 │   ├── building.gd               # class_name Building (Resource)
-│   ├── player_data.gd            # class_name PlayerData (Resource) - w tym kolor drużyny
+│   ├── player_data.gd            # class_name PlayerData (Resource) - kolor
+│   │                              # drużyny + akumulatory efektów skilli
+│   ├── skill_data.gd             # class_name SkillData (Resource) - węzeł
+│   │                              # drzewka umiejętności
 │   └── city_buildings_data.gd    # statyczne dane Karty Miasta per miasto startowe
 ├── scripts/
 │   ├── game_balance.gd          # WSZYSTKIE stałe balansu w jednym miejscu -
@@ -135,6 +162,8 @@ godot_project/
 │   ├── player_setup.gd          # PlayerSetup.LIST - lista miast/graczy,
 │   │                              # współdzielona przez start_screen.gd i
 │   │                              # game_map_controller.gd
+│   ├── skill_tree_data.gd       # SkillTreeData.get_skills() - 5 startowych
+│   │                              # upgrade'ów drzewka umiejętności
 │   ├── hex_grid_utils.gd        # matematyka siatki - offset "even-q", flat-top
 │   └── hex_pathfinder.gd        # A* (AStar2D) po heksach, wg kosztu terenu,
 │                                  # z opcjonalną listą heksów wykluczonych (blokada PvP)
@@ -142,20 +171,25 @@ godot_project/
 │   ├── start_screen.tscn / start_screen.gd  # ekran startowy - wybór, ile i
 │   │                              # które miasta grają (checkboxy, min. 2)
 │   ├── main.tscn                # scena grywalna (Fazy 2-9) - kamera, mapa,
-│   │                              # ludzik (+ do 5 tworzonych w kodzie), UI, Karta Miasta
-│   ├── game_map_controller.gd   # orchestracja: ruch, mgła, akcje na polu,
-│   │                              # wybór gracza, PvP, Karta Miasta,
-│   │                              # zaznaczanie ludzików, filtr GameSetup
+│   │                              # ludzik (+ do 6 tworzonych w kodzie), UI,
+│   │                              # Karta Miasta, Drzewko Umiejętności
+│   ├── game_map_controller.gd   # orchestracja: ruch/trasy, mgła, akcje na
+│   │                              # polu, wybór gracza, PvP, Karta Miasta,
+│   │                              # Drzewko Umiejętności, filtr GameSetup
 │   ├── hex_map_view.gd          # rysowanie siatki + mgła wojny + klikanie/hover
 │   │                              # + podświetlenie zaznaczonego pola + obwódka
-│   │                              # w kolorze drużyny-właściciela
+│   │                              # w kolorze drużyny-właściciela + podgląd/trasa
 │   ├── camera_controller.gd     # pan (PPM) / zoom (scroll)
 │   ├── ludzik.gd                 # wizualny pionek gracza: płynny ruch (Tween),
-│   │                              # własne MP, zaznaczenie (skala + podświetlenie)
-│   │                              # - jeden na gracza na razie, ale
+│   │                              # własne MP, zaznaczenie (skala + podświetlenie),
+│   │                              # zatwierdzona trasa wielorundowa (queued_route)
+│   │                              # - jeden na gracza na start, ale
 │   │                              # player_ludziks w kontrolerze to już
-│   │                              # Array[Ludzik] per gracz (gotowe pod upgrade)
+│   │                              # Array[Ludzik] per gracz (skill "Drugi ludzik"
+│   │                              # dodaje kolejnego bez zmian w reszcie logiki)
 │   ├── city_card_panel.gd        # UI Karty Miasta (osobny ekran, sekcja 7 GDD)
+│   ├── skill_tree_panel.gd       # UI Drzewka Umiejętności (osobny ekran, wspólny
+│   │                              # dla wszystkich miast, analogiczny do Karty Miasta)
 │   └── main_test.tscn / main_test.gd   # smoke test Fazy 0-1 + Faz 6-9 (bez grafiki)
 ├── data/map_data.json         # wygenerowane przez tools/convert_kml_to_json.py
 └── icon.svg
@@ -187,6 +221,44 @@ pytanie GDD o przetwarzaniu surowiec→produkt, sekcja 6/11).
 (np. "Huta miedzi Głogów KGHM"). Wszystkie budynki startują uszkodzone
 (`building_damaged = true`) - trzeba je zaanektować i naprawić, żeby zaczęły
 generować surowiec (`GameBalance.BUILDING_RESOURCE_INCOME_PER_TURN` na rundę).
+
+### Drzewko Umiejętności (nowość)
+
+Drugi (obok Karty Miasta) trwały cel na nadwyżki surowców - tym razem z
+bezpośrednim wpływem na rozgrywkę zamiast samego prestiżu. Na razie płaskie
+(bez prerequisitów/poziomów) - `scripts/skill_tree_data.gd` (`SkillTreeData.get_skills()`)
+proponuje 5 startowych upgrade'ów, każdy płatny surowcami, które już są w
+grze, i odblokowywany permanentnie za jednym kliknięciem w ekranie "Drzewko
+Umiejętności":
+
+| Skill | Efekt | Koszt |
+|---|---|---|
+| Drugi ludzik | Rekrutuje kolejnego Ludzika w mieście startowym - dwa niezależne ruchy/akcje na rundę | 40 żywności, 40 drewna, 20 węgla |
+| Wytrzymałość marszowa | +2 punkty ruchu dla każdego ludzika (obecnego i przyszłego) | 25 żywności, 15 drewna |
+| Zrównoważona wycinka | +15 pkt. proc. do bezpiecznego progu wycinki lasu | 30 drewna, 15 węgla |
+| Rozpoznanie terenu | +1 promień widzenia dla wszystkich ludzików gracza | 15 niklu, 20 gazu |
+| Logistyka terytorialna | -1 MP kosztu aneksacji (min. 1) | 20 miedzi, 5 uranu |
+
+Mechanizm płatności jest identyczny jak w Karcie Miasta
+(`PlayerData.can_afford`/`pay_costs`, `GameManager.unlock_skill()` -
+scentralizowana funkcja, ten sam wzorzec co `unlock_city_building()`).
+Efekty dzielą się na dwie kategorie:
+
+- **Czysto danowe** (promień widzenia, próg bezpiecznej wycinki, koszt
+  aneksacji, MP PRZYSZŁYCH ludzików) - `GameManager.unlock_skill()` aplikuje
+  je od razu jako akumulatory na `PlayerData` (`vision_radius_bonus`,
+  `forest_safe_threshold_bonus`, `annex_cost_reduction`,
+  `movement_points_bonus`), odczytywane wprost tam, gdzie wcześniej
+  odczytywano odpowiednią stałą z `GameBalance` (`_reveal_around()`,
+  `harvest_forest()`, `_effective_annex_cost()` w `game_map_controller.gd`).
+- **Wymagające dostępu do węzłów sceny** (nowy Ludzik, retroaktywny bonus MP
+  na już istniejących ludzikach) - `GameManager` celowo ich nie dotyka (tak
+  jak przy MP przy aneksacji - patrz "Decyzje projektowe" niżej);
+  `SkillTreePanel.skill_unlocked` (sygnał) doprasza o to
+  `game_map_controller._on_skill_unlocked()`. "Drugi ludzik" to pierwsze
+  miejsce w grze, które faktycznie korzysta z architektury
+  `player_ludziks: player_id -> Array[Ludzik]`, przygotowanej pod ten
+  upgrade od samego początku (patrz komentarz na górze `game_map_controller.gd`).
 
 ## Orientacja siatki: flat-top, offset "even-q"
 
@@ -238,6 +310,48 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **Trasa wielorundowa z podglądem i potwierdzeniem** (nowość). Klik na polu
+  z zaznaczonym ludzikiem już NIE rusza go od razu - `_preview_route_to()`
+  w `game_map_controller.gd` liczy trasę z `HexPathfinder` i tylko ją
+  POKAZUJE (`hex_map_view.preview_route_hex_ids`, żółta linia), czekając na
+  **Potwierdź trasę** w nowym panelu "Trasa ludzika". Po potwierdzeniu trasa
+  trafia na `Ludzik.queued_route` (nie do kontrolera - musi przetrwać zmianę
+  zaznaczenia/gracza) i wykonuje się przez `_advance_queued_route()` na tyle
+  kroków, ile starczy AKTUALNYCH punktów ruchu; jeśli trasa jest dłuższa,
+  reszta zostaje zapamiętana (rysowana pomarańczową linią,
+  `queued_route_hex_ids`) i **automatycznie kontynuowana** po każdym kolejnym
+  `TurnManager.end_round()` (`_continue_all_queued_routes()`, wołane z
+  `_on_round_ended()`) - świeże MP każdej rundy popychają trasę dalej bez
+  ponownego klikania, stąd "trasa idzie przez parę rund". Blokada przez
+  ludzika innego gracza jest re-weryfikowana PRZY KAŻDYM kroku wykonania
+  (nie tylko przy planowaniu podglądu) - trasa mogła czekać kilka rund, w
+  międzyczasie ktoś mógł wejść jej na drodze; w takim wypadku trasa się
+  zatrzymuje (zostaje w `queued_route`) zamiast przejechać przez niego.
+  Aneksacja jest osiągalna wprost z tego samego panelu (przycisk-skrót na
+  `_on_annex_pressed()`), żeby nie trzeba było przełączać się do panelu akcji
+  po dotarciu na miejsce.
+- **Drzewko Umiejętności** (nowość, patrz sekcja "Drzewko Umiejętności"
+  wyżej) - drugi, obok Karty Miasta, trwały cel na surowce, tym razem z
+  bezpośrednim wpływem na rozgrywkę. `GameManager.unlock_skill()` to ten sam
+  wzorzec płatności co `unlock_city_building()` (weryfikacja + pobranie
+  kosztu + zapis do `PlayerData.unlocked_skills`), ale efekty dzielą się na
+  dwie kategorie: "czysto danowe" (promień widzenia, próg wycinki, koszt
+  aneksacji, MP przyszłych ludzików) aplikowane WPROST na akumulatorach
+  `PlayerData` przez `GameManager` (spójnie z zasadą "GameManager nic nie wie
+  o ludzikach/scenie" - patrz niżej), i te wymagające węzłów sceny (nowy
+  Ludzik, retroaktywny bonus MP na istniejących), zgłaszane sygnałem
+  `SkillTreePanel.skill_unlocked` do `game_map_controller._on_skill_unlocked()`.
+  Skill "Drugi ludzik" to pierwsze miejsce w grze faktycznie korzystające z
+  `player_ludziks: player_id -> Array[Ludzik]` - architektury przygotowanej
+  pod ten upgrade od samego początku (patrz "Punkty ruchu przeniesione..."
+  niżej).
+- **UI skaluje się z oknem** (nowość) - `project.godot` (`[display]`)
+  ustawia `window/stretch/mode = "canvas_items"` i `window/stretch/aspect =
+  "expand"` z bazową rozdzielczością 1280×800 (dopasowaną do istniejących,
+  ustawionych "na sztywno" w pikselach pozycji paneli UI w `main.tscn`).
+  Godot skaluje wtedy CAŁY canvas (mapę 2D i UI - obie żyją w tym samym
+  viewporcie) proporcjonalnie do rozmiaru okna, bez przepisywania pozycji
+  poszczególnych elementów UI na jednostki względne.
 - **Hotseat na pełnych 6 graczach (sekcja 7 GDD).** `PlayerSetup.LIST`
   (`scripts/player_setup.gd`) opisuje wszystkich 6 możliwych graczy (Wrocław
   `H18`, Szczecin `A7`, Warszawa `R12`, Kraków `O22`, Gdańsk `L3`, Poznań
