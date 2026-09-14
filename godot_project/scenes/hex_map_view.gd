@@ -2,11 +2,11 @@ class_name HexMapView
 extends Node2D
 ## Faza 2 (wizualizacja) + Faza 3 (mgła wojny) planu implementacji.
 ## Rysuje siatkę heksów kolorowaną wg typu terenu, z trójpoziomową mgłą wojny
-## (sekcja 2.2 GDD): "unexplored" = całkiem zakryty, "seen" = widoczny typ
-## terenu ale przyciemniony (bez szczegółów), "annexed" = w pełni odkryty
-## (etykieta z ID, budynek/zasób). Heksy z właścicielem dostają dodatkowo
-## grubszą obwódkę w kolorze drużyny (widoczną od progu "seen" - ten sam co
-## widoczność ludzika przeciwnika w game_map_controller.gd).
+## (sekcja 2.2 GDD, HexData.FogState): UNEXPLORED = całkiem zakryty, SEEN =
+## widoczny typ terenu ale przyciemniony (bez szczegółów), ANNEXED = w pełni
+## odkryty (etykieta z ID, budynek/zasób). Heksy z właścicielem dostają
+## dodatkowo grubszą obwódkę w kolorze drużyny (widoczną od progu SEEN - ten
+## sam co widoczność ludzika przeciwnika w game_map_controller.gd).
 
 signal hex_clicked(hex_id: String)
 signal hex_hovered(hex_id: String)  # pusty string = kursor poza siatką
@@ -61,23 +61,23 @@ func _draw_hex(hex: HexData) -> void:
 	var corners = HexGridUtils.hex_corners(center, GameBalance.HEX_SIZE * 0.92)
 	var fog = hex.get_fog_state(viewing_player_id)
 
-	if fog == "unexplored":
+	if fog == HexData.FogState.UNEXPLORED:
 		draw_colored_polygon(corners, FOG_UNEXPLORED)
 	else:
 		var base_color: Color = TERRAIN_COLORS.get(hex.terrain_type, Color.WHITE)
 		draw_colored_polygon(corners, base_color)
-		if fog == "seen":
+		if fog == HexData.FogState.SEEN:
 			draw_colored_polygon(corners, FOG_SEEN_OVERLAY)
 
 	var outline = corners.duplicate()
 	outline.append(corners[0])
 
 	# Kolor drużyny wokół pól, które przejęła - ten sam próg mgły co
-	# widoczność ludzika przeciwnika (fog != "unexplored", sekcja 2.2 GDD):
+	# widoczność ludzika przeciwnika (fog != UNEXPLORED, sekcja 2.2 GDD):
 	# wystarczy, że pole kiedyś znalazło się w zasięgu widzenia, nie trzeba
 	# go samemu zaanektować. Rysowany grubszą linią POD zwykłą/zaznaczoną
 	# obwódką, żeby obie były widoczne naraz.
-	if fog != "unexplored" and hex.owner_id != -1:
+	if fog != HexData.FogState.UNEXPLORED and hex.owner_id != -1:
 		var owner = GameManager.get_player(hex.owner_id)
 		if owner != null:
 			draw_polyline(outline, owner.color, OWNER_OUTLINE_WIDTH)
@@ -85,7 +85,7 @@ func _draw_hex(hex: HexData) -> void:
 	var is_selected = hex.hex_id == selected_hex_id
 	draw_polyline(outline, SELECTED_OUTLINE_COLOR if is_selected else OUTLINE_COLOR, 3.0 if is_selected else 1.5)
 
-	if fog == "annexed":
+	if fog == HexData.FogState.ANNEXED:
 		draw_string(
 			ThemeDB.fallback_font, center + Vector2(-14, 4), hex.hex_id,
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color.WHITE

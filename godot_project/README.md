@@ -495,6 +495,58 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **Przegląd i porządki w całym kodzie** (nowość - czysto techniczny przegląd
+  jakości, bez zmian w rozgrywce). Cały `godot_project/` (24 pliki `.gd`)
+  przejrzany pod kątem duplikacji, martwego kodu i drobnych niespójności:
+  - **Mgła wojny jako enum, nie magiczne stringi** - `HexData.FogState`
+    (`UNEXPLORED`/`SEEN`/`ANNEXED`) zastępuje dotychczasowe porównania do
+    stringów `"unexplored"`/`"seen"`/`"annexed"` rozsiane po
+    `game_map_controller.gd`, `hex_map_view.gd` i `game_manager.gd` - ten sam
+    wzorzec co `HexData.TerrainType`/`ResourceType`, chroni przed literówką w
+    stringu, której kompilator by nie złapał.
+  - **Usunięta duplikacja opisu pola** - `_on_hex_hovered()` (dymek) i
+    `_refresh_action_panel()` (panel po lewej) budowały niemal identyczny
+    tekst dla poziomów SEEN/ANNEXED; wspólna logika przeniesiona do
+    `_describe_seen_hex()`/`_describe_owner()`/`_describe_building()`.
+    Identyczna funkcja `_format_costs()` (formatowanie słownika kosztów
+    zasobów) istniała osobno w `city_card_panel.gd` i `skill_tree_panel.gd` -
+    przeniesiona na `HexData.format_resource_costs()` (bo to `HexData`
+    właściciel `RESOURCE_DISPLAY_NAMES`, z którego korzysta).
+  - **Usunięta duplikacja tworzenia Ludzika** - `_setup_players()` i
+    `_recruit_extra_ludzik()` osobno powtarzały ten sam kod nadawania
+    koloru/obrazka nowemu węzłowi Ludzik i ten sam fallback na brakujący
+    heks startowy; wydzielone do `_configure_ludzik()`/`_resolve_start_hex()`.
+  - **Wspólny ogon UI po akcji ludzika** - `_on_annex_pressed()` i
+    `_on_takeover_pressed()` kończyły się (na każdej z czterech możliwych
+    ścieżek: brak MP / sukces / porażka) tym samym trio
+    `_update_mp_label()`/`_refresh_action_panel()`/`_refresh_route_panel()` -
+    wydzielone do `_refresh_ludzik_action_ui()`.
+  - **`city_buildings_data.gd` z 6 prawie identycznych funkcji na jedną
+    tabelę** - `_wroclaw()`/`_szczecin()`/... plus `match` w
+    `get_buildings()` zastąpione jedną stałą `CITY_BUILDINGS` (miasto ->
+    lista wpisów) i jednym generycznym budowaniem `Building` z wpisu -
+    dokładnie te same dane, łatwiej dodać/zmienić budynek albo przejrzeć
+    wszystkie miasta naraz.
+  - **Usunięty martwy kod**: `Building.can_afford()`/`get_required_amount()`
+    (nigdy nie wywoływane - każde miejsce w kodzie i tak woła
+    `player.can_afford(x.required_resources)` wprost) oraz sygnały
+    `GameManager.prestige_changed`/`hex_ownership_changed` (emitowane, ale
+    bez ani jednego `.connect()` w całym projekcie - UI i tak odświeża się
+    przez bezpośrednie wywołania `_update_stats_labels()`/`_refresh_map_view()`
+    po każdej akcji, nie przez subskrypcję tych sygnałów).
+  - **Idiomatyczne funkcje Godota 4** - `int(round(x))` -> `roundi(x)`,
+    `int(floor(x))` -> `floori(x)`, `max()`/`min()` na wartościach
+    całkowitych/zmiennoprzecinkowych -> `maxi()`/`mini()`/`maxf()` (unikanie
+    ogólnego, wolniejszego dopasowania typu Variant przez `max()`/`min()`,
+    kiedy typ jest znany z góry - ten sam wzorzec, który reszta kodu już
+    stosowała gdzie indziej).
+  - **Naprawiony błąd w komentarzu** - `MapData.get_neighbors()` opisywał
+    siatkę jako "offset odd-r (pointy-top)", mimo że cały projekt
+    (hex_grid_utils.gd, ta sekcja README) konsekwentnie używa "flat-top,
+    offset even-q" - stary, mylący komentarz z wcześniejszej iteracji.
+  - Zweryfikowane skryptem: brak nieużywanych funkcji/stałych/sygnałów w
+    całym projekcie po powyższych zmianach (grep po każdym zdefiniowanym
+    identyfikatorze, licząc wystąpienia poza definicją).
 - **Poprawki znikania/przypinania okienka szczegółów skilla** (dwie
   powiązane naprawy błędów w `skill_tree_panel.gd`):
   1. **Okienko znikało, zanim mysz zdążyła do niego dojechać.** Ruch myszką

@@ -177,17 +177,10 @@ func _setup_players() -> void:
 		else:
 			ludzik = Ludzik.new()
 			add_child(ludzik)
-
-		ludzik.player_id = player.player_id
-		ludzik.color = setup["color"]
-		if setup.has("sprite") and ResourceLoader.exists(setup["sprite"]):
-			ludzik.sprite_texture = load(setup["sprite"])
+		_configure_ludzik(ludzik, player, setup)
 		player_ludziks[player.player_id] = [ludzik]
 
-		var start_hex_id: String = setup["start_hex"]
-		if MapData.get_hex(start_hex_id) == null:
-			push_warning("GameMapController: brak heksa startowego %s dla %s" % [start_hex_id, player.player_name])
-			start_hex_id = MapData.hexes.keys()[0]
+		var start_hex_id = _resolve_start_hex(setup, player.player_name)
 
 		# `require_adjacency = false`: gracz jeszcze nic nie posiada, więc
 		# zwykły wymóg "aneksuj tylko sąsiada własnego pola" byłby tu
@@ -198,6 +191,32 @@ func _setup_players() -> void:
 		MapData.get_hex(start_hex_id).is_capital = true
 		ludzik.place_on_hex(start_hex_id)
 		_reveal_around(start_hex_id, player.player_id)
+
+
+## Ustawia dane wizualne/właściciela na `ludzik` wg wpisu `setup` (kolor,
+## opcjonalny obrazek) - współdzielone przez `_setup_players()` (gracze
+## startowi, ludzik może być już istniejącym węzłem sceny) i
+## `_recruit_extra_ludzik()` (skill "extra_ludzik", ludzik zawsze świeżo
+## utworzony). NIE tworzy węzła ani nie dodaje go do drzewa sceny - to zależy
+## od wołającego.
+func _configure_ludzik(ludzik: Ludzik, player: PlayerData, setup: Dictionary) -> void:
+	ludzik.player_id = player.player_id
+	ludzik.color = setup["color"]
+	if setup.has("sprite") and ResourceLoader.exists(setup["sprite"]):
+		ludzik.sprite_texture = load(setup["sprite"])
+
+
+## `setup["start_hex"]`, z awaryjnym fallbackiem na dowolny istniejący heks,
+## gdyby dane mapy nie zawierały oczekiwanego ID (nie powinno się zdarzyć przy
+## poprawnych danych, ale lepiej dostać jakiś heks z ostrzeżeniem w konsoli
+## niż wywalić się na null). Współdzielone przez `_setup_players()` i
+## `_recruit_extra_ludzik()`.
+func _resolve_start_hex(setup: Dictionary, player_name: String) -> String:
+	var hex_id: String = setup["start_hex"]
+	if MapData.get_hex(hex_id) == null:
+		push_warning("GameMapController: brak heksa startowego %s dla %s" % [hex_id, player_name])
+		hex_id = MapData.hexes.keys()[0]
+	return hex_id
 
 
 ## Item ID w OptionButton = player_id, żeby wybór nie zależał od kolejności.
@@ -527,7 +546,13 @@ func _advance_queued_route(ludzik: Ludzik) -> void:
 				break
 			_auto_annex_hex(ludzik, ludzik.current_hex_id)
 			_update_mp_label()
-			_refresh_map_view()
+			# Bez _refresh_map_view() tutaj - to czysto wizualne odświeżenie i tak
+			# nastąpi albo przy refreshu po kolejnym kroku ruchu niżej, albo (gdy to
+			# była ostatnia akcja w tej rundzie) w gwarantowanym _refresh_map_view()
+			# na końcu funkcji; między tymi dwoma miejscami nic nie oddaje sterowania
+			# do rendera, więc dodatkowe wywołanie tutaj nie zmienia niczego, co
+			# faktycznie widać na ekranie - tylko dubluje _update_ludzik_visibility()/
+			# _update_route_overlay().
 			continue  # sprawdź od nowa - może kwalifikować się kolejne pole (nie tu), albo można iść dalej
 
 		if ludzik.queued_route.is_empty():
@@ -574,11 +599,16 @@ func _advance_queued_route(ludzik: Ludzik) -> void:
 			# W przeciwnym razie dotarł, ale wciąż czeka na MP do aneksacji tego
 			# pola - `route_destination` zostaje, `info_label` ma już właściwy
 			# komunikat ustawiony wyżej w pętli ("Brak punktów ruchu na aneksację...").
-		else:
+		elif not _current_hex_needs_auto_annex(ludzik):
 			info_label.text = (
 				"Ludzik dotarł najbliżej jak się dało (%s) - czeka, aż pole %s stanie się osiągalne."
 				% [ludzik.current_hex_id, ludzik.route_destination]
 			)
+			# W przeciwnym razie (`_current_hex_needs_auto_annex` == true) ludzik
+			# zatrzymał się tu NIE dlatego, że cel jest zajęty, tylko dlatego, że
+			# zabrakło MP na aneksację TEGO pola - `info_label` ma już właściwy
+			# komunikat ustawiony wyżej w pętli ("Brak punktów ruchu na aneksację...");
+			# nie nadpisuj go mylącym komunikatem o czekaniu na zwolnienie celu.
 	_refresh_action_panel()
 	_refresh_route_panel()
 	_refresh_map_view()
@@ -595,7 +625,7 @@ func _reveal_around(center_hex_id: String, player_id: int) -> void:
 
 	center.set_fog_state(
 		player_id,
-		"annexed" if center.owner_id == player_id else "seen"
+		HexData.FogState.ANNEXED if center.owner_id == player_id else HexData.FogState.SEEN
 	)
 
 	var player = GameManager.get_player(player_id)
@@ -615,8 +645,8 @@ func _reveal_around(center_hex_id: String, player_id: int) -> void:
 				continue
 			distance[n] = dist + 1
 			var hex = MapData.get_hex_at(n.x, n.y)
-			if hex != null and hex.get_fog_state(player_id) == "unexplored":
-				hex.set_fog_state(player_id, "seen")
+			if hex != null and hex.get_fog_state(player_id) == HexData.FogState.UNEXPLORED:
+				hex.set_fog_state(player_id, HexData.FogState.SEEN)
 			queue.append(n)
 
 
@@ -647,7 +677,7 @@ func _update_route_overlay() -> void:
 
 
 ## Ludzik przeciwnika jest widoczny TYLKO na polu, które aktywny (oglądający)
-## gracz już odkrył - fog_state != "unexplored". Nie trzeba go w pełni zbadać
+## gracz już odkrył - fog_state != FogState.UNEXPLORED. Nie trzeba go w pełni zbadać
 ## ani zaanektować, wystarczy, że heks kiedyś znalazł się w promieniu
 ## widzenia (VISION_RADIUS) jednego z Twoich ludzików - dokładnie ten sam
 ## próg, co ujawnienie samego terenu (sekcja 2.2 GDD). Własne ludziki są
@@ -663,7 +693,7 @@ func _update_ludzik_visibility() -> void:
 				l.visible = true
 				continue
 			var hex = MapData.get_hex(l.current_hex_id)
-			l.visible = hex != null and hex.get_fog_state(active_player.player_id) != "unexplored"
+			l.visible = hex != null and hex.get_fog_state(active_player.player_id) != HexData.FogState.UNEXPLORED
 
 
 func _on_hex_hovered(hex_id: String) -> void:
@@ -675,24 +705,42 @@ func _on_hex_hovered(hex_id: String) -> void:
 
 	var fog = hex.get_fog_state(active_player.player_id)
 	match fog:
-		"unexplored":
+		HexData.FogState.UNEXPLORED:
 			pass  # nic nie pokazujemy - zgodnie z zasadą dwupoziomowej mgły
-		"seen":
-			info_label.text = "%s: teren %s (koszt ruchu %d) - nieznane zasoby/budynki." % [
-				hex_id, HexData.TerrainType.keys()[hex.terrain_type], hex.get_movement_cost()
-			]
-		"annexed":
-			var owner_text = "gracz %d" % hex.owner_id if hex.owner_id != -1 else "niczyj"
-			var building_text = "brak"
-			if hex.building != null:
-				building_text = "%s (%s)" % [
-					hex.building.building_name,
-					"USZKODZONY" if hex.building_damaged else "sprawny"
-				]
+		HexData.FogState.SEEN:
+			info_label.text = _describe_seen_hex(hex)
+		HexData.FogState.ANNEXED:
 			info_label.text = "%s: %s | teren: %s | budynek: %s | właściciel: %s" % [
 				hex_id, hex.label_raw, HexData.TerrainType.keys()[hex.terrain_type],
-				building_text, owner_text
+				_describe_building(hex), _describe_owner(hex)
 			]
+
+
+## Opis pola widocznego na poziomie mgły SEEN (widać typ terenu, nie
+## zasoby/budynki/właściciela) - współdzielony przez dymek najechania
+## (`_on_hex_hovered`) i panel po lewej (`_refresh_action_panel`), żeby oba
+## miejsca zawsze pokazywały dokładnie tyle samo, ile mgła w danym momencie
+## pozwala.
+static func _describe_seen_hex(hex: HexData) -> String:
+	return "%s: teren %s (koszt ruchu %d) - nieznane zasoby/budynki." % [
+		hex.hex_id, HexData.TerrainType.keys()[hex.terrain_type], hex.get_movement_cost()
+	]
+
+
+## Właściciel pola jako tekst (pole ANNEXED) - współdzielone przez dymek
+## najechania i panel po lewej, które tylko inaczej układają go w zdaniu.
+static func _describe_owner(hex: HexData) -> String:
+	return "gracz %d" % hex.owner_id if hex.owner_id != -1 else "niczyj"
+
+
+## Budynek pola jako tekst (pole ANNEXED) - jak `_describe_owner`.
+static func _describe_building(hex: HexData) -> String:
+	if hex.building == null:
+		return "brak"
+	return "%s (%s)" % [
+		hex.building.building_name,
+		"USZKODZONY" if hex.building_damaged else "sprawny"
+	]
 
 
 ## --- Akcje na polu (Faza 5, 8, 9) ---
@@ -700,6 +748,18 @@ func _on_hex_hovered(hex_id: String) -> void:
 ## wymagają, żeby ludzik aktywnego gracza stał dokładnie na tym polu; Napraw
 ## i Wydobądź działają na dowolnym już zaanektowanym WŁASNYM polu, z dowolnej
 ## odległości.
+
+## Odświeżenie UI wspólne dla KAŻDEGO zakończenia (wczesny brak MP, sukces
+## LUB porażka) akcji ludzika wymagającej fizycznej obecności (Zaanektuj/
+## Przejmij teren gracza) - MP i stan pola mogły się zmienić, więc etykieta i
+## oba panele muszą nadążać. Nie odświeża `_refresh_map_view()`/
+## `_update_stats_labels()` - te dotyczą tylko niektórych wyników (patrz
+## wywołania w `_on_annex_pressed`/`_on_takeover_pressed`), nie każdego.
+func _refresh_ludzik_action_ui() -> void:
+	_update_mp_label()
+	_refresh_action_panel()
+	_refresh_route_panel()
+
 
 ## Jedyne miejsce, gdzie gracz wydaje polecenie aneksacji - przycisk żyje
 ## teraz WYŁĄCZNIE w panelu "Trasa ludzika" (`route_annex_button`), nie w
@@ -716,8 +776,7 @@ func _on_annex_pressed() -> void:
 	var annex_cost = _effective_annex_cost_for(active_player.player_id)
 	if not ludzik.spend_movement_points(annex_cost):
 		info_label.text = "Brak punktów ruchu na aneksację (koszt: %d)." % annex_cost
-		_refresh_action_panel()
-		_refresh_route_panel()
+		_refresh_ludzik_action_ui()
 		return
 
 	var result = GameManager.annex_hex(hex_id, active_player.player_id)
@@ -733,9 +792,7 @@ func _on_annex_pressed() -> void:
 		}.get(result["reason"], result["reason"])
 		info_label.text = "Nie udało się zaanektować %s (%s)." % [hex_id, reason_text]
 
-	_update_mp_label()
-	_refresh_action_panel()
-	_refresh_route_panel()
+	_refresh_ludzik_action_ui()
 
 
 ## Aneksuje automatycznie heks, na którym ludzik AKTUALNIE stoi - skrót
@@ -836,8 +893,7 @@ func _on_takeover_pressed() -> void:
 	var cost = _effective_annex_cost_for(active_player.player_id)
 	if not ludzik.spend_movement_points(cost):
 		info_label.text = "Brak punktów ruchu na przejęcie terenu (koszt: %d)." % cost
-		_refresh_action_panel()
-		_refresh_route_panel()
+		_refresh_ludzik_action_ui()
 		return
 
 	var result = GameManager.attempt_takeover(hex_id, active_player.player_id)
@@ -863,9 +919,7 @@ func _on_takeover_pressed() -> void:
 		}.get(result["reason"], result["reason"])
 		info_label.text = "Nie udało się przejąć %s (%s)." % [hex_id, reason_text]
 
-	_update_mp_label()
-	_refresh_action_panel()
-	_refresh_route_panel()
+	_refresh_ludzik_action_ui()
 
 
 ## Czy zaznaczony heks da się przejąć siłą ludzikiem, który akurat go stoi -
@@ -966,16 +1020,11 @@ func _recruit_extra_ludzik(player: PlayerData) -> void:
 
 	var ludzik = Ludzik.new()
 	add_child(ludzik)
-	ludzik.player_id = player.player_id
-	ludzik.color = setup["color"]
-	if setup.has("sprite") and ResourceLoader.exists(setup["sprite"]):
-		ludzik.sprite_texture = load(setup["sprite"])
+	_configure_ludzik(ludzik, player, setup)
 	ludzik.movement_points_max = GameBalance.LUDZIK_MOVEMENT_POINTS_MAX + player.movement_points_bonus
 	ludzik.reset_movement_points()
 
-	var spawn_hex_id: String = setup["start_hex"]
-	if MapData.get_hex(spawn_hex_id) == null:
-		spawn_hex_id = MapData.hexes.keys()[0]
+	var spawn_hex_id = _resolve_start_hex(setup, player.player_name)
 	ludzik.place_on_hex(spawn_hex_id)
 
 	if not player_ludziks.has(player.player_id):
@@ -1025,23 +1074,14 @@ func _refresh_action_panel() -> void:
 
 	var fog = hex.get_fog_state(active_player.player_id)
 	match fog:
-		"unexplored":
+		HexData.FogState.UNEXPLORED:
 			hex_info_label.text = "%s: nieodkryte pole." % hex.hex_id
-		"seen":
-			hex_info_label.text = "%s: teren %s (koszt ruchu %d) - nieznane zasoby/budynki." % [
-				hex.hex_id, HexData.TerrainType.keys()[hex.terrain_type], hex.get_movement_cost()
-			]
-		"annexed":
-			var owner_text = "gracz %d" % hex.owner_id if hex.owner_id != -1 else "niczyj"
-			var building_text = "brak"
-			if hex.building != null:
-				building_text = "%s (%s)" % [
-					hex.building.building_name,
-					"USZKODZONY" if hex.building_damaged else "sprawny"
-				]
+		HexData.FogState.SEEN:
+			hex_info_label.text = _describe_seen_hex(hex)
+		HexData.FogState.ANNEXED:
 			hex_info_label.text = "%s | %s\nteren: %s | właściciel: %s\nbudynek: %s\npoziom zasobu: %.0f%%" % [
 				hex.hex_id, hex.label_raw, HexData.TerrainType.keys()[hex.terrain_type],
-				owner_text, building_text, hex.resource_level
+				_describe_owner(hex), _describe_building(hex), hex.resource_level
 			]
 
 	var is_owned_by_me = hex.owner_id == active_player.player_id

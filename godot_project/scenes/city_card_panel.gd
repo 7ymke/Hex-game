@@ -61,7 +61,7 @@ func _build_row(building: Building) -> Control:
 	info_label.custom_minimum_size = Vector2(320, 0)
 	info_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	info_label.text = "%s (+%d prestiżu)\nKoszt: %s" % [
-		building.building_name, building.prestige_value, _format_costs(building.required_resources)
+		building.building_name, building.prestige_value, HexData.format_resource_costs(building.required_resources)
 	]
 	row.add_child(info_label)
 
@@ -84,12 +84,3 @@ func _on_unlock_pressed(building: Building) -> void:
 	if result["success"]:
 		building_unlocked.emit()
 	_refresh()
-
-
-static func _format_costs(costs: Dictionary) -> String:
-	if costs.is_empty():
-		return "brak"
-	var parts: Array[String] = []
-	for res_type in costs:
-		parts.append("%s: %.0f" % [HexData.RESOURCE_DISPLAY_NAMES.get(res_type, "?"), costs[res_type]])
-	return ", ".join(parts)

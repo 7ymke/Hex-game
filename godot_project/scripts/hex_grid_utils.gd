@@ -46,12 +46,12 @@ const GEO_SCALE_Y = 0.890849
 
 
 static func offset_to_axial(col: int, row: int) -> Vector2i:
-	var r = row - int(floor(float(col + (col & 1)) / 2.0))
+	var r = row - floori(float(col + (col & 1)) / 2.0)
 	return Vector2i(col, r)
 
 
 static func axial_to_offset(q: int, r: int) -> Vector2i:
-	var row = r + int(floor(float(q + (q & 1)) / 2.0))
+	var row = r + floori(float(q + (q & 1)) / 2.0)
 	return Vector2i(q, row)
 
 

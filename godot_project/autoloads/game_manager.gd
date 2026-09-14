@@ -7,9 +7,6 @@ extends Node
 ## Stałe balansu (progi, kary, koszty) mieszkają teraz w scripts/game_balance.gd
 ## - patrz tam, żeby je stroić.
 
-signal prestige_changed(player_id: int, new_value: int, delta: int)
-signal hex_ownership_changed(hex_id: String, new_owner_id: int)
-
 var players: Dictionary = {}  # player_id(int) -> PlayerData
 
 
@@ -27,7 +24,6 @@ func change_prestige(player_id: int, delta: int) -> void:
 	if player == null:
 		return
 	player.modify_prestige(delta)
-	prestige_changed.emit(player_id, player.prestige, delta)
 
 
 ## Aneksacja - sekcja 2.2/3 GDD: wejście na pole i aneksacja to osobne czynności,
@@ -61,8 +57,7 @@ func annex_hex(hex_id: String, player_id: int, require_adjacency: bool = true) -
 		return {"success": false, "reason": "not_adjacent"}
 
 	hex.owner_id = player_id
-	hex.set_fog_state(player_id, "annexed")
-	hex_ownership_changed.emit(hex_id, player_id)
+	hex.set_fog_state(player_id, HexData.FogState.ANNEXED)
 
 	return {"success": true, "terrain": hex.terrain_type, "resource": hex.resource_type}
 
@@ -109,7 +104,7 @@ func harvest_forest(hex_id: String, player_id: int, harvest_percent: float) -> D
 	var over_harvest: float = harvest_percent - safe_threshold
 	var prestige_penalty = 0
 	if over_harvest > 0.0:
-		prestige_penalty = int(round(over_harvest * GameBalance.FOREST_OVERHARVEST_PENALTY_PER_PERCENT))
+		prestige_penalty = roundi(over_harvest * GameBalance.FOREST_OVERHARVEST_PENALTY_PER_PERCENT)
 		change_prestige(player_id, -prestige_penalty)
 		hex.generates_prestige = false
 
@@ -141,7 +136,7 @@ func damage_protected_area(hex_id: String, player_id: int, damage_scale: float) 
 		return {"success": false, "reason": "not_protected"}
 
 	damage_scale = clampf(damage_scale, 0.0, 1.0)
-	var penalty = int(round(GameBalance.PROTECTED_AREA_BASE_PENALTY * damage_scale))
+	var penalty = roundi(GameBalance.PROTECTED_AREA_BASE_PENALTY * damage_scale)
 	change_prestige(player_id, -penalty)
 
 	return {"success": true, "prestige_penalty": penalty}
@@ -179,18 +174,17 @@ func attempt_takeover(hex_id: String, attacker_id: int) -> Dictionary:
 		return {"success": false, "reason": "invalid_players"}
 
 	if attacker.prestige <= defender.prestige:
-		var penalty = maxi(1, int(round((defender.prestige - attacker.prestige) * GameBalance.FAILED_TAKEOVER_PENALTY_RATIO)))
+		var penalty = maxi(1, roundi((defender.prestige - attacker.prestige) * GameBalance.FAILED_TAKEOVER_PENALTY_RATIO))
 		change_prestige(attacker_id, -penalty)
 		return {"success": false, "reason": "insufficient_prestige", "attacker_penalty": penalty}
 
-	var cost = int(round(defender.prestige * GameBalance.TAKEOVER_COST_RATIO))
-	var defender_loss = int(round(defender.prestige * GameBalance.TAKEOVER_DEFENDER_LOSS_RATIO))
+	var cost = roundi(defender.prestige * GameBalance.TAKEOVER_COST_RATIO)
+	var defender_loss = roundi(defender.prestige * GameBalance.TAKEOVER_DEFENDER_LOSS_RATIO)
 	change_prestige(attacker_id, -cost)
 	change_prestige(hex.owner_id, -defender_loss)
 
 	var previous_owner = hex.owner_id
 	hex.owner_id = attacker_id
-	hex_ownership_changed.emit(hex_id, attacker_id)
 
 	return {"success": true, "cost": cost, "defender_loss": defender_loss, "previous_owner": previous_owner}
 

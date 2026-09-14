@@ -85,8 +85,8 @@ func get_hex_at(q: int, r: int) -> HexData:
 	return hexes[id]
 
 
-## Sąsiedzi w siatce "offset odd-r" (pointy-top) - sekcja 2.1 GDD.
-## Matematyka w scripts/hex_grid_utils.gd (HexGridUtils).
+## Sąsiedzi w siatce "flat-top", offset "even-q" (sekcja 2.1 GDD) - patrz
+## matematyka w scripts/hex_grid_utils.gd (HexGridUtils).
 func get_neighbors(hex_id: String) -> Array[HexData]:
 	var hex = get_hex(hex_id)
 	var result: Array[HexData] = []

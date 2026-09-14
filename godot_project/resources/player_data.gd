@@ -60,4 +60,4 @@ func pay_costs(costs: Dictionary) -> bool:
 
 ## Zmienia prestiż, nie pozwalając mu spaść poniżej zera.
 func modify_prestige(amount: int) -> void:
-	prestige = max(prestige + amount, 0)
+	prestige = maxi(prestige + amount, 0)

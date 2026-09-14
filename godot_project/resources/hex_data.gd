@@ -23,6 +23,15 @@ enum ResourceType {
 	URANIUM,
 }
 
+## Trójpoziomowa mgła wojny, per gracz (sekcja 2.2 GDD): UNEXPLORED = całkiem
+## zakryty; SEEN = widoczny typ terenu, bez zasobów/budynków/właściciela;
+## ANNEXED = w pełni odkryty. Patrz `get_fog_state()`/`set_fog_state()` niżej.
+enum FogState {
+	UNEXPLORED,
+	SEEN,
+	ANNEXED,
+}
+
 const TERRAIN_FROM_STRING = {
 	"unknown": TerrainType.UNKNOWN,
 	"agricultural": TerrainType.AGRICULTURAL,
@@ -56,6 +65,21 @@ const RESOURCE_DISPLAY_NAMES = {
 	ResourceType.NICKEL: "Nikiel",
 	ResourceType.URANIUM: "Uran",
 }
+
+
+## Formatuje słownik kosztów (ResourceType(int) -> ilość(float), ten sam
+## kształt co Building.required_resources i SkillData.required_resources) do
+## czytelnego tekstu UI, np. "Drewno: 10, Węgiel: 5" - współdzielone przez
+## Kartę Miasta (city_card_panel.gd) i Drzewko Umiejętności
+## (skill_tree_panel.gd), bo oba pokazują koszty w dokładnie tym samym
+## formacie.
+static func format_resource_costs(costs: Dictionary) -> String:
+	if costs.is_empty():
+		return "brak"
+	var parts: Array[String] = []
+	for res_type in costs:
+		parts.append("%s: %.0f" % [RESOURCE_DISPLAY_NAMES.get(res_type, "?"), costs[res_type]])
+	return ", ".join(parts)
 
 ## Koszt ruchu terenowego w punktach ruchu (sekcja 2.4 GDD)
 const MOVEMENT_COST = {
@@ -97,16 +121,16 @@ const MOVEMENT_COST = {
 ## patrz GameManager.attempt_takeover().
 @export var is_capital: bool = false
 
-## Stan mgły wojny per gracz: player_id(int) -> "unexplored" | "seen" | "annexed"
+## Stan mgły wojny per gracz: player_id(int) -> FogState.
 ## Nie eksportowane celowo - stan rozgrywki, nie dane startowe heksa.
 var fog_state: Dictionary = {}
 
 
-func get_fog_state(player_id: int) -> String:
-	return fog_state.get(player_id, "unexplored")
+func get_fog_state(player_id: int) -> FogState:
+	return fog_state.get(player_id, FogState.UNEXPLORED)
 
 
-func set_fog_state(player_id: int, state: String) -> void:
+func set_fog_state(player_id: int, state: FogState) -> void:
 	fog_state[player_id] = state
 
 

@@ -99,7 +99,7 @@ func _draw_sprite() -> float:
 		return CIRCLE_RADIUS
 
 	var diameter = GameBalance.LUDZIK_SPRITE_DIAMETER
-	var scale_factor = diameter / max(tex_size.x, tex_size.y)
+	var scale_factor = diameter / maxf(tex_size.x, tex_size.y)
 	var draw_size = tex_size * scale_factor
 	draw_texture_rect(sprite_texture, Rect2(-draw_size / 2.0, draw_size), false)
 	return draw_size.length() / 2.0

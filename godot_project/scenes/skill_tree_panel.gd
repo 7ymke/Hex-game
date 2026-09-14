@@ -238,7 +238,7 @@ func _show_popup_for(skill: SkillData) -> void:
 
 	_shown_skill = skill
 	popup_name_label.text = skill.skill_name
-	popup_info_label.text = "%s\nKoszt: %s" % [skill.description, _format_costs(skill.required_resources)]
+	popup_info_label.text = "%s\nKoszt: %s" % [skill.description, HexData.format_resource_costs(skill.required_resources)]
 
 	var unlocked = _current_player.unlocked_skills.has(skill.skill_id)
 	if unlocked:
@@ -281,12 +281,3 @@ func _on_popup_unlock_pressed() -> void:
 	if result["success"]:
 		skill_unlocked.emit(_shown_skill)
 	_refresh()
-
-
-static func _format_costs(costs: Dictionary) -> String:
-	if costs.is_empty():
-		return "brak"
-	var parts: Array[String] = []
-	for res_type in costs:
-		parts.append("%s: %.0f" % [HexData.RESOURCE_DISPLAY_NAMES.get(res_type, "?"), costs[res_type]])
-	return ", ".join(parts)

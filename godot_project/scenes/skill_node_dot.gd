@@ -40,7 +40,7 @@ func _draw() -> void:
 	if sprite_texture != null:
 		var tex_size = sprite_texture.get_size()
 		if tex_size.x > 0.0 and tex_size.y > 0.0:
-			var scale_factor = (DOT_RADIUS * 2.0) / max(tex_size.x, tex_size.y)
+			var scale_factor = (DOT_RADIUS * 2.0) / maxf(tex_size.x, tex_size.y)
 			var draw_size = tex_size * scale_factor
 			draw_texture_rect(sprite_texture, Rect2(center - draw_size / 2.0, draw_size), false)
 	else:

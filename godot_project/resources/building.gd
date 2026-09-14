@@ -22,11 +22,3 @@ enum BuildingType {
 
 ## Ile prestiżu daje w Karcie Miasta po odblokowaniu (dotyczy CITY_LANDMARK)
 @export var prestige_value: int = 0
-
-
-func get_required_amount(res_type: HexData.ResourceType) -> float:
-	return required_resources.get(res_type, 0.0)
-
-
-func can_afford(player: PlayerData) -> bool:
-	return player.can_afford(required_resources)
