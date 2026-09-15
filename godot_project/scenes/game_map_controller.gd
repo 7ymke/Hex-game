@@ -27,13 +27,13 @@ extends Node2D
 ##
 ## Action range (update): annexation AND territory takeover BOTH REQUIRE
 ## standing exactly on the hex (they cost movement points of the unit
-## standing there - the same amount as annexation) - both live in the
-## "Trasa ludzika" (unit route) panel, mutually exclusive (an unclaimed hex
-## -> Zaanektuj/Annex, an enemy hex -> Przejmij teren gracza/Take over
-## territory). Repair and harvest still work on any already-annexed hex
-## (your own - repair, or your own - harvest), regardless of where units
-## currently stand - "remote management" of your own territory, without
-## needing physical presence.
+## standing there - the same amount as annexation) - both live on the
+## floating Unit Card ("Karta ludzika", UI restyle - see ui/unit_card.gd),
+## mutually exclusive (an unclaimed hex -> Zaanektuj/Annex, an enemy hex ->
+## Przejmij teren gracza/Take over territory). Repair and harvest still work
+## on any already-annexed hex (your own - repair, or your own - harvest),
+## regardless of where units currently stand - "remote management" of your
+## own territory, without needing physical presence.
 ##
 ## Control over the active player and round resolution are now completely
 ## separate: "Zmiana gracza" (the OptionButton) picks a SPECIFIC player
@@ -42,8 +42,8 @@ extends Node2D
 ##
 ## Multi-round route (update): clicking a hex with a unit selected no longer
 ## moves it right away - it computes and SHOWS a route preview (a yellow
-## line on the map), waiting for confirmation in the new "Trasa ludzika"
-## panel. Once confirmed, the route (`Unit.queued_route`) executes as many
+## line on the map), waiting for confirmation on the Unit Card. Once
+## confirmed, the route (`Unit.queued_route`) executes as many
 ## steps as the current MP allow (the line turns orange while it's in
 ## progress) - if the route is longer than a single round's worth of MP, the
 ## rest is remembered and continued AUTOMATICALLY after every subsequent
@@ -71,27 +71,61 @@ const PLAYER_SETUP = PlayerSetup.LIST
 @onready var hex_map_view: HexMapView = $HexMapView
 @onready var city_card_panel: CityCardPanel = $CityCardPanel
 @onready var skill_tree_panel: SkillTreePanel = $SkillTreePanel
-@onready var info_label: Label = $UI/InfoLabel
-@onready var turn_label: Label = $UI/TurnLabel
-@onready var mp_label: Label = $UI/MPLabel
-@onready var prestige_label: Label = $UI/PrestigeLabel
-@onready var resources_label: Label = $UI/ResourcesLabel
-@onready var hex_info_label: Label = $UI/ActionPanel/VBox/HexInfoLabel
-@onready var repair_button: Button = $UI/ActionPanel/VBox/RepairButton
-@onready var harvest_slider: HSlider = $UI/ActionPanel/VBox/HarvestRow/HarvestSlider
-@onready var harvest_value_label: Label = $UI/ActionPanel/VBox/HarvestRow/HarvestValueLabel
-@onready var harvest_button: Button = $UI/ActionPanel/VBox/HarvestButton
-@onready var city_card_button: Button = $UI/ActionPanel/VBox/CityCardButton
-@onready var skill_tree_button: Button = $UI/ActionPanel/VBox/SkillTreeButton
-@onready var player_selector: OptionButton = $UI/ActionPanel/VBox/PlayerSelector
-@onready var end_round_button: Button = $UI/ActionPanel/VBox/EndRoundButton
-@onready var route_panel: PanelContainer = $UI/RoutePanel
-@onready var route_info_label: Label = $UI/RoutePanel/VBox/RouteInfoLabel
-@onready var confirm_route_button: Button = $UI/RoutePanel/VBox/ConfirmRouteButton
-@onready var cancel_route_button: Button = $UI/RoutePanel/VBox/CancelRouteButton
-@onready var route_annex_button: Button = $UI/RoutePanel/VBox/RouteAnnexButton
-@onready var route_takeover_button: Button = $UI/RoutePanel/VBox/RouteTakeoverButton
-@onready var auto_annex_checkbox: CheckBox = $UI/RoutePanel/VBox/AutoAnnexCheckBox
+
+## UI restyle (UI_Gry_Makieta.html) - top bar: round badge, resource dots,
+## prestige. No movement points here - MP now lives EXCLUSIVELY on the Unit
+## Card (see the "unit_card_*" group below), per the mockup's own legend.
+@onready var info_label: Label = $UI/Root/InfoBar/InfoLabel
+@onready var round_hex_label: Label = $UI/Root/TopBar/HBox/RoundChip/HexNumBadge/RoundNumberLabel
+@onready var round_big_label: Label = $UI/Root/TopBar/HBox/RoundChip/RoundCaptionVBox/RoundBigLabel
+@onready var prestige_value_label: Label = $UI/Root/TopBar/HBox/PrestigeChip/PrestigeValueLabel
+
+## One value label per resource type, in the same left-to-right order as
+## the mockup. Nickel/Uranium aren't in the mockup at all (rare, late-game
+## resources) - their whole row starts hidden and only appears once the
+## player actually has any (see `_update_stats_labels()`), so the common
+## case still matches the mockup exactly (5 visible resource chips).
+@onready var resource_wood_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceWood/ResourceWoodValue
+@onready var resource_food_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceFood/ResourceFoodValue
+@onready var resource_copper_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper/ResourceCopperValue
+@onready var resource_coal_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal/ResourceCoalValue
+@onready var resource_gas_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceGas/ResourceGasValue
+@onready var resource_nickel_row: HBoxContainer = $UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel
+@onready var resource_nickel_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel/ResourceNickelValue
+@onready var resource_uranium_row: HBoxContainer = $UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium
+@onready var resource_uranium_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumValue
+
+## Sidebar (replaces the old ActionPanel).
+@onready var city_name_label: Label = $UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/CityNameLabel
+@onready var skill_tree_button: Button = $UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/SkillTreeButton
+@onready var open_city_card_link: Button = $UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox/BuildingsHeaderRow/OpenCityCardLink
+@onready var buildings_preview_list: VBoxContainer = $UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox/BuildingsScroll/BuildingList
+@onready var repair_button: Button = $UI/Root/Sidebar/SidebarVBox/ActionRowMargin/ActionRow/RepairButton
+@onready var harvest_slider: HSlider = $UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/SliderStack/HarvestSlider
+@onready var harvest_value_label: Label = $UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/HTitleRow/HarvestValueLabel
+@onready var harvest_button: Button = $UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/HarvestButton
+@onready var player_selector: OptionButton = $UI/Root/Sidebar/SidebarVBox/SidebarBottom/SidebarBottomHBox/PlayerSelector
+@onready var end_round_button: Button = $UI/Root/Sidebar/SidebarVBox/SidebarBottom/SidebarBottomHBox/EndRoundButton
+
+## Floating hex-info panel (new - not in the mockup, which doesn't depict a
+## hovered/selected-hex readout at all; added here so that information isn't
+## lost from the pre-restyle UI, styled to match the parchment language used
+## elsewhere for floating cards).
+@onready var hex_info_label: Label = $UI/Root/HexInfoPanel/HexInfoLabel
+
+## Unit Card (UI restyle - replaces the old docked "Trasa ludzika"
+## RoutePanel with a floating, draggable parchment card over the map - see
+## ui/unit_card.gd). `unit_card` itself only owns positioning/dragging/icons
+## (see there) - which of these fields show what text is still entirely
+## decided here, in `_refresh_route_panel()`, exactly like the old panel.
+@onready var unit_card: UnitCard = $UI/UnitCard
+@onready var unit_card_cancel_button: Button = $UI/UnitCard/VBox/Head/HeadControls/CancelButton
+@onready var unit_card_mp_label: Label = $UI/UnitCard/VBox/Head/HeadControls/MPLabel
+@onready var unit_card_status_label: Label = $UI/UnitCard/VBox/StatusLabel
+@onready var unit_card_confirm_button: Button = $UI/UnitCard/VBox/ConfirmButton
+@onready var route_annex_button: Button = $UI/UnitCard/VBox/Links/AnnexButton
+@onready var route_takeover_button: Button = $UI/UnitCard/VBox/Links/TakeoverButton
+@onready var auto_annex_toggle: Button = $UI/UnitCard/VBox/Links/AutoAnnexToggle
 
 var players: Array[PlayerData] = []
 var player_units: Dictionary = {}  # player_id(int) -> Array[Unit]
@@ -127,18 +161,18 @@ func _ready() -> void:
 	repair_button.pressed.connect(_on_repair_pressed)
 	harvest_button.pressed.connect(_on_harvest_pressed)
 	harvest_slider.value_changed.connect(_on_harvest_slider_changed)
-	city_card_button.pressed.connect(_on_city_card_pressed)
+	open_city_card_link.pressed.connect(_on_city_card_pressed)
 	skill_tree_button.pressed.connect(_on_skill_tree_pressed)
 	player_selector.item_selected.connect(_on_player_selected)
 	end_round_button.pressed.connect(_on_end_round_pressed)
 	city_card_panel.building_unlocked.connect(_on_city_building_unlocked)
 	skill_tree_panel.skill_unlocked.connect(_on_skill_unlocked)
 
-	confirm_route_button.pressed.connect(_on_confirm_route_pressed)
-	cancel_route_button.pressed.connect(_on_cancel_route_pressed)
+	unit_card_confirm_button.pressed.connect(_on_confirm_route_pressed)
+	unit_card_cancel_button.pressed.connect(_on_cancel_route_pressed)
 	route_annex_button.pressed.connect(_on_annex_pressed)
 	route_takeover_button.pressed.connect(_on_takeover_pressed)
-	auto_annex_checkbox.toggled.connect(_on_auto_annex_toggled)
+	auto_annex_toggle.toggled.connect(_on_auto_annex_toggled)
 
 	TurnManager.player_turn_started.connect(_on_player_turn_started)
 	TurnManager.round_ended.connect(_on_round_ended)
@@ -150,6 +184,18 @@ func _ready() -> void:
 
 	_on_harvest_slider_changed(harvest_slider.value)
 	_refresh_route_panel()
+	_refresh_buildings_preview()
+
+	# The harvest slider's grabber is a hex, matching the mockup - Godot's
+	# Slider theme only exposes the grabber as an ICON (Texture2D), not a
+	# StyleBox, so it can't be declared in ui_theme.tres/main.tscn directly;
+	# generated once here via HexShape's rasterizer instead. The actual
+	# two-tone TRACK underneath is a separate always-visible Control
+	# (ui/two_tone_track.gd) - see the "SliderStack" node in main.tscn.
+	var grabber_icon = HexShape.make_texture(Vector2i(15, 13), Palette.PARCHMENT)
+	harvest_slider.add_theme_icon_override("grabber", grabber_icon)
+	harvest_slider.add_theme_icon_override("grabber_highlight", grabber_icon)
+	harvest_slider.add_theme_icon_override("grabber_disabled", grabber_icon)
 
 
 ## Creates the players, their units, and annexes their starting hex. Only
@@ -303,9 +349,10 @@ func _on_player_turn_started(player_id: int) -> void:
 	var primary = _primary_unit_for(player_id)
 	_set_selected_hex(primary.current_hex_id if primary != null else "")
 
-	turn_label.text = "Kontrolujesz: %s (%s) | Runda: %d" % [
-		active_player.player_name, active_player.starting_city, TurnManager.round_number
-	]
+	# Which player is "in control" is no longer a separate label (UI
+	# restyle) - the sidebar's city name IS that indicator, since every
+	# player has exactly one, unique starting city (see the comment on
+	# `_update_stats_labels()`).
 	info_label.text = "Kliknij ludzika, żeby go zaznaczyć/odznaczyć, potem kliknij pole, żeby go tam przesunąć."
 
 	_refresh_map_view()
@@ -313,6 +360,7 @@ func _on_player_turn_started(player_id: int) -> void:
 	_update_stats_labels()
 	_refresh_action_panel()
 	_refresh_route_panel()
+	_refresh_buildings_preview()
 
 
 ## After a round is resolved, fresh movement points let all confirmed but
@@ -342,7 +390,7 @@ func _on_hex_clicked(hex_id: String) -> void:
 		_set_selected_unit(null if selected_unit == own_unit else own_unit)
 	elif selected_unit != null and not selected_unit.is_moving:
 		# Clicking elsewhere with a unit selected -> ONLY previews the route
-		# (a yellow line), NOT a move order - see the "Trasa ludzika" panel.
+		# (a yellow line), NOT a move order - see the Unit Card.
 		_preview_route_to(selected_unit, hex_id)
 
 	_set_selected_hex(hex_id)
@@ -380,7 +428,7 @@ func _find_path_toward(from_hex_id: String, target_hex_id: String, blocked: Arra
 ## Computes a route to `target_hex_id` and shows it as a preview (does not
 ## move the unit) - overwrites the previous, still-unconfirmed preview. Does
 ## NOT touch a confirmed, in-progress route (`unit.queued_route`) until the
-## player confirms this new preview in the panel. The destination may
+## player confirms this new preview on the Unit Card. The destination may
 ## currently be occupied by an enemy unit (see `_find_path_toward`) -
 ## `preview_target_hex_id` then differs from the actual end of
 ## `preview_route`, and the label explains that this is only "as close as
@@ -412,7 +460,7 @@ func _preview_route_to(unit: Unit, target_hex_id: String) -> void:
 		)
 	else:
 		info_label.text = (
-			"Podgląd trasy do %s - potwierdź w panelu \"Trasa ludzika\", żeby ludzik ruszył." % target_hex_id
+			"Podgląd trasy do %s - potwierdź na Karcie ludzika, żeby ludzik ruszył." % target_hex_id
 		)
 
 
@@ -731,7 +779,7 @@ func _on_hex_hovered(hex_id: String) -> void:
 
 ## Description of a hex visible at the SEEN fog level (terrain type visible,
 ## not resources/buildings/owner) - shared by the hover tooltip
-## (`_on_hex_hovered`) and the panel on the left (`_refresh_action_panel`),
+## (`_on_hex_hovered`) and the floating hex-info panel (`_refresh_action_panel`),
 ## so both always show exactly as much as the fog currently allows.
 static func _describe_seen_hex(hex: HexData) -> String:
 	return "%s: teren %s (koszt ruchu %d) - nieznane zasoby/budynki." % [
@@ -740,7 +788,7 @@ static func _describe_seen_hex(hex: HexData) -> String:
 
 
 ## A hex's owner as text (ANNEXED hexes) - shared by the hover tooltip and
-## the panel on the left, which just arrange it differently in a sentence.
+## the floating hex-info panel, which just arrange it differently in a sentence.
 static func _describe_owner(hex: HexData) -> String:
 	return "gracz %d" % hex.owner_id if hex.owner_id != -1 else "niczyj"
 
@@ -774,10 +822,10 @@ func _refresh_unit_action_ui() -> void:
 
 
 ## The only place a player issues an annexation command - the button now
-## lives EXCLUSIVELY in the "Trasa ludzika" panel (`route_annex_button`),
-## not the main action panel (removed from there - annexation is a unit's
-## action, not a general action on the selected hex, unlike Take
-## over/Repair/Harvest, which don't require physical presence).
+## lives EXCLUSIVELY on the Unit Card (`route_annex_button`), not the
+## sidebar (removed from there - annexation is a unit's action, not a
+## general action on the selected hex, unlike Take over/Repair/Harvest,
+## which don't require physical presence).
 func _on_annex_pressed() -> void:
 	var hex_id = selected_hex_id
 	var unit = _find_own_unit_at(hex_id)
@@ -808,8 +856,8 @@ func _on_annex_pressed() -> void:
 
 
 ## Automatically annexes the hex the unit is CURRENTLY standing on - the
-## "Anektuj napotkane pola" (annex hexes along the way) shortcut in the
-## "Trasa ludzika" panel (Unit.auto_annex), called from
+## "Anektuj napotkane pola" (annex hexes along the way) shortcut on the
+## Unit Card (Unit.auto_annex), called from
 ## _advance_queued_route() (see there - ALWAYS preceded by a check of
 ## `_current_hex_needs_auto_annex()` + sufficient MP, so
 ## `spend_movement_points()` here in practice never fails for lack of MP;
@@ -940,8 +988,7 @@ func _on_takeover_pressed() -> void:
 
 ## Whether the selected hex can be taken over by force by the unit currently
 ## standing on it - shared logic for the "Przejmij teren gracza" button's
-## state in the "Trasa ludzika" panel (analogous to
-## `_can_annex_selected_hex()`).
+## state on the Unit Card (analogous to `_can_annex_selected_hex()`).
 func _can_takeover_selected_hex() -> bool:
 	var hex = MapData.get_hex(selected_hex_id)
 	if hex == null or hex.owner_id == -1 or hex.owner_id == active_player.player_id or hex.is_capital:
@@ -995,6 +1042,56 @@ func _on_city_card_pressed() -> void:
 
 func _on_city_building_unlocked() -> void:
 	_update_stats_labels()
+	_refresh_buildings_preview()
+
+
+## Read-only preview of the active player's City Card buildings, shown
+## directly in the sidebar (UI restyle - matches UI_Gry_Makieta.html's
+## "Budynki z Karty Miasta" list) - unlocking itself still only happens in
+## the full City Card modal (`city_card_panel`, opened via
+## `open_city_card_link`/`_on_city_card_pressed()`), which also shows cost
+## and an unlock button; this preview is deliberately just a glanceable
+## list (icon + name + prestige value), colored by locked/unlocked state,
+## exactly like the mockup's building-item rows.
+func _refresh_buildings_preview() -> void:
+	for child in buildings_preview_list.get_children():
+		child.queue_free()
+
+	if active_player == null:
+		return
+
+	for building: Building in CityBuildingsData.get_buildings(active_player.starting_city):
+		buildings_preview_list.add_child(_build_building_preview_row(building))
+
+
+func _build_building_preview_row(building: Building) -> Control:
+	var unlocked = active_player.unlocked_city_buildings.has(building.building_name)
+
+	var row = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+
+	var icon = HexShape.new()
+	icon.custom_minimum_size = Vector2(20, 18)
+	icon.fill_color = Palette.COPPER if unlocked else Palette.RULE
+	row.add_child(icon)
+
+	var name_label = Label.new()
+	name_label.text = building.building_name
+	name_label.add_theme_font_size_override("font_size", 12)
+	name_label.add_theme_color_override(
+		"font_color", Palette.INK if unlocked else Palette.INK_DIM
+	)
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.clip_text = true
+	row.add_child(name_label)
+
+	var prestige_label = Label.new()
+	prestige_label.text = "+%d" % building.prestige_value
+	prestige_label.add_theme_font_size_override("font_size", 11)
+	prestige_label.add_theme_color_override("font_color", Palette.BRASS)
+	row.add_child(prestige_label)
+
+	return row
 
 
 ## --- Skill Tree (new, see the comment at the top of the file) ---
@@ -1112,25 +1209,26 @@ func _refresh_action_panel() -> void:
 	harvest_button.disabled = not is_owned_by_me
 
 
-## The "Trasa ludzika" (unit route) panel - only visible with a unit
+## The Unit Card ("Karta ludzika", UI restyle) - only shown with a unit
 ## selected, three route states: (1) an unconfirmed preview -> length/cost +
 ## Confirm/Cancel; (2) an already confirmed, in-progress route (may have
 ## been paused by lack of MP or a block - `_continue_all_queued_routes` will
 ## get back to it at the start of the next round) -> progress + Cancel; (3)
 ## nothing planned -> a hint. This is the ONLY place a hex can be
-## annexed/taken over (both buttons removed from the main action panel,
-## since both actions require physical presence). "Zaanektuj" and "Przejmij
-## teren gracza" are mutually exclusive (exactly one visible, depending on
-## whether the selected hex is unclaimed or hostile) - hence also the
-## "Anektuj napotkane pola" toggle (Unit.auto_annex), which automatically
-## annexes EVERY unclaimed hex this unit passes through while executing a
-## route (see _advance_queued_route/_auto_annex_hex).
+## annexed/taken over (both buttons removed from the sidebar, since both
+## actions require physical presence). "Zaanektuj" and "Przejmij teren
+## gracza" are mutually exclusive (exactly one visible, depending on whether
+## the selected hex is unclaimed or hostile) - hence also the "Anektuj
+## napotkane pola" toggle (Unit.auto_annex), which automatically annexes
+## EVERY unclaimed hex this unit passes through while executing a route
+## (see _advance_queued_route/_auto_annex_hex).
 func _refresh_route_panel() -> void:
 	if selected_unit == null:
-		route_panel.visible = false
+		unit_card.hide_card()
 		return
 
-	route_panel.visible = true
+	unit_card.show_for_new_selection()
+	_update_mp_label()  # keeps the MP text/pips in sync with `selected_unit` on every selection change, not just when MP itself changes
 
 	var hex = MapData.get_hex(selected_hex_id)
 	var is_unclaimed = hex != null and hex.owner_id == -1
@@ -1150,7 +1248,7 @@ func _refresh_route_panel() -> void:
 		% _effective_annex_cost_for(active_player.player_id)
 	)
 
-	auto_annex_checkbox.button_pressed = selected_unit.auto_annex
+	auto_annex_toggle.button_pressed = selected_unit.auto_annex
 
 	if preview_route_unit == selected_unit and preview_route.size() > 1:
 		var cost = _route_cost(preview_route, selected_unit)
@@ -1158,16 +1256,16 @@ func _refresh_route_panel() -> void:
 		var target_note = ""
 		if preview_target_hex_id != "" and preview_route[-1] != preview_target_hex_id:
 			target_note = " (najbliżej jak się da - %s jest zajęte przez przeciwnika)" % preview_target_hex_id
-		route_info_label.text = (
+		unit_card_status_label.text = (
 			"Podgląd trasy do %s%s: %d pól, koszt %d MP - zajmie %s (masz %d MP)."
 			% [
 				preview_route[-1], target_note, preview_route.size() - 1, cost,
 				_format_rounds(rounds), selected_unit.movement_points_current
 			]
 		)
-		confirm_route_button.visible = true
-		cancel_route_button.visible = true
-		cancel_route_button.text = "Anuluj podgląd"
+		unit_card_confirm_button.visible = true
+		unit_card_cancel_button.visible = true
+		unit_card_cancel_button.tooltip_text = "Anuluj podgląd trasy"
 	elif not selected_unit.queued_route.is_empty():
 		var remaining_cost = _remaining_route_cost(selected_unit.queued_route, selected_unit)
 		var rounds = _route_rounds_needed(remaining_cost, selected_unit)
@@ -1178,12 +1276,12 @@ func _refresh_route_panel() -> void:
 		var target_note = ""
 		if true_target != selected_unit.queued_route[-1]:
 			target_note = " (na razie do %s - %s jest zajęte przez przeciwnika)" % [selected_unit.queued_route[-1], true_target]
-		route_info_label.text = "Trasa w toku do %s%s: pozostało %d pól, zajmie jeszcze %s." % [
+		unit_card_status_label.text = "Trasa w toku do %s%s: pozostało %d pól, zajmie jeszcze %s." % [
 			true_target, target_note, selected_unit.queued_route.size(), _format_rounds(rounds)
 		]
-		confirm_route_button.visible = false
-		cancel_route_button.visible = true
-		cancel_route_button.text = "Anuluj trasę"
+		unit_card_confirm_button.visible = false
+		unit_card_cancel_button.visible = true
+		unit_card_cancel_button.tooltip_text = "Anuluj trasę"
 	elif selected_unit.route_destination != "":
 		if selected_unit.route_destination == selected_unit.current_hex_id:
 			# Arrived, but ran out of MP for automatic annexation of this
@@ -1191,33 +1289,33 @@ func _refresh_route_panel() -> void:
 			# DIFFERENT state than "destination occupied by the enemy"
 			# below, even though both have an empty `queued_route` and a
 			# set `route_destination`.
-			route_info_label.text = (
+			unit_card_status_label.text = (
 				"Ludzik dotarł na miejsce (%s), ale brakuje MP na aneksację - zaanektuje automatycznie, gdy tylko starczy."
 				% selected_unit.route_destination
 			)
 		else:
-			route_info_label.text = (
+			unit_card_status_label.text = (
 				"Ludzik czeka na miejscu - pole %s jest obecnie zajęte przez przeciwnika. Trasa ruszy dalej automatycznie, gdy się zwolni."
 				% selected_unit.route_destination
 			)
-		confirm_route_button.visible = false
-		cancel_route_button.visible = true
-		cancel_route_button.text = "Anuluj trasę"
+		unit_card_confirm_button.visible = false
+		unit_card_cancel_button.visible = true
+		unit_card_cancel_button.tooltip_text = "Anuluj trasę"
 	elif _current_hex_needs_auto_annex(selected_unit):
 		# No active route (e.g. after Cancel), but still waiting on MP to
 		# automatically annex the hex it's currently standing on - see
 		# _continue_all_queued_routes(), which will try to finish this every
 		# round regardless of whether a route exists.
-		route_info_label.text = (
+		unit_card_status_label.text = (
 			"Ludzik czeka na miejscu (%s) - zaanektuje automatycznie, gdy tylko starczy MP."
 			% selected_unit.current_hex_id
 		)
-		confirm_route_button.visible = false
-		cancel_route_button.visible = false
+		unit_card_confirm_button.visible = false
+		unit_card_cancel_button.visible = false
 	else:
-		route_info_label.text = "Kliknij pole na mapie, żeby zaplanować trasę."
-		confirm_route_button.visible = false
-		cancel_route_button.visible = false
+		unit_card_status_label.text = "Kliknij pole na mapie, żeby zaplanować trasę."
+		unit_card_confirm_button.visible = false
+		unit_card_cancel_button.visible = false
 
 
 ## Total MP cost of walking `path` (skips index 0 - the starting hex the
@@ -1277,29 +1375,46 @@ static func _format_rounds(n: int) -> String:
 	return "%d %s" % [n, word]
 
 
+## UI restyle: movement points are shown EXCLUSIVELY on the Unit Card (mp
+## text + hex pips) - unlike the old top-bar mp_label, there's no "fall back
+## to the player's primary unit" case, since the card itself is only ever
+## visible with a unit selected (see `_refresh_route_panel()`).
 func _update_mp_label() -> void:
-	var unit = selected_unit
-	if unit == null or unit.player_id != active_player.player_id:
-		unit = _primary_unit_for(active_player.player_id)
-	if unit == null:
-		mp_label.text = "Punkty ruchu: -"
-	else:
-		mp_label.text = "Punkty ruchu: %d / %d" % [unit.movement_points_current, unit.movement_points_max]
+	if selected_unit == null:
+		return
+	unit_card_mp_label.text = "%d/%d" % [selected_unit.movement_points_current, selected_unit.movement_points_max]
+	unit_card.set_pips(selected_unit.movement_points_current, selected_unit.movement_points_max)
 
 
-## Prestige + round in one label, ALL of the player's resources in the other
-## (update - previously only showed wood, the rest of the collected
-## resources were invisible in the UI even though the player actually owned
-## them). Also shows the current season (new - GameBalance.Season,
-## round_number % 4) - it directly scales agricultural food income
+## Top bar: round badge + resource dots + prestige (UI restyle). The active
+## player's NAME no longer has its own label - the sidebar's city name
+## already identifies them uniquely, since every player has exactly one,
+## distinct starting city in this hotseat game. Also folds in the current
+## season (GameBalance.Season, round_number % 4) next to the round number -
+## it directly scales agricultural food income
 ## (GameBalance.SEASON_FOOD_MULTIPLIER), so the player needs to see it to
 ## plan around it (e.g. stockpile before winter).
 func _update_stats_labels() -> void:
 	var season_name = GameBalance.SEASON_DISPLAY_NAMES[TurnManager.get_current_season()]
-	prestige_label.text = "Prestiż: %d | Runda: %d (%s)" % [active_player.prestige, TurnManager.round_number, season_name]
+	round_hex_label.text = str(TurnManager.round_number)
+	round_big_label.text = "Runda %d · %s" % [TurnManager.round_number, season_name]
+	prestige_value_label.text = str(active_player.prestige)
 
-	var parts: Array[String] = []
-	for res_type in HexData.RESOURCE_DISPLAY_NAMES:
-		var amount = active_player.get_resource_amount(res_type)
-		parts.append("%s: %.0f" % [HexData.RESOURCE_DISPLAY_NAMES[res_type], amount])
-	resources_label.text = "Surowce: " + " | ".join(parts)
+	city_name_label.text = active_player.starting_city
+
+	resource_wood_value.text = "%.0f" % active_player.get_resource_amount(HexData.ResourceType.WOOD)
+	resource_food_value.text = "%.0f" % active_player.get_resource_amount(HexData.ResourceType.FOOD)
+	resource_copper_value.text = "%.0f" % active_player.get_resource_amount(HexData.ResourceType.COPPER)
+	resource_coal_value.text = "%.0f" % active_player.get_resource_amount(HexData.ResourceType.COAL)
+	resource_gas_value.text = "%.0f" % active_player.get_resource_amount(HexData.ResourceType.GAS)
+
+	# Nickel/Uranium aren't in the mockup (rare, late-game resources) - their
+	# chips stay hidden until the player actually has some, so the common
+	# case still matches the mockup's 5 resource dots exactly.
+	var nickel_amount = active_player.get_resource_amount(HexData.ResourceType.NICKEL)
+	resource_nickel_row.visible = nickel_amount > 0.0
+	resource_nickel_value.text = "%.0f" % nickel_amount
+
+	var uranium_amount = active_player.get_resource_amount(HexData.ResourceType.URANIUM)
+	resource_uranium_row.visible = uranium_amount > 0.0
+	resource_uranium_value.text = "%.0f" % uranium_amount

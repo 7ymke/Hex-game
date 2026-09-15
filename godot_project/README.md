@@ -262,9 +262,20 @@ godot_project/
 │   │                              # gotowa pod podmianę na obrazek (sprite_texture)
 │   └── main_test.tscn / main_test.gd   # smoke test Fazy 0-1 + Faz 6-9 (bez grafiki)
 ├── theme/
-│   └── ui_theme.tres          # WYGLĄD całego UI w jednym miejscu (panele,
-│                                # przyciski, etykiety) - edytowalne wizualnie
-│                                # w Godot Theme Editor, podpięte do main.tscn
+│   ├── ui_theme.tres           # WYGLĄD całego UI w jednym miejscu (panele,
+│   │                             # przyciski, etykiety) - edytowalne wizualnie
+│   │                             # w Godot Theme Editor, podpięte do main.tscn
+│   └── palette.gd               # class_name Palette - nazwane stałe kolorów
+│                                 # z makiety UI (jedno źródło prawdy)
+├── ui/
+│   ├── hex_shape.gd             # class_name HexShape - rysuje/rasteryzuje
+│   │                             # heksagon dla odznak/ikon/pipsów UI
+│   ├── two_tone_track.gd        # tło suwaka "Zetnij drzewa" (bezpiecznie/
+│   │                             # niebezpiecznie), rysowane pod suwakiem
+│   └── unit_card.gd             # class_name UnitCard - pływająca, przeciągalna
+│                                 # karta ludzika nad mapą
+├── assets/fonts/                # Fraunces + IBM Plex Sans (zmienne fonty) +
+│                                 # ich licencje OFL
 ├── data/map_data.json         # wygenerowane przez tools/convert_kml_to_json.py
 └── icon.svg
 ```
@@ -439,42 +450,101 @@ Efekty dzielą się na dwie kategorie:
   `player_units: player_id -> Array[Unit]`, przygotowanej pod ten
   upgrade od samego początku (patrz komentarz na górze `game_map_controller.gd`).
 
-### Wygląd UI - jeden plik do edycji (nowość)
+### Wygląd UI - restylizacja wg makiety (nowość)
 
-Zamiast kolorów/stylów rozrzuconych po każdym węźle z osobna, wygląd paneli,
-przycisków i etykiet mieszka teraz w jednym pliku: `theme/ui_theme.tres`
-(zasób typu `Theme`, standardowy mechanizm Godota). Otwórz go w edytorze
-Godota (podwójny klik w panelu FileSystem) - dostaniesz wizualny edytor
-motywu, gdzie bez pisania kodu można zmienić:
+Cały ekran rozgrywki (`scenes/main.tscn`, węzeł `UI`) został przebudowany
+wg dostarczonej makiety `UI_Gry_Makieta.html` - nowa paleta kolorów,
+typografia (Fraunces + IBM Plex Sans), heksagonalne odznaki/piny zamiast
+prostokątnych etykiet, i inny układ ekranu. Kluczowe pliki:
 
-- tło/obramowanie/zaokrąglenie rogów paneli (`PanelContainer/styles/panel`),
-- wygląd przycisków w 4 stanach - normalny/hover/wciśnięty/zablokowany
-  (`Button/styles/...`),
-- domyślny kolor i rozmiar czcionki etykiet i przycisków
-  (`Label`/`Button` -> `font_colors`/`font_sizes`).
+- `theme/palette.gd` - `class_name Palette`, jedno miejsce z nazwanymi
+  stałymi kolorów (np. `Palette.COPPER`, `Palette.PARCHMENT`) odpowiadającymi
+  zmiennym CSS `:root` z makiety. Kod GDScript (np. `hex_map_view.gd`,
+  `game_map_controller.gd`) odwołuje się do tych stałych wprost. Zasoby
+  `.tscn`/`.tres` (Godot nie potrafi tam odwoływać się do stałych GDScript)
+  mają te same wartości RGB wpisane ręcznie jako literały `Color(...)` -
+  `Palette` jest wtedy źródłem prawdy/dokumentacją tych literałów, nie
+  bezpośrednio "używane" przez silnik w tamtych miejscach.
+- `theme/ui_theme.tres` - zasób `Theme` z NOWĄ paletą (zamiast starej
+  granatowej) - domyślne style `PanelContainer`/`Button`/`Label`/
+  `CheckBox`/`OptionButton`/`VScrollBar`. Podpięty do głównych paneli w
+  `main.tscn`, więc `CityCardPanel`/`SkillTreePanel` (te dwa ekrany NIE
+  zostały w tym przejściu przebudowane szczegółowo - patrz niżej) i tak
+  automatycznie dostają nową paletę/czcionkę za darmo, przez współdzielony
+  motyw.
+- `assets/fonts/` - zmienne fonty (variable fonts) Fraunces i IBM Plex Sans,
+  pobrane z oficjalnego mirrora Google Fonts na GitHubie (fonts.google.com
+  jest zablokowane polityką sieciową środowiska deweloperskiego). Konkretne
+  grubości wybierane są przez zasoby `FontVariation`
+  (`variation_opentype = {"wght": 600.0}` itp.) zamiast osobnych plików na
+  każdą grubość - takie osobne pliki po prostu nie istnieją dla tych rodzin
+  czcionek, tylko warianty zmienne.
+- `ui/hex_shape.gd` - `class_name HexShape extends Control`, rysuje
+  heksagon "flat-top" (te same proporcje co siatka mapy) na dowolnym
+  rozmiarze `Control` - używane wszędzie tam, gdzie w makiecie jest
+  `clip-path: polygon(...)` (odznaka numeru rundy, kropki punktów ruchu na
+  Karcie ludzika, ikonki budynków, uchwyt suwaka zbiórki drewna). Ma też
+  `HexShape.make_texture()` - rasteryzuje ten sam heksagon do `ImageTexture`
+  (prosty algorytm scanline, bez zewnętrznych zależności) - potrzebne tam,
+  gdzie Godot wymaga faktycznej tekstury, nie węzła `Control` (ikony
+  `CheckBox`/uchwyt `HSlider`).
+- `ui/two_tone_track.gd` - dwukolorowe (bezpiecznie/niebezpiecznie) tło pod
+  suwakiem "Zetnij drzewa" - `HSlider` w Godocie ma tylko JEDEN StyleBox na
+  całe tło, bez wbudowanego przejścia koloru w połowie, więc widoczny pasek
+  to w rzeczywistości osobny `Control` rysowany POD suwakiem, który sam ma
+  w pełni przezroczyste tło (widać tylko jego uchwyt). Próg (60%) czyta
+  wprost z `GameBalance.FOREST_SAFE_THRESHOLD_PERCENT`, więc nigdy nie
+  rozjedzie się z faktyczną mechaniką.
+- `ui/unit_card.gd` - `class_name UnitCard`, pływająca, przeciągalna
+  "Karta ludzika" nad mapą (zastępuje dawny, zadokowany panel "Trasa
+  ludzika" - `RoutePanel`). Ten skrypt odpowiada WYŁĄCZNIE za pozycję
+  (domyślnie lewy-dolny róg, jak w makiecie), przeciąganie za nagłówek, i
+  generowanie małych brązowych ikon heksagonu (przez `HexShape`) - to,
+  KTÓRE pola/przyciski pokazują jaki tekst, nadal w całości decyduje
+  `game_map_controller.gd._refresh_route_panel()`, dokładnie jak
+  wcześniej przy `RoutePanel`. Karta resetuje pozycję do domyślnej
+  WYŁĄCZNIE przy przejściu z ukrytej na widoczną (świeże zaznaczenie
+  jednostki) - przeciągnięcie w trakcie trwania tego samego zaznaczenia
+  nigdy się nie cofa.
 
-Motyw jest podpięty (`theme = ExtResource(...)`) do głównych paneli w
-`scenes/main.tscn` (`ActionPanel`, `RoutePanel`, `CityCardPanel/Panel`,
-`SkillTreePanel/Panel`) i do luźnych etykiet HUD-u (`InfoLabel`, `TurnLabel`,
-`MPLabel`, `PrestigeLabel`, `ResourcesLabel`) - zmiana w `ui_theme.tres`
-automatycznie obejmuje WSZYSTKIE z nich naraz, bez edytowania każdego węzła
-osobno. Pojedyncze etykiety nadal mogą mieć własne, lokalne nadpisania
-(`theme_override_colors/font_color` itp. w `main.tscn`, np. żółty
-`TurnLabel`) - te wygrywają NAD motywem tam, gdzie są ustawione, więc można
-zarówno zmieniać wszystko naraz (motyw), jak i dostrajać pojedyncze elementy
-(lokalne nadpisanie).
+Układ ekranu (`UI/Root`): górny pasek (`TopBar` - odznaka rundy, kropki
+surowców, prestiż - BEZ punktów ruchu, te mieszkają wyłącznie na Karcie
+ludzika, zgodnie z opisem w samej makiecie), cienki pasek komunikatów
+(`InfoBar` - zastępuje dawny wolnostojący `InfoLabel`), prawy panel boczny
+(`Sidebar` - zastępuje dawny `ActionPanel`: blok miasta + okrągły przycisk
+Drzewka Umiejętności, podgląd budynków Karty Miasta ze scrollem
+(kliknięcie "Pełna karta →" otwiera pełny, interaktywny modal
+`CityCardPanel` - podgląd w pasku bocznym jest tylko do odczytu), przycisk
+naprawy, suwak zbiórki drewna, dół z wyborem gracza i "Zakończ rundę"), oraz
+dwie pływające "karty" w stylu pergaminu nad samą mapą: Karta ludzika (opis
+wyżej) i nowy, mały panel informacji o zaznaczonym polu (`HexInfoPanel` -
+którego W OGÓLE nie było w makiecie; dodany, żeby nie stracić informacji,
+którą pokazywał stary `ActionPanel`/`HexInfoLabel`).
+
+Kolor tła samej mapy (za/między heksami) ustawiony przez
+`rendering/environment/defaults/default_clear_color` w `project.godot`
+(wcześniej nieustawiony - domyślny czarny silnika Godota) - to jedyny
+"pod spód" mapy element makiety, który udało się przenieść bez tekstury
+(diagonalny wzór z `.map::before` w HTML-u pominięty - czysto kosmetyczny
+detal, niewart ryzyka bez możliwości podglądu na żywo w edytorze).
 
 ### UI skaluje się z oknem
 
 `project.godot` -> `[display]`: `window/stretch/mode = "canvas_items"`,
-`window/stretch/aspect = "expand"`, bazowa rozdzielczość 1280×800 - zmiana
-rozmiaru okna skaluje całą scenę (mapę i UI) proporcjonalnie, zamiast
-przycinać ją czarnymi pasami albo zostawiać UI w stałym rozmiarze
-pikselowym w rogu ekranu. Panele, które muszą reagować na kształt okna, a
-nie tylko jego rozmiar (np. "przykryj większość ekranu" - Drzewko
-Umiejętności), dodatkowo używają zakotwiczenia na pełny prostokąt
+`window/stretch/aspect = "expand"`, bazowa rozdzielczość 1280×800,
+`window/size/min_width`/`min_height` = 1000×650 (nowość - zapobiega
+skurczeniu okna do rozmiaru, przy którym pasek boczny/karty by się nie
+mieściły) - zmiana rozmiaru okna skaluje całą scenę (mapę i UI)
+proporcjonalnie, zamiast przycinać ją czarnymi pasami albo zostawiać UI w
+stałym rozmiarze pikselowym w rogu ekranu. Panele, które muszą reagować na
+kształt okna, a nie tylko jego rozmiar (np. "przykryj większość ekranu" -
+Drzewko Umiejętności), dodatkowo używają zakotwiczenia na pełny prostokąt
 (`anchor_right = 1.0`, `anchor_bottom = 1.0`, ujemne marginesy) zamiast
-sztywnych pikseli - patrz sekcja "Drzewko Umiejętności" wyżej.
+sztywnych pikseli - patrz sekcja "Drzewko Umiejętności" wyżej. Karta
+ludzika jest wyjątkiem - jest `top_level = true` (żeby przeciąganie
+działało niezależnie od układu kontenerów rodzica) i sama przelicza swoją
+domyślną pozycję względem `get_viewport_rect().size` przy każdym nowym
+pokazaniu, więc też poprawnie reaguje na inny rozmiar okna.
 
 ## Orientacja siatki: flat-top, offset "even-q"
 
@@ -525,6 +595,55 @@ jako heksy typu `city`: Wrocław (`H18`), Szczecin (`A7`), Warszawa (`R12`),
 Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
+
+- **Restylizacja UI ekranu rozgrywki wg dostarczonej makiety** (na podstawie
+  przesłanej specyfikacji "Instrukcje: restylizacja UI w Godot 4.2.2" oraz,
+  po prośbie o doprecyzowanie, samego pliku `UI_Gry_Makieta.html`). Cały
+  węzeł `UI` w `scenes/main.tscn` przebudowany od zera - patrz sekcja
+  "Wygląd UI - restylizacja wg makiety" wyżej po pełny opis nowych plików
+  (`theme/palette.gd`, `ui/hex_shape.gd`, `ui/two_tone_track.gd`,
+  `ui/unit_card.gd`) i układu. Kilka miejsc, w których makieta była
+  niejednoznaczna albo niepełna, wymagało własnej decyzji projektowej -
+  zapisane tu, żeby było wiadomo, że to świadomy wybór, nie przeoczenie:
+  - Makieta w ogóle nie pokazuje przycisku uruchamiającego samo wycinanie
+    drewna (`.harvest-block` w HTML-u ma tylko suwak, bez przycisku
+    akcji) - dodany `HarvestButton` pod suwakiem (zwykły przycisk, styl
+    "ghost" jak reszta akcji w pasku bocznym), bo bez niego funkcja
+    wycinki byłaby w ogóle niedostępna z UI.
+  - Makieta nie pokazuje żadnego panelu z informacją o zaznaczonym/najechanym
+    polu (stary `hex_info_label` z `ActionPanel`) - dodany nowy, pływający
+    `HexInfoPanel` w stylu pergaminu, koło prawego górnego rogu mapy (nie
+    zachodzi na pasek boczny), żeby ta informacja nie zniknęła z gry.
+  - Makieta pokazuje krótką, statyczną listę budynków Karty Miasta w pasku
+    bocznym BEZ żadnego przycisku odblokowania i bez sposobu na otwarcie
+    pełnej Karty Miasta - zaimplementowane jako podgląd tylko do odczytu
+    (ikona + nazwa + wartość prestiżu, kolorowane wg stanu
+    zablokowany/odblokowany), z osobnym, małym linkiem "Pełna karta →" w
+    nagłówku bloku, który otwiera dotychczasowy, w pełni interaktywny modal
+    `CityCardPanel` (tam odblokowywanie nadal działa jak wcześniej) -
+    zachowuje 100% dotychczasowej funkcjonalności, nie tylko wizualnie
+    naśladuje makietę.
+  - `AutoAnnexCheckBox` (przełącznik "Anektuj napotkane pola") zamieniony z
+    `CheckBox` na zwykły `Button` z `toggle_mode = true` i ikoną-heksagonem
+    zamienianą w locie między kolorem `brass` (włączone) a przygaszonym
+    `rule_dim` (wyłączone) - identyczne zachowanie (`button_pressed`,
+    sygnał `toggled`), ale stylistycznie spójne z resztą "linków" na Karcie
+    ludzika (które też mają mały heksagon-znacznik obok tekstu w makiecie).
+  - Diagonalny wzór teksturowanego tła mapy (`.map::before` w CSS) pominięty
+    - czysto kosmetyczny detal, niewart ryzyka wdrażania bez możliwości
+    podglądu na żywo w edytorze Godota (środowisko deweloperskie nie ma
+    dostępu do uruchomionego edytora - cała weryfikacja szła przez statyczną
+    analizę plików `.gd`/`.tscn`, nie przez faktyczne renderowanie). Samo
+    tło mapy DOSTAŁO właściwy kolor (`--bg-map` z makiety) przez
+    `rendering/environment/defaults/default_clear_color` w `project.godot`.
+  - Fonty (Fraunces, IBM Plex Sans) pobrane bezpośrednio z oficjalnego
+    mirrora Google Fonts na GitHubie (`raw.githubusercontent.com`) zamiast z
+    `fonts.google.com`, który jest zablokowany polityką sieciową tego
+    środowiska. Obie rodziny okazały się być dostępne WYŁĄCZNIE jako fonty
+    zmienne (variable fonts) - bez osobnych plików na każdą grubość, jak
+    zakładała specyfikacja - więc konkretne grubości są wybierane przez
+    zasoby `FontVariation` (`variation_opentype`) zamiast osobnych plików
+    `.ttf`.
 
 - **Kara prestiżowa za wycinkę lasu liczona od WYNIKOWEGO poziomu zasobu, nie
   od wielkości pojedynczego cięcia** (update, na życzenie: "Chcę aby gracz
@@ -1124,6 +1243,19 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Uproszczenia i rzeczy do zweryfikowania dalej
 
+- **Restylizacja UI (patrz "Wygląd UI - restylizacja wg makiety" wyżej) nie
+  była nigdy wizualnie zweryfikowana w edytorze Godota** - to środowisko
+  deweloperskie nie ma dostępu do uruchomionego edytora/live-podglądu,
+  więc cała weryfikacja poszła przez statyczną analizę plików `.gd`/`.tscn`
+  (spójność ścieżek węzłów, deklaracji `ext_resource`/`sub_resource`,
+  składni GDScript) - **prosimy o otwarcie projektu w edytorze i rzut oka
+  na faktyczny wygląd** przed uznaniem tego zadania za w pełni skończone.
+  Najbardziej prawdopodobne drobne niedociągnięcia (nie logika/działanie,
+  tylko piksele): dokładne odstępy/marginesy (przepisane "na oko" z
+  wartości `rem` z CSS, nie 1:1 przeliczone), wysokość Karty ludzika
+  (liczona dynamicznie z `get_combined_minimum_size()`, ale nigdy nie
+  zobaczona na żywo), oraz czy 7 kropek surowców w pasku górnym (gdy
+  gracz ma już Nikiel/Uran) faktycznie mieści się w dostępnej szerokości.
 - **Kształt siatki jest skorygowany proporcjonalnie, ale wciąż nie
   geograficznie dokładny.** Sąsiedztwo/pathfinding nadal opiera się
   WYŁĄCZNIE na literze/numerze z ID heksa (regularna siatka heksagonalna) -

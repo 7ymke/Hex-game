@@ -28,23 +28,25 @@ signal hex_hovered(hex_id: String)  # empty string = cursor outside the grid
 @export var preview_route_hex_ids: Array[String] = []
 @export var queued_route_hex_ids: Array[String] = []
 
+## UI restyle: matches the map hex colors from UI_Gry_Makieta.html
+## (theme/palette.gd) instead of the old ad hoc placeholder colors.
 const TERRAIN_COLORS = {
-	HexData.TerrainType.UNKNOWN: Color(0.6, 0.6, 0.6),
-	HexData.TerrainType.AGRICULTURAL: Color(0.76, 0.80, 0.35),
-	HexData.TerrainType.FOREST: Color(0.13, 0.42, 0.16),
-	HexData.TerrainType.MOUNTAIN: Color(0.5, 0.45, 0.4),
-	HexData.TerrainType.PROTECTED_AREA: Color(0.18, 0.55, 0.5),
-	HexData.TerrainType.CITY: Color(0.75, 0.25, 0.2),
-	HexData.TerrainType.WATER: Color(0.2, 0.4, 0.75),
+	HexData.TerrainType.UNKNOWN: Palette.TERRAIN_UNKNOWN,
+	HexData.TerrainType.AGRICULTURAL: Palette.TERRAIN_AGRICULTURAL,
+	HexData.TerrainType.FOREST: Palette.TERRAIN_FOREST,
+	HexData.TerrainType.MOUNTAIN: Palette.TERRAIN_MOUNTAIN,
+	HexData.TerrainType.PROTECTED_AREA: Palette.TERRAIN_PROTECTED_AREA,
+	HexData.TerrainType.CITY: Palette.TERRAIN_CITY,
+	HexData.TerrainType.WATER: Palette.TERRAIN_WATER,
 }
 
-const FOG_UNEXPLORED = Color(0.08, 0.08, 0.08)
+const FOG_UNEXPLORED = Palette.FOG_UNEXPLORED
 const FOG_SEEN_OVERLAY = Color(0, 0, 0, 0.4)
 const OUTLINE_COLOR = Color(0, 0, 0, 0.5)
-const SELECTED_OUTLINE_COLOR = Color(1, 0.9, 0.2, 0.9)
+const SELECTED_OUTLINE_COLOR = Palette.COPPER_BRIGHT
 const OWNER_OUTLINE_WIDTH = 4.0
 
-const PREVIEW_ROUTE_COLOR = Color(1, 0.9, 0.2, 0.85)
+const PREVIEW_ROUTE_COLOR = Palette.COPPER_BRIGHT
 const QUEUED_ROUTE_COLOR = Color(1, 0.5, 0.05, 0.9)
 const ROUTE_LINE_WIDTH = 4.0
 const ROUTE_DOT_RADIUS = 5.0

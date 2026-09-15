@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://cmapmain0001"]
+[gd_scene load_steps=42 format=3 uid="uid://cmapmain0001"]
 
 [ext_resource type="Script" path="res://scenes/game_map_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scenes/camera_controller.gd" id="2"]
@@ -8,6 +8,214 @@
 [ext_resource type="Script" path="res://scenes/skill_tree_panel.gd" id="6"]
 [ext_resource type="Theme" path="res://theme/ui_theme.tres" id="7"]
 [ext_resource type="Script" path="res://scenes/skill_graph_view.gd" id="8"]
+[ext_resource type="Script" path="res://ui/hex_shape.gd" id="9"]
+[ext_resource type="Script" path="res://ui/unit_card.gd" id="10"]
+[ext_resource type="Script" path="res://ui/two_tone_track.gd" id="11"]
+[ext_resource type="FontFile" path="res://assets/fonts/Fraunces-Variable.ttf" id="12"]
+[ext_resource type="FontFile" path="res://assets/fonts/Fraunces-Italic-Variable.ttf" id="13"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexSans-Variable.ttf" id="14"]
+
+[sub_resource type="FontVariation" id="FontVariation_fraunces_600"]
+base_font = ExtResource("12")
+variation_opentype = {"wght": 600.0}
+
+[sub_resource type="FontVariation" id="FontVariation_fraunces_700"]
+base_font = ExtResource("12")
+variation_opentype = {"wght": 700.0}
+
+[sub_resource type="FontVariation" id="FontVariation_fraunces_italic_500"]
+base_font = ExtResource("13")
+variation_opentype = {"wght": 500.0}
+
+[sub_resource type="FontVariation" id="FontVariation_plex_600"]
+base_font = ExtResource("14")
+variation_opentype = {"wght": 600.0}
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar_bg"]
+bg_color = Color(0.094117, 0.141176, 0.090196, 1)
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.294117, 0.32)
+content_margin_left = 14.0
+content_margin_right = 14.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_infobar_bg"]
+bg_color = Color(0.117647, 0.172549, 0.109803, 1)
+content_margin_left = 14.0
+content_margin_right = 14.0
+content_margin_top = 3.0
+content_margin_bottom = 3.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sidebar_bg"]
+bg_color = Color(0.094117, 0.141176, 0.090196, 1)
+border_width_left = 1
+border_color = Color(0.788235, 0.635294, 0.294117, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_divider"]
+bg_color = Color(0.788235, 0.635294, 0.294117, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot_wood"]
+bg_color = Color(0.486274, 0.658823, 0.415686, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot_food"]
+bg_color = Color(0.850980, 0.698039, 0.298039, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot_copper"]
+bg_color = Color(0.878431, 0.6, 0.372549, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot_coal"]
+bg_color = Color(0.290196, 0.274509, 0.250980, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.419607, 0.396078, 0.360784, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot_gas"]
+bg_color = Color(0.435294, 0.658823, 0.847058, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot_nickel"]
+bg_color = Color(0.75, 0.75, 0.78, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot_uranium"]
+bg_color = Color(0.7, 0.85, 0.25, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_parchment_card"]
+bg_color = Color(0.937254, 0.901960, 0.827450, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+content_margin_left = 14.0
+content_margin_top = 11.0
+content_margin_right = 14.0
+content_margin_bottom = 11.0
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 14
+shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_parchment_card_small"]
+bg_color = Color(0.937254, 0.901960, 0.827450, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 10
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel_circle"]
+bg_color = Color(0.757254, 0.329411, 0.239215, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel_circle_hover"]
+bg_color = Color(0.85, 0.4, 0.29, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_primary_copper_normal"]
+bg_color = Color(0.788235, 0.478431, 0.290196, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_primary_copper_hover"]
+bg_color = Color(0.878431, 0.6, 0.372549, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_skill_circle_normal"]
+bg_color = Color(0.117647, 0.172549, 0.109803, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.294117, 0.32)
+corner_radius_top_left = 17
+corner_radius_top_right = 17
+corner_radius_bottom_right = 17
+corner_radius_bottom_left = 17
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_skill_circle_hover"]
+bg_color = Color(0.788235, 0.478431, 0.290196, 0.15)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.878431, 0.6, 0.372549, 1)
+corner_radius_top_left = 17
+corner_radius_top_right = 17
+corner_radius_bottom_right = 17
+corner_radius_bottom_left = 17
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sidebar_bottom_bg"]
+bg_color = Color(0, 0, 0, 0)
+border_width_top = 1
+border_color = Color(0.788235, 0.635294, 0.294117, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_selector_normal"]
+bg_color = Color(0.117647, 0.172549, 0.109803, 1)
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 6.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_selector_hover"]
+bg_color = Color(0.16, 0.22, 0.15, 1)
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 6.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_transparent_track"]
+bg_color = Color(0, 0, 0, 0)
 
 [node name="GameMapController" type="Node2D"]
 script = ExtResource("1")
@@ -26,132 +234,516 @@ script = ExtResource("4")
 
 [node name="UI" type="CanvasLayer" parent="."]
 
-[node name="InfoLabel" type="Label" parent="UI"]
+[node name="Root" type="Control" parent="UI"]
 theme = ExtResource("7")
-offset_left = 16.0
-offset_top = 16.0
-offset_right = 760.0
-offset_bottom = 40.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 16
-text = "Ładowanie..."
+anchor_right = 1.0
+anchor_bottom = 1.0
 
-[node name="TurnLabel" type="Label" parent="UI"]
-theme = ExtResource("7")
-offset_left = 16.0
-offset_top = 44.0
-offset_right = 500.0
-offset_bottom = 68.0
-theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
-theme_override_font_sizes/font_size = 16
-text = "Tura gracza: -"
+[node name="TopBar" type="PanelContainer" parent="UI/Root"]
+custom_minimum_size = Vector2(0, 56)
+anchor_right = 1.0
+offset_bottom = 56.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_topbar_bg")
 
-[node name="MPLabel" type="Label" parent="UI"]
-theme = ExtResource("7")
-offset_left = 16.0
-offset_top = 72.0
-offset_right = 300.0
-offset_bottom = 96.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 16
-text = "Punkty ruchu: -"
+[node name="HBox" type="HBoxContainer" parent="UI/Root/TopBar"]
+theme_override_constants/separation = 14
 
-[node name="PrestigeLabel" type="Label" parent="UI"]
-theme = ExtResource("7")
-offset_left = 16.0
-offset_top = 100.0
-offset_right = 500.0
-offset_bottom = 124.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 16
-text = "Prestiż: -"
+[node name="RoundChip" type="HBoxContainer" parent="UI/Root/TopBar/HBox"]
+theme_override_constants/separation = 8
 
-[node name="ResourcesLabel" type="Label" parent="UI"]
-theme = ExtResource("7")
-offset_left = 16.0
-offset_top = 128.0
-offset_right = 900.0
-offset_bottom = 180.0
-autowrap_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 16
-text = "Surowce: -"
+[node name="HexNumBadge" type="Control" parent="UI/Root/TopBar/HBox/RoundChip"]
+custom_minimum_size = Vector2(30, 27)
+script = ExtResource("9")
+fill_color = Color(0.788235, 0.478431, 0.290196, 1)
 
-[node name="ActionPanel" type="PanelContainer" parent="UI"]
-theme = ExtResource("7")
-offset_left = 16.0
-offset_top = 380.0
-offset_right = 460.0
-offset_bottom = 760.0
+[node name="RoundNumberLabel" type="Label" parent="UI/Root/TopBar/HBox/RoundChip/HexNumBadge"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_colors/font_color = Color(0.047058, 0.078431, 0.047058, 1)
+theme_override_fonts/font = SubResource("FontVariation_fraunces_700")
+theme_override_font_sizes/font_size = 13
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="VBox" type="VBoxContainer" parent="UI/ActionPanel"]
+[node name="RoundCaptionVBox" type="VBoxContainer" parent="UI/Root/TopBar/HBox/RoundChip"]
+theme_override_constants/separation = 0
+
+[node name="RoundCaptionLabel" type="Label" parent="UI/Root/TopBar/HBox/RoundChip/RoundCaptionVBox"]
+theme_override_colors/font_color = Color(0.623529, 0.690196, 0.603921, 1)
+theme_override_font_sizes/font_size = 10
+text = "RUNDA"
+
+[node name="RoundBigLabel" type="Label" parent="UI/Root/TopBar/HBox/RoundChip/RoundCaptionVBox"]
+theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
+theme_override_fonts/font = SubResource("FontVariation_fraunces_600")
+theme_override_font_sizes/font_size = 13
+text = "Runda 1"
+
+[node name="Divider1" type="Panel" parent="UI/Root/TopBar/HBox"]
+custom_minimum_size = Vector2(1, 30)
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_divider")
+
+[node name="ResourcesRow" type="HBoxContainer" parent="UI/Root/TopBar/HBox"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 18
+
+[node name="ResourceWood" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
 theme_override_constants/separation = 6
 
-[node name="HexInfoLabel" type="Label" parent="UI/ActionPanel/VBox"]
+[node name="DotWood" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceWood"]
+custom_minimum_size = Vector2(9, 9)
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_dot_wood")
+
+[node name="ResourceWoodCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceWood"]
+theme_override_font_sizes/font_size = 12
+text = "Drewno"
+
+[node name="ResourceWoodValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceWood"]
+theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
+theme_override_font_sizes/font_size = 12
+text = "0"
+
+[node name="ResourceFood" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+theme_override_constants/separation = 6
+
+[node name="DotFood" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceFood"]
+custom_minimum_size = Vector2(9, 9)
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_dot_food")
+
+[node name="ResourceFoodCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceFood"]
+theme_override_font_sizes/font_size = 12
+text = "Żywność"
+
+[node name="ResourceFoodValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceFood"]
+theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
+theme_override_font_sizes/font_size = 12
+text = "0"
+
+[node name="ResourceCopper" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+theme_override_constants/separation = 6
+
+[node name="DotCopper" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper"]
+custom_minimum_size = Vector2(9, 9)
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_dot_copper")
+
+[node name="ResourceCopperCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper"]
+theme_override_font_sizes/font_size = 12
+text = "Miedź"
+
+[node name="ResourceCopperValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper"]
+theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
+theme_override_font_sizes/font_size = 12
+text = "0"
+
+[node name="ResourceCoal" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+theme_override_constants/separation = 6
+
+[node name="DotCoal" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal"]
+custom_minimum_size = Vector2(9, 9)
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_dot_coal")
+
+[node name="ResourceCoalCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal"]
+theme_override_font_sizes/font_size = 12
+text = "Węgiel"
+
+[node name="ResourceCoalValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal"]
+theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
+theme_override_font_sizes/font_size = 12
+text = "0"
+
+[node name="ResourceGas" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+theme_override_constants/separation = 6
+
+[node name="DotGas" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceGas"]
+custom_minimum_size = Vector2(9, 9)
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_dot_gas")
+
+[node name="ResourceGasCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceGas"]
+theme_override_font_sizes/font_size = 12
+text = "Gaz"
+
+[node name="ResourceGasValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceGas"]
+theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
+theme_override_font_sizes/font_size = 12
+text = "0"
+
+[node name="ResourceNickel" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+visible = false
+theme_override_constants/separation = 6
+
+[node name="DotNickel" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel"]
+custom_minimum_size = Vector2(9, 9)
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_dot_nickel")
+
+[node name="ResourceNickelCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel"]
+theme_override_font_sizes/font_size = 12
+text = "Nikiel"
+
+[node name="ResourceNickelValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel"]
+theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
+theme_override_font_sizes/font_size = 12
+text = "0"
+
+[node name="ResourceUranium" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+visible = false
+theme_override_constants/separation = 6
+
+[node name="DotUranium" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium"]
+custom_minimum_size = Vector2(9, 9)
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_dot_uranium")
+
+[node name="ResourceUraniumCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium"]
+theme_override_font_sizes/font_size = 12
+text = "Uran"
+
+[node name="ResourceUraniumValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium"]
+theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
+theme_override_font_sizes/font_size = 12
+text = "0"
+
+[node name="Divider2" type="Panel" parent="UI/Root/TopBar/HBox"]
+custom_minimum_size = Vector2(1, 30)
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_divider")
+
+[node name="PrestigeChip" type="HBoxContainer" parent="UI/Root/TopBar/HBox"]
+theme_override_constants/separation = 5
+
+[node name="PrestigeCaptionLabel" type="Label" parent="UI/Root/TopBar/HBox/PrestigeChip"]
+theme_override_colors/font_color = Color(0.788235, 0.635294, 0.294117, 1)
+theme_override_fonts/font = SubResource("FontVariation_fraunces_italic_500")
+theme_override_font_sizes/font_size = 13
+text = "Prestiż"
+
+[node name="PrestigeValueLabel" type="Label" parent="UI/Root/TopBar/HBox/PrestigeChip"]
+theme_override_colors/font_color = Color(0.878431, 0.6, 0.372549, 1)
+theme_override_fonts/font = SubResource("FontVariation_fraunces_700")
+theme_override_font_sizes/font_size = 13
+text = "0"
+
+[node name="InfoBar" type="PanelContainer" parent="UI/Root"]
+anchor_right = 1.0
+offset_top = 56.0
+offset_bottom = 80.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_infobar_bg")
+
+[node name="InfoLabel" type="Label" parent="UI/Root/InfoBar"]
+theme_override_colors/font_color = Color(0.623529, 0.690196, 0.603921, 1)
+theme_override_font_sizes/font_size = 12
+text = "Ładowanie..."
 autowrap_mode = 2
-text = "Wybierz pole."
+vertical_alignment = 1
 
-[node name="RepairButton" type="Button" parent="UI/ActionPanel/VBox"]
-text = "Napraw budynek"
+[node name="Sidebar" type="PanelContainer" parent="UI/Root"]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -258.0
+offset_top = 80.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_sidebar_bg")
 
-[node name="HarvestRow" type="HBoxContainer" parent="UI/ActionPanel/VBox"]
+[node name="SidebarVBox" type="VBoxContainer" parent="UI/Root/Sidebar"]
+theme_override_constants/separation = 0
 
-[node name="HarvestSlider" type="HSlider" parent="UI/ActionPanel/VBox/HarvestRow"]
-custom_minimum_size = Vector2(240, 0)
+[node name="CityBlockMargin" type="MarginContainer" parent="UI/Root/Sidebar/SidebarVBox"]
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 14
+
+[node name="CityBlockVBox" type="VBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin"]
+theme_override_constants/separation = 3
+
+[node name="CityLabelSmall" type="Label" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox"]
+theme_override_colors/font_color = Color(0.623529, 0.690196, 0.603921, 1)
+theme_override_font_sizes/font_size = 10
+text = "MIASTO"
+
+[node name="CityNameRow" type="HBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox"]
+
+[node name="CityNameLabel" type="Label" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow"]
+theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
+theme_override_fonts/font = SubResource("FontVariation_fraunces_600")
+theme_override_font_sizes/font_size = 20
+text = "-"
+
+[node name="CitySpacer" type="Control" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow"]
+size_flags_horizontal = 3
+
+[node name="SkillTreeButton" type="Button" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow"]
+custom_minimum_size = Vector2(34, 34)
+tooltip_text = "Drzewko Umiejętności"
+theme_override_styles/normal = SubResource("StyleBoxFlat_skill_circle_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_skill_circle_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_skill_circle_hover")
+text = ""
+
+[node name="DividerCity" type="Panel" parent="UI/Root/Sidebar/SidebarVBox"]
+custom_minimum_size = Vector2(0, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_divider")
+
+[node name="BuildingsBlockMargin" type="MarginContainer" parent="UI/Root/Sidebar/SidebarVBox"]
+size_flags_vertical = 3
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 12
+
+[node name="BuildingsBlockVBox" type="VBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin"]
+theme_override_constants/separation = 8
+
+[node name="BuildingsHeaderRow" type="HBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox"]
+
+[node name="BTitleLabel" type="Label" parent="UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox/BuildingsHeaderRow"]
+theme_override_colors/font_color = Color(0.788235, 0.635294, 0.294117, 1)
+theme_override_font_sizes/font_size = 10
+text = "BUDYNKI Z KARTY MIASTA"
+autowrap_mode = 2
+
+[node name="BTitleSpacer" type="Control" parent="UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox/BuildingsHeaderRow"]
+size_flags_horizontal = 3
+
+[node name="OpenCityCardLink" type="Button" parent="UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox/BuildingsHeaderRow"]
+flat = true
+theme_override_colors/font_color = Color(0.623529, 0.690196, 0.603921, 1)
+theme_override_colors/font_hover_color = Color(0.878431, 0.6, 0.372549, 1)
+theme_override_font_sizes/font_size = 11
+text = "Pełna karta →"
+
+[node name="BuildingsScroll" type="ScrollContainer" parent="UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox"]
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="BuildingList" type="VBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox/BuildingsScroll"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 5
+
+[node name="DividerBuildings" type="Panel" parent="UI/Root/Sidebar/SidebarVBox"]
+custom_minimum_size = Vector2(0, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_divider")
+
+[node name="ActionRowMargin" type="MarginContainer" parent="UI/Root/Sidebar/SidebarVBox"]
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 10
+
+[node name="ActionRow" type="HBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/ActionRowMargin"]
+
+[node name="RepairButton" type="Button" parent="UI/Root/Sidebar/SidebarVBox/ActionRowMargin/ActionRow"]
+size_flags_horizontal = 3
+text = "🔧 Napraw budynek"
+
+[node name="HarvestBlockMargin" type="MarginContainer" parent="UI/Root/Sidebar/SidebarVBox"]
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 13
+
+[node name="HarvestBlockVBox" type="VBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin"]
+theme_override_constants/separation = 7
+
+[node name="HTitleRow" type="HBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox"]
+
+[node name="HTitleLabel" type="Label" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/HTitleRow"]
+theme_override_colors/font_color = Color(0.788235, 0.635294, 0.294117, 1)
+theme_override_font_sizes/font_size = 10
+text = "ZETNIJ DRZEWA"
+
+[node name="HTitleSpacer" type="Control" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/HTitleRow"]
+size_flags_horizontal = 3
+
+[node name="HarvestValueLabel" type="Label" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/HTitleRow"]
+theme_override_colors/font_color = Color(0.878431, 0.6, 0.372549, 1)
+theme_override_fonts/font = SubResource("FontVariation_fraunces_700")
+theme_override_font_sizes/font_size = 14
+text = "50%"
+
+[node name="SliderStack" type="Control" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox"]
+custom_minimum_size = Vector2(0, 18)
+
+[node name="HarvestTrack" type="Control" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/SliderStack"]
+mouse_filter = 2
+anchor_right = 1.0
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -3.0
+offset_bottom = 3.0
+script = ExtResource("11")
+
+[node name="HarvestSlider" type="HSlider" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/SliderStack"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_styles/slider = SubResource("StyleBoxFlat_transparent_track")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_transparent_track")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_transparent_track")
 min_value = 0.0
 max_value = 100.0
 step = 1.0
 value = 50.0
 
-[node name="HarvestValueLabel" type="Label" parent="UI/ActionPanel/VBox/HarvestRow"]
-custom_minimum_size = Vector2(48, 0)
-text = "50%"
+[node name="MarksRow" type="HBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox"]
 
-[node name="HarvestButton" type="Button" parent="UI/ActionPanel/VBox"]
+[node name="SafeMarkLabel" type="Label" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/MarksRow"]
+theme_override_colors/font_color = Color(0.498039, 0.682352, 0.431372, 1)
+theme_override_font_sizes/font_size = 10
+text = "bezpiecznie do 60%"
+
+[node name="MarksSpacer" type="Control" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/MarksRow"]
+size_flags_horizontal = 3
+
+[node name="HundredLabel" type="Label" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/MarksRow"]
+theme_override_colors/font_color = Color(0.623529, 0.690196, 0.603921, 1)
+theme_override_font_sizes/font_size = 10
+text = "100%"
+
+[node name="HarvestButton" type="Button" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox"]
+theme_override_font_sizes/font_size = 12
 text = "Wydobądź drewno"
 
-[node name="CityCardButton" type="Button" parent="UI/ActionPanel/VBox"]
-text = "Karta Miasta"
+[node name="DividerHarvest" type="Panel" parent="UI/Root/Sidebar/SidebarVBox"]
+custom_minimum_size = Vector2(0, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_divider")
 
-[node name="SkillTreeButton" type="Button" parent="UI/ActionPanel/VBox"]
-text = "Drzewko Umiejętności"
+[node name="SidebarBottom" type="PanelContainer" parent="UI/Root/Sidebar/SidebarVBox"]
+theme_override_styles/panel = SubResource("StyleBoxFlat_sidebar_bottom_bg")
 
-[node name="PlayerSelector" type="OptionButton" parent="UI/ActionPanel/VBox"]
+[node name="SidebarBottomHBox" type="HBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/SidebarBottom"]
+theme_override_constants/separation = 0
 
-[node name="EndRoundButton" type="Button" parent="UI/ActionPanel/VBox"]
+[node name="PlayerSelector" type="OptionButton" parent="UI/Root/Sidebar/SidebarVBox/SidebarBottom/SidebarBottomHBox"]
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("StyleBoxFlat_selector_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_selector_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_selector_hover")
+theme_override_font_sizes/font_size = 12
+
+[node name="EndRoundButton" type="Button" parent="UI/Root/Sidebar/SidebarVBox/SidebarBottom/SidebarBottomHBox"]
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("StyleBoxFlat_primary_copper_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_primary_copper_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_primary_copper_hover")
+theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
+theme_override_colors/font_hover_color = Color(0.937254, 0.901960, 0.827450, 1)
+theme_override_fonts/font = SubResource("FontVariation_plex_600")
+theme_override_font_sizes/font_size = 13
 text = "Zakończ rundę"
 
-[node name="RoutePanel" type="PanelContainer" parent="UI"]
-theme = ExtResource("7")
-offset_left = 480.0
-offset_top = 380.0
-offset_right = 900.0
-offset_bottom = 700.0
+[node name="HexInfoPanel" type="PanelContainer" parent="UI/Root"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -514.0
+offset_top = 92.0
+offset_right = -274.0
+offset_bottom = 212.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_parchment_card_small")
 
-[node name="VBox" type="VBoxContainer" parent="UI/RoutePanel"]
-theme_override_constants/separation = 6
-
-[node name="RouteTitleLabel" type="Label" parent="UI/RoutePanel/VBox"]
-theme_override_font_sizes/font_size = 18
-text = "Trasa ludzika"
-
-[node name="RouteInfoLabel" type="Label" parent="UI/RoutePanel/VBox"]
+[node name="HexInfoLabel" type="Label" parent="UI/Root/HexInfoPanel"]
+theme_override_colors/font_color = Color(0.168627, 0.149019, 0.125490, 1)
+theme_override_font_sizes/font_size = 12
+text = "Zaznacz pole (kliknij na mapie)."
 autowrap_mode = 2
-text = "Zaznacz ludzika, potem kliknij pole na mapie, żeby zaplanować trasę."
 
-[node name="ConfirmRouteButton" type="Button" parent="UI/RoutePanel/VBox"]
+[node name="UnitCard" type="PanelContainer" parent="UI"]
+top_level = true
+custom_minimum_size = Vector2(250, 0)
+theme = ExtResource("7")
+script = ExtResource("10")
+theme_override_styles/panel = SubResource("StyleBoxFlat_parchment_card")
+
+[node name="VBox" type="VBoxContainer" parent="UI/UnitCard"]
+theme_override_constants/separation = 8
+
+[node name="Head" type="HBoxContainer" parent="UI/UnitCard/VBox"]
+mouse_filter = 1
+
+[node name="NameLabel" type="Label" parent="UI/UnitCard/VBox/Head"]
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.168627, 0.149019, 0.125490, 1)
+theme_override_fonts/font = SubResource("FontVariation_fraunces_700")
+theme_override_font_sizes/font_size = 15
+text = "Karta ludzika"
+
+[node name="HeadSpacer" type="Control" parent="UI/UnitCard/VBox/Head"]
+mouse_filter = 2
+size_flags_horizontal = 3
+
+[node name="HeadControls" type="HBoxContainer" parent="UI/UnitCard/VBox/Head"]
+mouse_filter = 2
+theme_override_constants/separation = 7
+
+[node name="CancelButton" type="Button" parent="UI/UnitCard/VBox/Head/HeadControls"]
+custom_minimum_size = Vector2(20, 20)
+tooltip_text = "Anuluj podgląd/trasę"
+theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_circle")
+theme_override_styles/hover = SubResource("StyleBoxFlat_cancel_circle_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cancel_circle_hover")
+theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
+theme_override_font_sizes/font_size = 10
+text = "✕"
+
+[node name="MPLabel" type="Label" parent="UI/UnitCard/VBox/Head/HeadControls"]
+theme_override_colors/font_color = Color(0.419607, 0.372549, 0.301960, 1)
+theme_override_fonts/font = SubResource("FontVariation_fraunces_italic_500")
+theme_override_font_sizes/font_size = 12
+text = "-/-"
+
+[node name="PipsRow" type="HBoxContainer" parent="UI/UnitCard/VBox"]
+theme_override_constants/separation = 4
+
+[node name="StatusLabel" type="Label" parent="UI/UnitCard/VBox"]
+theme_override_colors/font_color = Color(0.419607, 0.372549, 0.301960, 1)
+theme_override_font_sizes/font_size = 11
+autowrap_mode = 2
+text = "Kliknij pole na mapie, żeby zaplanować trasę."
+
+[node name="ConfirmButton" type="Button" parent="UI/UnitCard/VBox"]
+theme_override_styles/normal = SubResource("StyleBoxFlat_primary_copper_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_primary_copper_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_primary_copper_hover")
+theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
+theme_override_colors/font_hover_color = Color(0.937254, 0.901960, 0.827450, 1)
+theme_override_fonts/font = SubResource("FontVariation_plex_600")
+theme_override_font_sizes/font_size = 13
 text = "Potwierdź trasę"
 
-[node name="CancelRouteButton" type="Button" parent="UI/RoutePanel/VBox"]
-text = "Anuluj trasę"
+[node name="Links" type="VBoxContainer" parent="UI/UnitCard/VBox"]
+theme_override_constants/separation = 5
 
-[node name="RouteAnnexButton" type="Button" parent="UI/RoutePanel/VBox"]
+[node name="AnnexButton" type="Button" parent="UI/UnitCard/VBox/Links"]
+flat = true
+alignment = 0
+theme_override_colors/font_color = Color(0.168627, 0.149019, 0.125490, 1)
+theme_override_colors/font_hover_color = Color(0.788235, 0.478431, 0.290196, 1)
+theme_override_fonts/font = SubResource("FontVariation_plex_600")
+theme_override_font_sizes/font_size = 12
 text = "Zaanektuj"
 
-[node name="RouteTakeoverButton" type="Button" parent="UI/RoutePanel/VBox"]
+[node name="TakeoverButton" type="Button" parent="UI/UnitCard/VBox/Links"]
+flat = true
+alignment = 0
+theme_override_colors/font_color = Color(0.168627, 0.149019, 0.125490, 1)
+theme_override_colors/font_hover_color = Color(0.788235, 0.478431, 0.290196, 1)
+theme_override_fonts/font = SubResource("FontVariation_plex_600")
+theme_override_font_sizes/font_size = 12
 text = "Przejmij teren gracza"
 
-[node name="AutoAnnexCheckBox" type="CheckBox" parent="UI/RoutePanel/VBox"]
+[node name="AutoAnnexToggle" type="Button" parent="UI/UnitCard/VBox/Links"]
+flat = true
+toggle_mode = true
+alignment = 0
+theme_override_colors/font_color = Color(0.352941, 0.313725, 0.250980, 1)
+theme_override_colors/font_hover_color = Color(0.168627, 0.149019, 0.125490, 1)
+theme_override_font_sizes/font_size = 12
 text = "Anektuj napotkane pola"
 
 [node name="CityCardPanel" type="CanvasLayer" parent="."]

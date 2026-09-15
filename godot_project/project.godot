@@ -26,6 +26,8 @@ GameSetup="*res://autoloads/game_setup.gd"
 
 window/size/viewport_width=1280
 window/size/viewport_height=800
+window/size/min_width=1000
+window/size/min_height=650
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
@@ -33,3 +35,4 @@ window/stretch/aspect="expand"
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.086274, 0.149019, 0.109803, 1)
