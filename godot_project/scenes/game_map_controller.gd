@@ -325,7 +325,8 @@ func _on_round_ended(round_number: int) -> void:
 			u.reset_movement_points()
 	_update_mp_label()
 	_update_stats_labels()
-	info_label.text = "Runda zakończona. Rozpoczyna się runda %d." % round_number
+	var season_name = GameBalance.SEASON_DISPLAY_NAMES[TurnManager.get_current_season()]
+	info_label.text = "Runda zakończona. Rozpoczyna się runda %d (%s)." % [round_number, season_name]
 	await _continue_all_queued_routes()
 	_refresh_map_view()
 	_refresh_action_panel()
@@ -1289,9 +1290,13 @@ func _update_mp_label() -> void:
 ## Prestige + round in one label, ALL of the player's resources in the other
 ## (update - previously only showed wood, the rest of the collected
 ## resources were invisible in the UI even though the player actually owned
-## them).
+## them). Also shows the current season (new - GameBalance.Season,
+## round_number % 4) - it directly scales agricultural food income
+## (GameBalance.SEASON_FOOD_MULTIPLIER), so the player needs to see it to
+## plan around it (e.g. stockpile before winter).
 func _update_stats_labels() -> void:
-	prestige_label.text = "Prestiż: %d | Runda: %d" % [active_player.prestige, TurnManager.round_number]
+	var season_name = GameBalance.SEASON_DISPLAY_NAMES[TurnManager.get_current_season()]
+	prestige_label.text = "Prestiż: %d | Runda: %d (%s)" % [active_player.prestige, TurnManager.round_number, season_name]
 
 	var parts: Array[String] = []
 	for res_type in HexData.RESOURCE_DISPLAY_NAMES:

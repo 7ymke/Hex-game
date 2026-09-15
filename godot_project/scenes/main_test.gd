@@ -7,6 +7,19 @@ func _ready() -> void:
 	print("=== Phase 0-1 test: data, annexation, forest harvesting, turn ===")
 	print("Number of hexes loaded: ", MapData.hexes.size())
 
+	print("--- Seasons: GameBalance.Season derived from round_number %% 4 ---")
+	for i in range(5):
+		var season = TurnManager.get_current_season()
+		print(
+			"Round %d -> season %s (index %d, food multiplier x%.1f)"
+			% [
+				TurnManager.round_number, GameBalance.SEASON_DISPLAY_NAMES[season], season,
+				GameBalance.SEASON_FOOD_MULTIPLIER[season]
+			]
+		)
+		TurnManager.end_round()
+	print("(round 1 is expected to be Wiosna/Spring, and the cycle should repeat every 4 rounds)")
+
 	var player = PlayerData.new()
 	player.player_id = 1
 	player.player_name = "Test player"

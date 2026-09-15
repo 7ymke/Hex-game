@@ -66,3 +66,44 @@ const PROTECTED_AREA_BASE_PENALTY = 50
 ## shared level for all buildings on the map for now - differentiating by
 ## building type is a topic for further balancing (GDD section 11).
 const BUILDING_RESOURCE_INCOME_PER_TURN = 10.0
+
+## Seasons (new) ---------------------------------------------------------------
+## A 4-season cycle computed directly from the round number
+## (`TurnManager.get_current_season()`: round_number % 4) - no separate state
+## to keep in sync, the season is always exactly derived from the round
+## counter. Ordered so that round 1 (the game's first round) lands on
+## SPRING, which reads naturally as "the year starts in spring": WINTER = 0,
+## SPRING = 1, SUMMER = 2, AUTUMN = 3.
+##
+## Currently only affects agricultural income (see SEASON_FOOD_MULTIPLIER
+## below) - the rest of the economy (forest, industrial buildings) is not
+## seasonal.
+enum Season {
+	WINTER,
+	SPRING,
+	SUMMER,
+	AUTUMN,
+}
+
+## Polish season names for the UI.
+const SEASON_DISPLAY_NAMES = {
+	Season.WINTER: "Zima",
+	Season.SPRING: "Wiosna",
+	Season.SUMMER: "Lato",
+	Season.AUTUMN: "Jesień",
+}
+
+## Multiplier applied to a hex's food income (HexData.is_agricultural() ==
+## true) depending on the current season - winter is the "dead season"
+## (fields lie fallow, no income), spring is sowing (a low but non-zero
+## yield), summer is the growing season (the normal, full yield), and autumn
+## is harvest time (peak yield). Applied on top of the regular
+## BUILDING_RESOURCE_INCOME_PER_TURN in
+## TurnManager._process_resource_income() - non-agricultural resources are
+## unaffected.
+const SEASON_FOOD_MULTIPLIER = {
+	Season.WINTER: 0.0,
+	Season.SPRING: 0.5,
+	Season.SUMMER: 1.0,
+	Season.AUTUMN: 2.0,
+}

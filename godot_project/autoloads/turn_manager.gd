@@ -53,6 +53,18 @@ func end_round() -> void:
 	round_ended.emit(round_number)
 
 
+## Current season, derived directly from `round_number` (GameBalance.Season:
+## round_number % 4) - see the comment there for the ordering/rationale.
+## Deliberately computed on demand rather than stored, so it can never drift
+## out of sync with the round counter. Typed as plain `int` (a
+## GameBalance.Season value) rather than the enum type itself, since it's
+## only ever used as a dictionary key (SEASON_DISPLAY_NAMES/
+## SEASON_FOOD_MULTIPLIER) or printed - both work identically either way,
+## and enums are ints at runtime regardless.
+func get_current_season() -> int:
+	return round_number % 4
+
+
 func _process_forest_regeneration() -> void:
 	for hex: HexData in MapData.hexes.values():
 		if not hex.is_forest():
@@ -70,8 +82,14 @@ func _process_forest_regeneration() -> void:
 
 
 ## Steady income from resources other than forest (GDD section 6 - forest is
-## the exception).
+## the exception). Agricultural hexes (HexData.is_agricultural()) are scaled
+## by the current season (GameBalance.SEASON_FOOD_MULTIPLIER) - everything
+## else produces its usual flat amount, season or not. Uses THIS round's
+## season (round_number has not been incremented yet at this point in
+## end_round()), i.e. the harvest reflects the season of the round that is
+## being resolved.
 func _process_resource_income() -> void:
+	var season = get_current_season()
 	for hex: HexData in MapData.hexes.values():
 		if hex.owner_id == -1 or hex.is_forest():
 			continue
@@ -79,5 +97,10 @@ func _process_resource_income() -> void:
 			continue
 
 		var player = GameManager.get_player(hex.owner_id)
-		if player != null:
-			player.add_resource(hex.building.produced_resource, hex.building.produced_amount_per_turn)
+		if player == null:
+			continue
+
+		var amount = hex.building.produced_amount_per_turn
+		if hex.is_agricultural():
+			amount *= GameBalance.SEASON_FOOD_MULTIPLIER[season]
+		player.add_resource(hex.building.produced_resource, amount)

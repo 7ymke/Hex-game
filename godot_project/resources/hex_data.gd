@@ -142,6 +142,13 @@ func is_protected() -> bool:
 	return terrain_type == TerrainType.PROTECTED_AREA
 
 
+## Czy to pole rolnicze - jego dochód (żywność) zależy od aktualnej pory roku,
+## patrz GameBalance.SEASON_FOOD_MULTIPLIER i
+## TurnManager._process_resource_income().
+func is_agricultural() -> bool:
+	return terrain_type == TerrainType.AGRICULTURAL
+
+
 func get_movement_cost() -> int:
 	return MOVEMENT_COST.get(terrain_type, 1)
 

@@ -296,6 +296,37 @@ pytanie GDD o przetwarzaniu surowiec→produkt, sekcja 6/11).
 (`building_damaged = true`) - trzeba je zaanektować i naprawić, żeby zaczęły
 generować surowiec (`GameBalance.BUILDING_RESOURCE_INCOME_PER_TURN` na rundę).
 
+### Pory roku (nowość) - wpływają na rolnictwo
+
+Cztery pory roku w cyklu, wyliczane WPROST z numeru rundy - `#Runda mod 4`
+(`TurnManager.get_current_season()`) - bez żadnego osobnego pola stanu, więc
+pora roku nigdy nie może się rozjechać z faktycznym numerem rundy. Kolejność
+(`GameBalance.Season`: `WINTER = 0, SPRING = 1, SUMMER = 2, AUTUMN = 3`)
+dobrana tak, żeby runda 1 (start gry) wypadała na Wiosnę - naturalny "początek
+roku". Widoczna w UI obok numeru rundy (etykieta prestiżu/rundy w lewym górnym
+rogu) i w komunikacie po każdym "Zakończ rundę".
+
+Na razie pora roku wpływa TYLKO na rolnictwo (pola typu
+`HexData.TerrainType.AGRICULTURAL`, `HexData.is_agricultural()`) - reszta
+gospodarki (las, przemysł) nie jest sezonowa. `TurnManager._process_resource_income()`
+mnoży zwykły `BUILDING_RESOURCE_INCOME_PER_TURN` z pól rolniczych przez
+`GameBalance.SEASON_FOOD_MULTIPLIER` bieżącej pory roku (tej z KOŃCZĄCEJ się
+rundy, nie nowej - `round_number` jest inkrementowane dopiero po przeliczeniu
+dochodu w `end_round()`):
+
+| Pora roku | Mnożnik dochodu z pól rolniczych |
+|---|---|
+| Zima (WINTER) | ×0 - "martwy sezon", pola leżą odłogiem |
+| Wiosna (SPRING) | ×0,5 - zasiewy, niska wydajność |
+| Lato (SUMMER) | ×1 - wzrost, zwykła/pełna wydajność |
+| Jesień (AUTUMN) | ×2 - żniwa, szczyt plonów |
+
+To czysty mnożnik dochodu - nie dotyka `resource_level`/regeneracji (te
+mechanizmy są specyficzne dla lasu, sekcja 6.1 GDD) ani kosztu ruchu po polu
+rolniczym (bez zmian, wciąż z `HexData.MOVEMENT_COST`). Wartości mnożników to
+placeholdery do dostrojenia podczas testów balansu, tak jak reszta stałych w
+`GameBalance` (sekcja 11 GDD).
+
 ### Drzewko Umiejętności (nowość)
 
 Drugi (obok Karty Miasta) trwały cel na nadwyżki surowców - tym razem z
@@ -495,6 +526,46 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **Pory roku, wyliczane z numeru rundy, zmieniają wydajność rolnictwa**
+  (nowość, na życzenie: "Dodaj pory roku które będą równe: #Rundy mod 4.
+  (Zmienia to jak działa rolnictwo)"). Życzenie podawało wprost FORMUŁĘ (pora
+  roku = numer rundy mod 4), ale nie mechanikę - "dobry wzór" na to, jak
+  dokładnie ma to zmieniać rolnictwo, trzeba było zaprojektować samodzielnie
+  (podobnie jak przy formule na przejęcie terenu w sekcji 5 GDD).
+  Zaprojektowane jako **czysty mnożnik sezonowy na dochód z pól rolniczych**
+  (×0 zimą / ×0,5 wiosną / ×1 latem / ×2 jesienią - klasyczny cykl
+  zasiew→wzrost→żniwa→ugór), bo to jedyny istniejący mechanizm rolnictwa w
+  grze (pola rolnicze już dają `FOOD` jako zwykły budynek surowcowy, sekcja 6
+  GDD) - nie dodawano nowego systemu (np. zapasu/regeneracji jak przy lesie),
+  żeby nie rozdymać zakresu życzenia. `GameBalance.Season` (enum
+  `WINTER/SPRING/SUMMER/AUTUMN`, wartości 0-3) + `SEASON_FOOD_MULTIPLIER`
+  (Dictionary keyed po sezonie) - ten sam wzorzec co `MOVEMENT_COST` w
+  `hex_data.gd` czy `SEASON_FOOD_MULTIPLIER` obok. `TurnManager.get_current_season()`
+  liczy sezon NA ŻĄDANIE z `round_number % 4` (bez osobnego pola stanu - nie
+  ma jak się rozjechać z faktyczną rundą), z celowo dobraną kolejnością
+  enuma (`WINTER = 0`), żeby runda 1 (start gry) wypadała na Wiosnę. Typ
+  zwracany to zwykły `int`, nie sam typ enuma - w tym środowisku nie da się
+  uruchomić edytora Godota, żeby zweryfikować kompilację `int % int` jako
+  `-> EnumType` (niepewna semantyka `as EnumType` dla enumów
+  zdefiniowanych w innej klasie), a zwykły `int` zachowuje się identycznie
+  wszędzie, gdzie sezon jest używany (klucz do Dictionary, wypisywany
+  liczbą) - bezpieczniejszy wybór bez żadnej różnicy funkcjonalnej.
+  `TurnManager._process_resource_income()` mnoży `BUILDING_RESOURCE_INCOME_PER_TURN`
+  przez `SEASON_FOOD_MULTIPLIER[season]` TYLKO dla pól z `HexData.is_agricultural()`
+  (nowa metoda, ten sam wzorzec co `is_forest()`/`is_protected()`) - reszta
+  budynków (przemysł, surowce strategiczne) dochodzi bez zmian, sezon
+  celowo dotyczy wyłącznie rolnictwa, zgodnie z życzeniem. Używana jest pora
+  roku KOŃCZĄCEJ SIĘ rundy (przeliczenie dochodu w `end_round()` zachodzi
+  PRZED inkrementacją `round_number`), nie nowej - żniwa należą do rundy,
+  która się właśnie skończyła. Pora roku pokazana w UI (etykieta
+  prestiżu/rundy w `game_map_controller._update_stats_labels()` i komunikat
+  po `_on_round_ended()`) - mnożnik 0×-2× jest na tyle znaczący dla
+  rozgrywki (planowanie zapasów przed zimą, żniwa jesienią), że gracz musi
+  go widzieć, żeby móc się do niego dostosować. `main_test.gd` dostał krótki
+  test dymny cyklu sezonów (5 rund, sprawdza że wzór się powtarza co 4 rundy
+  i że runda 1 to Wiosna) - umieszczony na samym początku testu, przed
+  jakąkolwiek rejestracją gracza/aneksacją, żeby nie zależał od stanu
+  ustawionego przez resztę scenariusza testowego.
 - **`Ludzik` -> `Unit`; kod ogólnie po angielsku** (nowość - na życzenie:
   "w kodzie ludzik nie ma być zapisywane jako ludzik tylko unit, ogólnie
   staraj się aby było po angielsku"). Zakres: identyfikatory w kodzie
