@@ -1,4 +1,4 @@
-[gd_scene load_steps=42 format=3 uid="uid://cmapmain0001"]
+[gd_scene load_steps=39 format=3 uid="uid://cmapmain0001"]
 
 [ext_resource type="Script" path="res://scenes/game_map_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scenes/camera_controller.gd" id="2"]
@@ -11,25 +11,19 @@
 [ext_resource type="Script" path="res://ui/hex_shape.gd" id="9"]
 [ext_resource type="Script" path="res://ui/unit_card.gd" id="10"]
 [ext_resource type="Script" path="res://ui/two_tone_track.gd" id="11"]
-[ext_resource type="FontFile" path="res://assets/fonts/Fraunces-Variable.ttf" id="12"]
-[ext_resource type="FontFile" path="res://assets/fonts/Fraunces-Italic-Variable.ttf" id="13"]
 [ext_resource type="FontFile" path="res://assets/fonts/IBMPlexSans-Variable.ttf" id="14"]
 
-[sub_resource type="FontVariation" id="FontVariation_fraunces_600"]
-base_font = ExtResource("12")
-variation_opentype = {"wght": 600.0}
-
-[sub_resource type="FontVariation" id="FontVariation_fraunces_700"]
-base_font = ExtResource("12")
-variation_opentype = {"wght": 700.0}
-
-[sub_resource type="FontVariation" id="FontVariation_fraunces_italic_500"]
-base_font = ExtResource("13")
+[sub_resource type="FontVariation" id="FontVariation_plex_500"]
+base_font = ExtResource("14")
 variation_opentype = {"wght": 500.0}
 
 [sub_resource type="FontVariation" id="FontVariation_plex_600"]
 base_font = ExtResource("14")
 variation_opentype = {"wght": 600.0}
+
+[sub_resource type="FontVariation" id="FontVariation_plex_700"]
+base_font = ExtResource("14")
+variation_opentype = {"wght": 700.0}
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar_bg"]
 bg_color = Color(0.094117, 0.141176, 0.090196, 1)
@@ -235,6 +229,7 @@ script = ExtResource("4")
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="Root" type="Control" parent="UI"]
+mouse_filter = 2
 theme = ExtResource("7")
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -260,7 +255,7 @@ fill_color = Color(0.788235, 0.478431, 0.290196, 1)
 anchor_right = 1.0
 anchor_bottom = 1.0
 theme_override_colors/font_color = Color(0.047058, 0.078431, 0.047058, 1)
-theme_override_fonts/font = SubResource("FontVariation_fraunces_700")
+theme_override_fonts/font = SubResource("FontVariation_plex_700")
 theme_override_font_sizes/font_size = 13
 text = "1"
 horizontal_alignment = 1
@@ -276,7 +271,7 @@ text = "RUNDA"
 
 [node name="RoundBigLabel" type="Label" parent="UI/Root/TopBar/HBox/RoundChip/RoundCaptionVBox"]
 theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_fonts/font = SubResource("FontVariation_fraunces_600")
+theme_override_fonts/font = SubResource("FontVariation_plex_600")
 theme_override_font_sizes/font_size = 13
 text = "Runda 1"
 
@@ -420,13 +415,13 @@ theme_override_constants/separation = 5
 
 [node name="PrestigeCaptionLabel" type="Label" parent="UI/Root/TopBar/HBox/PrestigeChip"]
 theme_override_colors/font_color = Color(0.788235, 0.635294, 0.294117, 1)
-theme_override_fonts/font = SubResource("FontVariation_fraunces_italic_500")
+theme_override_fonts/font = SubResource("FontVariation_plex_500")
 theme_override_font_sizes/font_size = 13
 text = "Prestiż"
 
 [node name="PrestigeValueLabel" type="Label" parent="UI/Root/TopBar/HBox/PrestigeChip"]
 theme_override_colors/font_color = Color(0.878431, 0.6, 0.372549, 1)
-theme_override_fonts/font = SubResource("FontVariation_fraunces_700")
+theme_override_fonts/font = SubResource("FontVariation_plex_700")
 theme_override_font_sizes/font_size = 13
 text = "0"
 
@@ -472,7 +467,7 @@ text = "MIASTO"
 
 [node name="CityNameLabel" type="Label" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow"]
 theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_fonts/font = SubResource("FontVariation_fraunces_600")
+theme_override_fonts/font = SubResource("FontVariation_plex_600")
 theme_override_font_sizes/font_size = 20
 text = "-"
 
@@ -564,7 +559,7 @@ size_flags_horizontal = 3
 
 [node name="HarvestValueLabel" type="Label" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/HTitleRow"]
 theme_override_colors/font_color = Color(0.878431, 0.6, 0.372549, 1)
-theme_override_fonts/font = SubResource("FontVariation_fraunces_700")
+theme_override_fonts/font = SubResource("FontVariation_plex_700")
 theme_override_font_sizes/font_size = 14
 text = "50%"
 
@@ -669,7 +664,7 @@ mouse_filter = 1
 [node name="NameLabel" type="Label" parent="UI/UnitCard/VBox/Head"]
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.168627, 0.149019, 0.125490, 1)
-theme_override_fonts/font = SubResource("FontVariation_fraunces_700")
+theme_override_fonts/font = SubResource("FontVariation_plex_700")
 theme_override_font_sizes/font_size = 15
 text = "Karta ludzika"
 
@@ -693,7 +688,7 @@ text = "✕"
 
 [node name="MPLabel" type="Label" parent="UI/UnitCard/VBox/Head/HeadControls"]
 theme_override_colors/font_color = Color(0.419607, 0.372549, 0.301960, 1)
-theme_override_fonts/font = SubResource("FontVariation_fraunces_italic_500")
+theme_override_fonts/font = SubResource("FontVariation_plex_500")
 theme_override_font_sizes/font_size = 12
 text = "-/-"
 

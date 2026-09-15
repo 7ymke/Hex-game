@@ -274,8 +274,8 @@ godot_project/
 │   │                             # niebezpiecznie), rysowane pod suwakiem
 │   └── unit_card.gd             # class_name UnitCard - pływająca, przeciągalna
 │                                 # karta ludzika nad mapą
-├── assets/fonts/                # Fraunces + IBM Plex Sans (zmienne fonty) +
-│                                 # ich licencje OFL
+├── assets/fonts/                # IBM Plex Sans (zmienny font) + licencja OFL -
+│                                 # jedyna rodzina czcionek używana w UI
 ├── data/map_data.json         # wygenerowane przez tools/convert_kml_to_json.py
 └── icon.svg
 ```
@@ -454,8 +454,9 @@ Efekty dzielą się na dwie kategorie:
 
 Cały ekran rozgrywki (`scenes/main.tscn`, węzeł `UI`) został przebudowany
 wg dostarczonej makiety `UI_Gry_Makieta.html` - nowa paleta kolorów,
-typografia (Fraunces + IBM Plex Sans), heksagonalne odznaki/piny zamiast
-prostokątnych etykiet, i inny układ ekranu. Kluczowe pliki:
+jedna rodzina czcionek (IBM Plex Sans - patrz niżej), heksagonalne
+odznaki/piny zamiast prostokątnych etykiet, i inny układ ekranu. Kluczowe
+pliki:
 
 - `theme/palette.gd` - `class_name Palette`, jedno miejsce z nazwanymi
   stałymi kolorów (np. `Palette.COPPER`, `Palette.PARCHMENT`) odpowiadającymi
@@ -472,13 +473,19 @@ prostokątnych etykiet, i inny układ ekranu. Kluczowe pliki:
   zostały w tym przejściu przebudowane szczegółowo - patrz niżej) i tak
   automatycznie dostają nową paletę/czcionkę za darmo, przez współdzielony
   motyw.
-- `assets/fonts/` - zmienne fonty (variable fonts) Fraunces i IBM Plex Sans,
-  pobrane z oficjalnego mirrora Google Fonts na GitHubie (fonts.google.com
-  jest zablokowane polityką sieciową środowiska deweloperskiego). Konkretne
-  grubości wybierane są przez zasoby `FontVariation`
-  (`variation_opentype = {"wght": 600.0}` itp.) zamiast osobnych plików na
-  każdą grubość - takie osobne pliki po prostu nie istnieją dla tych rodzin
-  czcionek, tylko warianty zmienne.
+- `assets/fonts/` - JEDNA rodzina czcionek dla całego UI: zmienny font
+  (variable font) IBM Plex Sans, pobrany z oficjalnego mirrora Google Fonts
+  na GitHubie (fonts.google.com jest zablokowane polityką sieciową
+  środowiska deweloperskiego). Konkretne grubości (500/600/700) wybierane
+  są przez zasoby `FontVariation` (`variation_opentype = {"wght": 600.0}`
+  itp.) zamiast osobnych plików na każdą grubość - taki osobny plik po
+  prostu nie istnieje dla tej rodziny czcionek, tylko warianty zmienne.
+  Pierwsza wersja restylizacji używała DWÓCH rodzin (Fraunces do nagłówków
+  + IBM Plex Sans do reszty, jak w makiecie) - usunięte na życzenie
+  ("zrób też aby używać tylko 1 czcionki"): pliki `Fraunces-*.ttf` skasowane
+  z `assets/fonts/`, wszystkie miejsca, które używały Fraunces (odznaka
+  rundy, prestiż, nazwa miasta, wartość zbiórki drewna, nagłówek Karty
+  ludzika) przełączone na odpowiednie grubości IBM Plex Sans zamiast.
 - `ui/hex_shape.gd` - `class_name HexShape extends Control`, rysuje
   heksagon "flat-top" (te same proporcje co siatka mapy) na dowolnym
   rozmiarze `Control` - używane wszędzie tam, gdzie w makiecie jest
@@ -595,6 +602,48 @@ jako heksy typu `city`: Wrocław (`H18`), Szczecin (`A7`), Warszawa (`R12`),
 Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
+
+- **Poprawka regresji z restylizacji UI: nie dało się poruszać po mapie**
+  (zgłoszenie: "Nie mogę poruszać się po mapie"). Przyczyna: nowy węzeł
+  `UI/Root` (zwykły `Control`, rozciągnięty na cały ekran kotwiczeniem
+  `anchor_right/anchor_bottom = 1.0`, żeby pomieścić pasek górny/boczny/
+  informacyjny) miał domyślny `mouse_filter = STOP` - Godot Controls
+  domyślnie POCHŁANIAJĄ zdarzenia myszy nad swoim prostokątem, nawet gdy nie
+  mają żadnej widocznej treści w danym miejscu. Ponieważ zarówno klikanie
+  heksów (`hex_map_view.gd`, `_unhandled_input`), jak i przesuwanie/zoom
+  kamery (`camera_controller.gd`, też `_unhandled_input`) reagują na
+  zdarzenia myszy DOPIERO gdy żaden Control ich wcześniej nie przechwycił -
+  cały ekran (łącznie z pustym obszarem mapy) niewidzialnie blokował ruch i
+  kamerę. Naprawione ustawieniem `mouse_filter = 2` (IGNORE) na `UI/Root` -
+  jego dzieci (`TopBar`/`Sidebar`/`InfoBar`/`HexInfoPanel`), które FAKTYCZNIE
+  muszą przechwytywać kliknięcia (przyciski, suwak), mają własne,
+  niezmienione filtry i nadal działają normalnie - `mouse_filter` każdego
+  węzła jest oceniane niezależnie od filtra rodzica.
+- **Odznaka numeru rundy (i każdy inny heksagon w UI) jest teraz zawsze
+  FOREMNY** (na życzenie: "zrób aby 6-kąt na którym pokazana jest która
+  jest runda był zawsze foremny"). `HexShape.hex_points()` wcześniej po
+  prostu skalował procentowe współrzędne z CSS `clip-path` makiety
+  (`polygon(25% 3%, 75% 3%, ...)`) do dowolnego rozmiaru węzła - co daje
+  foremny heksagon TYLKO dla jednych konkretnych proporcji pudełka (tych,
+  które miała makieta), a rozciągnięty/spłaszczony heksagon dla każdych
+  innych (np. gdy kontener przydzieli inny rozmiar niż zakładano). Teraz
+  liczy prawdziwie regularny heksagon "flat-top" (promień = odległość
+  środek-wierzchołek, szerokość = 2×promień, wysokość = promień×√3) wpisany
+  i wyśrodkowany w dostępnym prostokącie - promień to
+  `min(szerokość/2, wysokość/√3)`, więc proporcje samego pudełka są już
+  bez znaczenia dla kształtu. Ta sama matematyka co `HexGridUtils`
+  (współdzielona stała `HexGridUtils.SQRT3`), tylko bez korekty
+  `GEO_SCALE_X/Y` (specyficznej dla projekcji mapy Polski, nie dotyczy
+  ikon UI). Naprawia to WSZYSTKIE heksagony w UI naraz (odznaka rundy,
+  piny punktów ruchu, ikonki budynków, uchwyt suwaka), nie tylko ten
+  jeden zgłoszony - to jedna, centralna funkcja używana wszędzie.
+- **UI używa teraz tylko jednej rodziny czcionek** (na życzenie: "zrób też
+  aby używać tylko 1 czcionki") - patrz zaktualizowany opis w sekcji
+  "Wygląd UI - restylizacja wg makiety" wyżej. Fraunces całkowicie usunięty
+  (pliki `.ttf`, `ext_resource`/`sub_resource` w `main.tscn`, licencja OFL),
+  wszystkie miejsca, które go używały, przełączone na odpowiednią grubość
+  IBM Plex Sans (500/600/700, bez kursywy - kursywę też pominięto, żeby
+  trzymać się jak najbliżej dosłownego "1 czcionki").
 
 - **Restylizacja UI ekranu rozgrywki wg dostarczonej makiety** (na podstawie
   przesłanej specyfikacji "Instrukcje: restylizacja UI w Godot 4.2.2" oraz,

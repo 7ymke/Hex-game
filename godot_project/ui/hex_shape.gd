@@ -1,11 +1,14 @@
 class_name HexShape
 extends Control
 ## Flat-top hexagon shape for UI elements (Godot Controls have no CSS
-## clip-path equivalent) - draws a single filled hex sized to the control's
-## rect. Vertex layout matches the CSS clip-path used throughout
-## UI_Gry_Makieta.html: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%,
-## 0% 50%). Used for the round-chip badge, MP pips, building/legend icons,
-## and slider thumbs.
+## clip-path equivalent). Always draws a geometrically REGULAR hexagon (all
+## 6 sides equal, matching HexGridUtils' own flat-top math) centered inside
+## whatever rect it's given - it does NOT stretch to fill a non-hex-shaped
+## box, unlike a naive port of the mockup's CSS clip-path percentages
+## (which only looks regular for the exact box proportions the mockup
+## happened to use, and looks squashed/stretched for any other box size -
+## e.g. the round-chip badge). Used for the round-chip badge, MP pips,
+## building/legend icons, and slider thumbs.
 
 @export var fill_color: Color = Color.WHITE:
 	set(value):
@@ -30,17 +33,24 @@ func _draw() -> void:
 		draw_polyline(closed, border_color, border_width, true)
 
 
-## The 6 corners of a flat-top hex inscribed in a `box_size`-sized rect,
-## matching the mockup's CSS clip-path percentages exactly.
+## The 6 corners of the largest REGULAR flat-top hexagon that fits inside a
+## `box_size`-sized rect, centered on it. A regular flat-top hex of "radius"
+## r (center to vertex) is 2r wide and r*sqrt(3) tall, so the fitting radius
+## is whichever of the box's two dimensions is more constraining
+## (`minf(width-based, height-based)`) - the box's own aspect ratio is
+## otherwise irrelevant, which is exactly what keeps the hex regular
+## regardless of what rect a container ends up giving this control. Same
+## vertex order/orientation as HexGridUtils.hex_corners() (flat top/bottom,
+## points left/right), just without that function's GEO_SCALE_X/Y map
+## projection correction, which has nothing to do with UI icons.
 static func hex_points(box_size: Vector2) -> PackedVector2Array:
-	return PackedVector2Array([
-		Vector2(box_size.x * 0.25, box_size.y * 0.03),
-		Vector2(box_size.x * 0.75, box_size.y * 0.03),
-		Vector2(box_size.x * 1.00, box_size.y * 0.50),
-		Vector2(box_size.x * 0.75, box_size.y * 0.97),
-		Vector2(box_size.x * 0.25, box_size.y * 0.97),
-		Vector2(box_size.x * 0.00, box_size.y * 0.50),
-	])
+	var radius = minf(box_size.x / 2.0, box_size.y / HexGridUtils.SQRT3)
+	var center = box_size / 2.0
+	var points = PackedVector2Array()
+	for i in range(6):
+		var angle = deg_to_rad(60.0 * i)
+		points.append(center + Vector2(cos(angle), sin(angle)) * radius)
+	return points
 
 
 ## Rasterizes a filled hex into an ImageTexture - for spots that need a
