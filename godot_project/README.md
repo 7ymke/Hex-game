@@ -526,6 +526,32 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **Kara prestiżowa za wycinkę lasu liczona od WYNIKOWEGO poziomu zasobu, nie
+  od wielkości pojedynczego cięcia** (update, na życzenie: "Chcę aby gracz
+  tracił prestiż za każdym razem jak ścina drewno i jego poziom zasobu po
+  ścięciu jest mniejszy niż 60% a nie kiedy zcina 60% tego co jest").
+  Wcześniej `harvest_forest()` porównywało `harvest_percent` (jaki % z
+  AKTUALNEGO poziomu gracz zdecydował się ściąć w tej jednej akcji) wprost do
+  `FOREST_SAFE_THRESHOLD_PERCENT` (60%) - więc ścięcie np. 50% zawsze
+  liczyło się jako "bezpieczne", nawet jeśli zostawiało pole głęboko
+  wyeksploatowane (np. 100% -> 50%, albo 55% -> 27,5%), bo 50 < 60. To myliło
+  "jak duży kęs wziąłeś w tej turze" z "czy las jest teraz w zdrowym stanie" -
+  dwa różne pytania, a tylko to drugie faktycznie oddaje sens
+  "zrównoważonego wydobycia" (sekcja 6.1 GDD). Teraz kara nalicza się, gdy
+  faktyczne cięcie (`wood_gained > 0`) zostawia `hex.resource_level` PONIŻEJ
+  progu, niezależnie od tego, ile % aktualnego zapasu to było - `shortfall =
+  safe_threshold - hex.resource_level` (zamiast dawnego `harvest_percent -
+  safe_threshold`), więc i próg wyzwolenia kary, i jej wysokość
+  (`FOREST_OVERHARVEST_PENALTY_PER_PERCENT` na punkt procentowy) są teraz
+  liczone z tej samej, jednej wielkości - ile procent PONIŻEJ bezpiecznego
+  poziomu ląduje pole po ścięciu. Zero-procentowe "ścięcie" (suwak na 0%,
+  `wood_gained == 0`) nigdy nie karze, nawet jeśli pole jest już wcześniej
+  wyeksploatowane poniżej progu - kara jest za AKT ścinania w złym stanie
+  pola, nie za samo posiadanie wyeksploatowanego lasu. Komunikat w UI
+  (`_on_harvest_pressed()`) i scenariusz w `main_test.gd` (który wcześniej
+  demonstrował dokładnie ten błędny przypadek - "50% to bezpieczne, 90% to
+  za dużo" - bez sprawdzania wynikowego poziomu) zaktualizowane pod nową
+  regułę.
 - **Pory roku, wyliczane z numeru rundy, zmieniają wydajność rolnictwa**
   (nowość, na życzenie: "Dodaj pory roku które będą równe: #Rundy mod 4.
   (Zmienia to jak działa rolnictwo)"). Życzenie podawało wprost FORMUŁĘ (pora

@@ -43,22 +43,33 @@ func _ready() -> void:
 
 	if forest_hex_id != "":
 		GameManager.annex_hex(forest_hex_id, 1)
+		var hex_before: HexData = MapData.get_hex(forest_hex_id)
+		hex_before.resource_level = 100.0  # deterministic starting point for this test
 
-		var safe_result = GameManager.harvest_forest(forest_hex_id, 1, 50.0)
-		print("Harvesting 50%% of forest %s (safe, no penalty): %s" % [forest_hex_id, safe_result])
+		# Update: the prestige penalty now triggers on the RESULTING resource
+		# level after harvesting, not on how big a bite harvest_percent
+		# itself was. Harvesting 30%% of a full (100%%) forest leaves 70%%
+		# behind, still at/above the 60%% safe threshold - no penalty.
+		var safe_result = GameManager.harvest_forest(forest_hex_id, 1, 30.0)
+		print("Harvesting 30%% of forest %s (100%% -> 70%%, at/above the 60%% threshold - no penalty): %s" % [forest_hex_id, safe_result])
 
-		var over_result = GameManager.harvest_forest(forest_hex_id, 1, 90.0)
-		print("Harvesting 90%% of forest %s (exceeds the 60%% threshold): %s" % [forest_hex_id, over_result])
+		# Harvesting 50%% of what's left (70%%) drops the RESULTING level to
+		# 35%%, below the safe threshold - THIS is what now triggers the
+		# penalty, even though a 50%% harvest_percent used to be considered
+		# perfectly safe under the old rule (which only looked at
+		# harvest_percent itself, never at the level it left behind).
+		var over_result = GameManager.harvest_forest(forest_hex_id, 1, 50.0)
+		print("Harvesting 50%% of forest %s (70%% -> 35%%, below the 60%% threshold - penalty): %s" % [forest_hex_id, over_result])
 
 		print("Player prestige after over-harvesting: ", player.prestige)
 		print("Player wood resources: ", player.get_resource_amount(HexData.ResourceType.WOOD))
 
 		var hex_after: HexData = MapData.get_hex(forest_hex_id)
 		print(
-			"Resource level of %s after two harvests: %.1f%% (should be CLEARLY below 100%% - harvesting must deplete the hex, not just apply a penalty)"
+			"Resource level of %s after two harvests: %.1f%% (expected 35%%)"
 			% [forest_hex_id, hex_after.resource_level]
 		)
-		print("Does hex %s generate prestige? %s (should be false after exceeding the threshold)" % [forest_hex_id, hex_after.generates_prestige])
+		print("Does hex %s generate prestige? %s (should be false after dropping below the threshold)" % [forest_hex_id, hex_after.generates_prestige])
 
 		# Resolve a round - check regrowth
 		TurnManager.setup_player_order([1])

@@ -976,7 +976,7 @@ func _on_harvest_pressed() -> void:
 	if result["success"]:
 		var msg = "Wydobyto %.1f drewna z %s." % [result["wood_gained"], hex_id]
 		if result["prestige_penalty"] > 0:
-			msg += " Kara prestiżowa: -%d (przekroczono próg %.0f%%)." % [
+			msg += " Kara prestiżowa: -%d (poziom zasobu spadł poniżej progu %.0f%%)." % [
 				result["prestige_penalty"], result["safe_threshold"]
 			]
 		info_label.text = msg

@@ -99,14 +99,22 @@ func harvest_forest(hex_id: String, player_id: int, harvest_percent: float) -> D
 	hex.resource_level -= wood_gained
 	player.add_resource(HexData.ResourceType.WOOD, wood_gained)
 
-	# Prestige: penalty and disabling generation ONLY when the threshold is
-	# exceeded. The threshold is raised by any skill-tree bonus (skill
-	# "advanced_logging" - see scripts/skill_tree_data.gd), 0.0 by default.
+	# Prestige: penalty (and disabling generation) whenever an ACTUAL harvest
+	# (wood_gained > 0) leaves the hex's resource_level BELOW the safe
+	# threshold - update: previously this looked at how big a bite the
+	# harvest_percent itself was (e.g. 50% was always safe, even if it
+	# dropped an already-depleted hex from 55% to 27%); now it looks at the
+	# resulting STOCK LEVEL after harvesting, which is what "sustainable" is
+	# actually about - cutting is only safe if the forest still has a
+	# healthy amount of resource left afterwards, however much of it was
+	# taken to get there. The threshold is raised by any skill-tree bonus
+	# (skill "advanced_logging" - see scripts/skill_tree_data.gd), 0.0 by
+	# default.
 	var safe_threshold = GameBalance.FOREST_SAFE_THRESHOLD_PERCENT + player.forest_safe_threshold_bonus
-	var over_harvest: float = harvest_percent - safe_threshold
+	var shortfall: float = safe_threshold - hex.resource_level
 	var prestige_penalty = 0
-	if over_harvest > 0.0:
-		prestige_penalty = roundi(over_harvest * GameBalance.FOREST_OVERHARVEST_PENALTY_PER_PERCENT)
+	if wood_gained > 0.0 and shortfall > 0.0:
+		prestige_penalty = roundi(shortfall * GameBalance.FOREST_OVERHARVEST_PENALTY_PER_PERCENT)
 		change_prestige(player_id, -prestige_penalty)
 		hex.generates_prestige = false
 
