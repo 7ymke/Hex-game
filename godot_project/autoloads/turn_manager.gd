@@ -49,6 +49,7 @@ func switch_to_player(player_id: int) -> void:
 func end_round() -> void:
 	_process_forest_regeneration()
 	_process_resource_income()
+	MarketManager.process_round_end()
 	round_number += 1
 	round_ended.emit(round_number)
 

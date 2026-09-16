@@ -10,6 +10,13 @@ extends Resource
 
 @export var prestige: int = 100
 
+## Market currency (autoloads/market_manager.gd) - separate from prestige on
+## purpose: prestige is reputation/standing (territory takeovers, building
+## unlocks, environmental penalties), money is purely what the resource
+## market buys/sells in. Starting amount is a plain literal, same convention
+## as `prestige` above (not read from a balance constant).
+@export var money: float = 200.0
+
 ## Team color - the same one used for the player's Unit token (see
 ## PLAYER_SETUP in game_map_controller.gd), also used to outline owned hexes
 ## on the map (hex_map_view.gd) so territory is visible without clicking.
@@ -63,3 +70,10 @@ func pay_costs(costs: Dictionary) -> bool:
 ## Changes prestige, never letting it drop below zero.
 func modify_prestige(amount: int) -> void:
 	prestige = maxi(prestige + amount, 0)
+
+
+## Changes money, never letting it drop below zero - a trade that would go
+## negative is already rejected before this is ever called (see
+## MarketManager.attempt_trade()), so this floor is purely defensive.
+func add_money(amount: float) -> void:
+	money = maxf(money + amount, 0.0)

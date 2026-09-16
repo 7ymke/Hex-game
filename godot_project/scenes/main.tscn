@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3 uid="uid://cmapmain0001"]
+[gd_scene load_steps=41 format=3 uid="uid://cmapmain0001"]
 
 [ext_resource type="Script" path="res://scenes/game_map_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scenes/camera_controller.gd" id="2"]
@@ -12,6 +12,8 @@
 [ext_resource type="Script" path="res://ui/unit_card.gd" id="10"]
 [ext_resource type="Script" path="res://ui/two_tone_track.gd" id="11"]
 [ext_resource type="FontFile" path="res://assets/fonts/IBMPlexSans-Variable.ttf" id="14"]
+[ext_resource type="Script" path="res://scenes/market_panel.gd" id="15"]
+[ext_resource type="Script" path="res://ui/price_chart_view.gd" id="16"]
 
 [sub_resource type="FontVariation" id="FontVariation_plex_500"]
 base_font = ExtResource("14")
@@ -285,9 +287,12 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 18
 
 [node name="ResourceWood" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+mouse_filter = 1
+mouse_default_cursor_shape = 2
 theme_override_constants/separation = 6
 
 [node name="DotWood" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceWood"]
+mouse_filter = 2
 custom_minimum_size = Vector2(9, 9)
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_dot_wood")
@@ -302,9 +307,12 @@ theme_override_font_sizes/font_size = 12
 text = "0"
 
 [node name="ResourceFood" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+mouse_filter = 1
+mouse_default_cursor_shape = 2
 theme_override_constants/separation = 6
 
 [node name="DotFood" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceFood"]
+mouse_filter = 2
 custom_minimum_size = Vector2(9, 9)
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_dot_food")
@@ -319,9 +327,12 @@ theme_override_font_sizes/font_size = 12
 text = "0"
 
 [node name="ResourceCopper" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+mouse_filter = 1
+mouse_default_cursor_shape = 2
 theme_override_constants/separation = 6
 
 [node name="DotCopper" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper"]
+mouse_filter = 2
 custom_minimum_size = Vector2(9, 9)
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_dot_copper")
@@ -336,9 +347,12 @@ theme_override_font_sizes/font_size = 12
 text = "0"
 
 [node name="ResourceCoal" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+mouse_filter = 1
+mouse_default_cursor_shape = 2
 theme_override_constants/separation = 6
 
 [node name="DotCoal" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal"]
+mouse_filter = 2
 custom_minimum_size = Vector2(9, 9)
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_dot_coal")
@@ -353,9 +367,12 @@ theme_override_font_sizes/font_size = 12
 text = "0"
 
 [node name="ResourceGas" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+mouse_filter = 1
+mouse_default_cursor_shape = 2
 theme_override_constants/separation = 6
 
 [node name="DotGas" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceGas"]
+mouse_filter = 2
 custom_minimum_size = Vector2(9, 9)
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_dot_gas")
@@ -371,9 +388,12 @@ text = "0"
 
 [node name="ResourceNickel" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
 visible = false
+mouse_filter = 1
+mouse_default_cursor_shape = 2
 theme_override_constants/separation = 6
 
 [node name="DotNickel" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel"]
+mouse_filter = 2
 custom_minimum_size = Vector2(9, 9)
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_dot_nickel")
@@ -389,9 +409,12 @@ text = "0"
 
 [node name="ResourceUranium" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
 visible = false
+mouse_filter = 1
+mouse_default_cursor_shape = 2
 theme_override_constants/separation = 6
 
 [node name="DotUranium" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium"]
+mouse_filter = 2
 custom_minimum_size = Vector2(9, 9)
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_dot_uranium")
@@ -406,6 +429,24 @@ theme_override_font_sizes/font_size = 12
 text = "0"
 
 [node name="Divider2" type="Panel" parent="UI/Root/TopBar/HBox"]
+custom_minimum_size = Vector2(1, 30)
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_divider")
+
+[node name="MoneyChip" type="HBoxContainer" parent="UI/Root/TopBar/HBox"]
+theme_override_constants/separation = 5
+
+[node name="MoneyIconLabel" type="Label" parent="UI/Root/TopBar/HBox/MoneyChip"]
+theme_override_font_sizes/font_size = 13
+text = "💰"
+
+[node name="MoneyValueLabel" type="Label" parent="UI/Root/TopBar/HBox/MoneyChip"]
+theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
+theme_override_fonts/font = SubResource("FontVariation_plex_700")
+theme_override_font_sizes/font_size = 13
+text = "0"
+
+[node name="Divider3" type="Panel" parent="UI/Root/TopBar/HBox"]
 custom_minimum_size = Vector2(1, 30)
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_divider")
@@ -769,6 +810,64 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
 [node name="CloseButton" type="Button" parent="CityCardPanel/Panel/VBox"]
+text = "Zamknij"
+
+[node name="MarketPanel" type="CanvasLayer" parent="."]
+layer = 15
+script = ExtResource("15")
+
+[node name="Panel" type="PanelContainer" parent="MarketPanel"]
+theme = ExtResource("7")
+offset_left = 260.0
+offset_top = 90.0
+offset_right = 900.0
+offset_bottom = 610.0
+
+[node name="VBox" type="VBoxContainer" parent="MarketPanel/Panel"]
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="MarketPanel/Panel/VBox"]
+theme_override_font_sizes/font_size = 20
+text = "Rynek"
+
+[node name="PriceRow" type="HBoxContainer" parent="MarketPanel/Panel/VBox"]
+theme_override_constants/separation = 20
+
+[node name="MidPriceLabel" type="Label" parent="MarketPanel/Panel/VBox/PriceRow"]
+text = "Cena środkowa: -"
+
+[node name="BuyPriceLabel" type="Label" parent="MarketPanel/Panel/VBox/PriceRow"]
+text = "Kupno: -"
+
+[node name="SellPriceLabel" type="Label" parent="MarketPanel/Panel/VBox/PriceRow"]
+text = "Sprzedaż: -"
+
+[node name="ChartArea" type="Control" parent="MarketPanel/Panel/VBox"]
+custom_minimum_size = Vector2(600, 220)
+script = ExtResource("16")
+
+[node name="LimitLabel" type="Label" parent="MarketPanel/Panel/VBox"]
+autowrap_mode = 2
+text = "Limit tej rundy: -"
+
+[node name="TradeRow" type="HBoxContainer" parent="MarketPanel/Panel/VBox"]
+theme_override_constants/separation = 10
+
+[node name="AmountSpinBox" type="SpinBox" parent="MarketPanel/Panel/VBox/TradeRow"]
+min_value = 1.0
+value = 1.0
+
+[node name="BuyButton" type="Button" parent="MarketPanel/Panel/VBox/TradeRow"]
+text = "Kup"
+
+[node name="SellButton" type="Button" parent="MarketPanel/Panel/VBox/TradeRow"]
+text = "Sprzedaj"
+
+[node name="FeedbackLabel" type="Label" parent="MarketPanel/Panel/VBox"]
+autowrap_mode = 2
+text = ""
+
+[node name="CloseButton" type="Button" parent="MarketPanel/Panel/VBox"]
 text = "Zamknij"
 
 [node name="SkillTreePanel" type="CanvasLayer" parent="."]

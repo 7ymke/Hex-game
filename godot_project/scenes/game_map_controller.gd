@@ -71,6 +71,7 @@ const PLAYER_SETUP = PlayerSetup.LIST
 @onready var hex_map_view: HexMapView = $HexMapView
 @onready var city_card_panel: CityCardPanel = $CityCardPanel
 @onready var skill_tree_panel: SkillTreePanel = $SkillTreePanel
+@onready var market_panel: MarketPanel = $MarketPanel
 
 ## UI restyle (UI_Gry_Makieta.html) - top bar: round badge, resource dots,
 ## prestige. No movement points here - MP now lives EXCLUSIVELY on the Unit
@@ -78,6 +79,7 @@ const PLAYER_SETUP = PlayerSetup.LIST
 @onready var info_label: Label = $UI/Root/InfoBar/InfoLabel
 @onready var round_hex_label: Label = $UI/Root/TopBar/HBox/RoundChip/HexNumBadge/RoundNumberLabel
 @onready var round_big_label: Label = $UI/Root/TopBar/HBox/RoundChip/RoundCaptionVBox/RoundBigLabel
+@onready var money_value_label: Label = $UI/Root/TopBar/HBox/MoneyChip/MoneyValueLabel
 @onready var prestige_value_label: Label = $UI/Root/TopBar/HBox/PrestigeChip/PrestigeValueLabel
 
 ## One value label per resource type, in the same left-to-right order as
@@ -94,6 +96,19 @@ const PLAYER_SETUP = PlayerSetup.LIST
 @onready var resource_nickel_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel/ResourceNickelValue
 @onready var resource_uranium_row: HBoxContainer = $UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium
 @onready var resource_uranium_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumValue
+
+## Clicking any resource chip opens its market page (autoloads/market_manager.gd,
+## scenes/market_panel.gd) - see `_on_resource_row_gui_input()`. One row per
+## resource type, so the click handler knows which resource was clicked.
+@onready var resource_rows: Dictionary = {
+	HexData.ResourceType.WOOD: $UI/Root/TopBar/HBox/ResourcesRow/ResourceWood,
+	HexData.ResourceType.FOOD: $UI/Root/TopBar/HBox/ResourcesRow/ResourceFood,
+	HexData.ResourceType.COPPER: $UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper,
+	HexData.ResourceType.COAL: $UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal,
+	HexData.ResourceType.GAS: $UI/Root/TopBar/HBox/ResourcesRow/ResourceGas,
+	HexData.ResourceType.NICKEL: $UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel,
+	HexData.ResourceType.URANIUM: $UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium,
+}
 
 ## Sidebar (replaces the old ActionPanel).
 @onready var city_name_label: Label = $UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/CityNameLabel
@@ -167,6 +182,10 @@ func _ready() -> void:
 	end_round_button.pressed.connect(_on_end_round_pressed)
 	city_card_panel.building_unlocked.connect(_on_city_building_unlocked)
 	skill_tree_panel.skill_unlocked.connect(_on_skill_unlocked)
+	market_panel.traded.connect(_on_market_traded)
+
+	for resource in resource_rows:
+		resource_rows[resource].gui_input.connect(_on_resource_row_gui_input.bind(resource))
 
 	unit_card_confirm_button.pressed.connect(_on_confirm_route_pressed)
 	unit_card_cancel_button.pressed.connect(_on_cancel_route_pressed)
@@ -1094,6 +1113,25 @@ func _build_building_preview_row(building: Building) -> Control:
 	return row
 
 
+## --- Market (new) ---
+## The resource market (autoloads/market_manager.gd) - clicking a resource
+## chip in the top bar opens its market page (`market_panel`), a chart of
+## recent prices plus buy/sell, exactly like the City Card/Skill Tree
+## panels: one shared panel instance, `open_for_resource()` swaps which
+## resource it's currently showing.
+
+func _on_resource_row_gui_input(event: InputEvent, resource: HexData.ResourceType) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		market_panel.open_for_resource(resource, active_player)
+
+
+## A trade changes the player's money AND resource stock - both shown
+## elsewhere in the UI (top bar), so they need to catch up immediately,
+## not just the next time something else happens to refresh them.
+func _on_market_traded() -> void:
+	_update_stats_labels()
+
+
 ## --- Skill Tree (new, see the comment at the top of the file) ---
 
 func _on_skill_tree_pressed() -> void:
@@ -1398,6 +1436,7 @@ func _update_stats_labels() -> void:
 	var season_name = GameBalance.SEASON_DISPLAY_NAMES[TurnManager.get_current_season()]
 	round_hex_label.text = str(TurnManager.round_number)
 	round_big_label.text = "Runda %d · %s" % [TurnManager.round_number, season_name]
+	money_value_label.text = "%.0f" % active_player.money
 	prestige_value_label.text = str(active_player.prestige)
 
 	city_name_label.text = active_player.starting_city

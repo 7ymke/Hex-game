@@ -210,6 +210,8 @@ godot_project/
 │   ├── game_manager.gd       # gracze, aneksacja, naprawa, wydobycie lasu,
 │   │                          # przejęcia, kara za strefy chronione, Karta Miasta
 │   ├── turn_manager.gd       # kolejność graczy, przeliczenie rundy
+│   ├── market_manager.gd     # symulacja cen rynku surowców + kupno/sprzedaż
+│   │                          # (patrz "Rynek surowców" wyżej)
 │   └── game_setup.gd         # GameSetup: wybór miast z ekranu startowego,
 │                              # przekazany do game_map_controller.gd
 ├── resources/
@@ -229,6 +231,8 @@ godot_project/
 │   │                              # game_map_controller.gd
 │   ├── skill_tree_data.gd       # SkillTreeData.get_skills() - 5 startowych
 │   │                              # upgrade'ów drzewka umiejętności
+│   ├── market_balance.gd        # MarketBalance - parametry symulacji cen
+│   │                              # rynku (P_eq/k/V_R per surowiec + globalne)
 │   ├── hex_grid_utils.gd        # matematyka siatki - offset "even-q", flat-top
 │   └── hex_pathfinder.gd        # A* (AStar2D) po heksach, wg kosztu terenu,
 │                                  # z opcjonalną listą heksów wykluczonych (blokada PvP)
@@ -260,6 +264,8 @@ godot_project/
 │   │                              # (Drzewko Umiejętności) + pan/zoom myszką
 │   ├── skill_node_dot.gd         # pojedynczy węzeł drzewka - kropka (na razie),
 │   │                              # gotowa pod podmianę na obrazek (sprite_texture)
+│   ├── market_panel.gd           # UI strony rynku jednego surowca - wykres,
+│   │                              # kupno/sprzedaż (patrz "Rynek surowców" wyżej)
 │   └── main_test.tscn / main_test.gd   # smoke test Fazy 0-1 + Faz 6-9 (bez grafiki)
 ├── theme/
 │   ├── ui_theme.tres           # WYGLĄD całego UI w jednym miejscu (panele,
@@ -272,8 +278,10 @@ godot_project/
 │   │                             # heksagon dla odznak/ikon/pipsów UI
 │   ├── two_tone_track.gd        # tło suwaka "Zetnij drzewa" (bezpiecznie/
 │   │                             # niebezpiecznie), rysowane pod suwakiem
-│   └── unit_card.gd             # class_name UnitCard - pływająca, przeciągalna
-│                                 # karta ludzika nad mapą
+│   ├── unit_card.gd             # class_name UnitCard - pływająca, przeciągalna
+│   │                             # karta ludzika nad mapą
+│   └── price_chart_view.gd      # class_name PriceChartView - ręcznie rysowany
+│                                 # wykres liniowy ceny (Rynek surowców)
 ├── assets/fonts/                # IBM Plex Sans (zmienny font) + licencja OFL -
 │                                 # jedyna rodzina czcionek używana w UI
 ├── data/map_data.json         # wygenerowane przez tools/convert_kml_to_json.py
@@ -337,6 +345,60 @@ mechanizmy są specyficzne dla lasu, sekcja 6.1 GDD) ani kosztu ruchu po polu
 rolniczym (bez zmian, wciąż z `HexData.MOVEMENT_COST`). Wartości mnożników to
 placeholdery do dostrojenia podczas testów balansu, tak jak reszta stałych w
 `GameBalance` (sekcja 11 GDD).
+
+### Rynek surowców (nowość) - kupno/sprzedaż z symulowaną ceną
+
+Na życzenie: "Chcę aby dało się kliknąć tam gdzie wyświetlany jest zasób aby
+otworzyć stronę rynku tego zasobu - widać na niej wykres ceny w ostatnich
+rundach oraz jest możliwość kupna i sprzedaży", zaimplementowane wg
+przesłanego dokumentu "Model Ekonomii Rynku" (wzór, parametry i wyniki
+weryfikacji symulacją - patrz sekcje 1-7 tamtego dokumentu). Kliknięcie
+dowolnej "kropki surowca" w pasku górnym otwiera jego stronę rynku (nowy
+`MarketPanel`, ten sam wzorzec co Karta Miasta/Drzewko Umiejętności - jeden
+współdzielony panel, `open_for_resource()` przełącza, który surowiec akurat
+pokazuje) - wykres ceny z ostatnich rund, aktualna cena kupna/sprzedaży, i
+przyciski Kup/Sprzedaj.
+
+**Nowa waluta "Pieniądze"** (`PlayerData.money`, start: 200) - dokument
+zakłada, że każdy surowiec ma cenę w jakiejś wspólnej jednostce, a gra
+wcześniej nie miała żadnej waluty (tylko same surowce i Prestiż, który już
+ma inne znaczenie: reputacja, wydawana na przejęcia terenu/odblokowania
+budynków). Zapytany wprost, użytkownik wybrał osobną, nową walutę zamiast
+przeciążania Prestiżu czy czystego barteru surowiec-za-surowiec (ten
+ostatni odbiegałby najdalej od wzoru w dokumencie, który liczy cenę KAŻDEGO
+surowca niezależnie, zakładając wspólną jednostkę rozliczeniową).
+
+Kluczowe pliki:
+- `scripts/market_balance.gd` - `class_name MarketBalance`: parametry
+  per surowiec (`P_eq`, `k`, `V_R` - dokładnie tabela z sekcji 5 dokumentu)
+  i globalne (`λ`, `γ`, `μ`, `σ`, `σ_b`, `φ`, `CAP_FRACTION` - sekcja 4),
+  plus `trade_limit()`/`spread()`.
+- `autoloads/market_manager.gd` - nowy autoload: `price_history`/`eta_s`/
+  `eta_d` per surowiec, `attempt_trade()` (limit na rundę/gracza/kierunek,
+  sprawdzenie stać-cię/masz-zapas, natychmiastowe przesunięcie
+  pieniędzy/surowca), `process_round_end()` (wywoływane z
+  `TurnManager.end_round()` - **cena zmienia się TYLKO raz na rundę**,
+  dokładnie jak w pseudokodzie dokumentu; handel w trakcie rundy tylko
+  ZBIERA presję popytu/podaży, nie rusza ceny natychmiast). Formuła
+  (`_update_price()`) to bezpośrednie tłumaczenie wzoru z sekcji 3.1-3.4
+  dokumentu na GDScript, 1:1, łącznie z liczeniem w przestrzeni
+  logarytmicznej i osłabianiem tempa powrotu do równowagi wraz z wielkością
+  odchylenia (sekcja 3.4/6.6).
+- `ui/price_chart_view.gd` - `class_name PriceChartView extends Control`:
+  ręcznie rysowany wykres liniowy (`_draw()`) - Godot nie ma wbudowanego
+  widgetu do wykresów. Łamana przez punkty ceny + przerywana linia
+  odniesienia na `P_eq` + etykiety min/max na osi Y. Panel rynku pokazuje
+  ostatnie 24 rundy (`MarketPanel.CHART_ROUNDS`) - sam model trzyma PEŁNĄ
+  historię (potrzebną też do liczenia momentum), to tylko ograniczenie
+  wyświetlania, żeby wykres się nie zagęszczał w długiej rozgrywce.
+- `scenes/market_panel.gd` - UI strony rynku (ten sam wzorzec co
+  `city_card_panel.gd`), z `SpinBox` do wyboru ilości - jego `max_value`
+  to CAŁY limit na rundę (nie "ile jeszcze zostało"), więc próba
+  przekroczenia już wykorzystanej części limitu wciąż da się wpisać w pole,
+  ale zostanie odrzucona przez `attempt_trade()` z czytelnym komunikatem
+  (`LimitLabel` pokazuje, ile już wykorzystano) - uproszczenie świadome, nie
+  błąd: osobne śledzenie "ile zostało" per kierunek dla dzielonego pola
+  ilości niepotrzebnie komplikowałoby UI na tym etapie.
 
 ### Drzewko Umiejętności (nowość)
 
@@ -602,6 +664,22 @@ jako heksy typu `city`: Wrocław (`H18`), Szczecin (`A7`), Warszawa (`R12`),
 Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
+
+- **Rynek surowców z symulowaną ceną, kupnem i sprzedażą** (na podstawie
+  przesłanego dokumentu "Model Ekonomii Rynku" + życzenia: "Chcę aby dało
+  się kliknąć tam gdzie wyświetlany jest zasób aby otworzyć stronę rynku
+  tego zasobu - widać na niej wykres ceny w ostatnich rundach oraz jest
+  możliwość kupna i sprzedaży"). Pełny opis w sekcji "Rynek surowców" wyżej.
+  Jedna decyzja wymagała dopytania użytkownika wprost (nie dała się
+  wywnioskować z dokumentu ani rozsądnie zgadnąć - zbyt duży, kosztowny do
+  cofnięcia wpływ na model danych): dokument zakłada wspólną walutę do
+  wyceny KAŻDEGO surowca, a gra wcześniej nie miała żadnej (tylko same
+  surowce + Prestiż, który już znaczy co innego - reputację). Zapytany,
+  użytkownik wybrał nową, osobną walutę "Pieniądze" (`PlayerData.money`,
+  start: 200) zamiast przeciążania Prestiżu drugim znaczeniem albo
+  czystego barteru surowiec-za-surowiec (ten ostatni wymagałby wymyślenia
+  kursu wymiany nieopisanego w dokumencie, zamiast niezależnej ceny każdego
+  surowca, jak w oryginalnym wzorze).
 
 - **Poprawka regresji z restylizacji UI: nie dało się poruszać po mapie**
   (zgłoszenie: "Nie mogę poruszać się po mapie"). Przyczyna: nowy węzeł
