@@ -712,6 +712,23 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **Poprawka: `add_theme_style_override()` zamiast `add_theme_stylebox_override()`
+  w podświetleniu aktywnej pigułki** (zgłoszenie: "row.add_theme_style_ovveride
+  in (1220) causes a bug", po dopytaniu o dokładny komunikat: "Invalid call.
+  nonexistent function 'add_theme_style_override' in base 'PanelContainer'.").
+  Realna literówka w nazwie metody Godota 4 z poprzedniego wpisu (podświetlenie
+  aktywnej pigułki surowca w pasku górnym) - właściwa metoda `Control`a do
+  nadpisania `StyleBox`a to `add_theme_stylebox_override()`
+  (`get_theme_stylebox()`, użyte w tym samym miejscu do odczytu domyślnego
+  stylu, ma poprawną nazwę - stąd łatwo pomylić parę
+  `add_theme_style_override`/`get_theme_stylebox` z niespójnym "style" vs
+  "stylebox"). Naprawione w `game_map_controller.gd`
+  (`_update_resource_pill_highlight()`). Żaden z trzech skryptów
+  weryfikujących w tej sesji nie sprawdza istnienia wywoływanych metod
+  silnika Godota (sprawdzają tylko strukturę własnego kodu/sceny) - tego
+  typu literówka w nazwie API silnika wychodzi dopiero przy faktycznym
+  uruchomieniu gry, nie przy statycznej weryfikacji.
+
 - **Inny kolor zaznaczenia pola, pełne nazwy surowców, zawsze widoczna
   produkcja na rundę + 2 brakujące zasoby w pasku górnym** (na życzenie:
   "Zrób aby selectowanie terenu było innego koloru, oraz Zrób aby nie było

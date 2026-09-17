@@ -220,7 +220,7 @@ func _ready() -> void:
 
 	# Active-pill highlight style is the pill's own StyleBoxFlat_pill_bg
 	# (all rows share the same one, cached here so it can be reapplied
-	# explicitly when a pill stops being active - remove_theme_style_override()
+	# explicitly when a pill stops being active - remove_theme_stylebox_override()
 	# would fall through to the theme's generic, unstyled PanelContainer
 	# default instead, since the tscn-declared style IS itself just an
 	# override, not a separate baked-in default) with just the border
@@ -1217,7 +1217,7 @@ func _update_resource_pill_highlight() -> void:
 	for resource in resource_rows:
 		var row: PanelContainer = resource_rows[resource]
 		var target = _resource_pill_active_style if resource == _active_market_resource else _resource_pill_normal_style
-		row.add_theme_style_override("panel", target)
+		row.add_theme_stylebox_override("panel", target)
 
 
 ## --- Skill Tree (new, see the comment at the top of the file) ---
