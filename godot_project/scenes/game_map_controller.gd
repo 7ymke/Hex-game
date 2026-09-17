@@ -69,7 +69,7 @@ const VISION_RADIUS = GameBalance.VISION_RADIUS
 const PLAYER_SETUP = PlayerSetup.LIST
 
 @onready var hex_map_view: HexMapView = $HexMapView
-@onready var city_card_panel: CityCardPanel = $CityCardPanel
+@onready var notifications_panel: NotificationsPanel = $NotificationsPanel
 @onready var skill_tree_panel: SkillTreePanel = $SkillTreePanel
 @onready var market_panel: MarketPanel = $MarketPanel
 
@@ -129,12 +129,23 @@ const PLAYER_SETUP = PlayerSetup.LIST
 	HexData.ResourceType.URANIUM: $UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium,
 }
 
-## Sidebar (replaces the old ActionPanel).
+## Sidebar (replaces the old ActionPanel). City landmark buildings are now
+## bought directly here (`_build_building_preview_row()`) instead of in a
+## separate modal - `CityCardIconButton` (the old 🏛 button that opened that
+## modal) is gone; `InfoIconButton` ("i") opens `notifications_panel`
+## instead (currently the only source of notifications is
+## RandomEventManager - see below).
 @onready var city_name_label: Label = $UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/CityNameLabel
-@onready var city_card_icon_button: Button = $UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/CityCardIconButton
+@onready var info_button: Button = $UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/InfoIconButton
+@onready var info_unread_badge: PanelContainer = $UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/InfoIconButton/UnreadBadge
+@onready var info_unread_badge_label: Label = $UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/InfoIconButton/UnreadBadge/UnreadBadgeLabel
 @onready var skill_tree_button: Button = $UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/SkillTreeButton
 @onready var buildings_preview_list: VBoxContainer = $UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox/BuildingsScroll/BuildingList
 @onready var repair_button: Button = $UI/Root/Sidebar/SidebarVBox/ActionRowMargin/ActionRow/RepairButton
+## Random event "Pożar lasu" - only the affected player can extinguish it,
+## same convention as `repair_button` (always visible, disabled unless the
+## selected hex actually qualifies - see `_refresh_action_panel()`).
+@onready var extinguish_fire_button: Button = $UI/Root/Sidebar/SidebarVBox/ActionRowMargin/ActionRow/ExtinguishFireButton
 @onready var harvest_slider: HSlider = $UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/HarvestSlider
 @onready var harvest_value_label: Label = $UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/HTitleRow/HarvestValueLabel
 @onready var harvest_button: Button = $UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/HarvestButton
@@ -207,16 +218,17 @@ func _ready() -> void:
 	hex_map_view.hex_hovered.connect(_on_hex_hovered)
 
 	repair_button.pressed.connect(_on_repair_pressed)
+	extinguish_fire_button.pressed.connect(_on_extinguish_fire_pressed)
 	harvest_button.pressed.connect(_on_harvest_pressed)
 	harvest_slider.value_changed.connect(_on_harvest_slider_changed)
-	city_card_icon_button.pressed.connect(_on_city_card_pressed)
+	info_button.pressed.connect(_on_info_button_pressed)
 	skill_tree_button.pressed.connect(_on_skill_tree_pressed)
 	player_selector.item_selected.connect(_on_player_selected)
 	end_round_button.pressed.connect(_on_end_round_pressed)
-	city_card_panel.building_unlocked.connect(_on_city_building_unlocked)
 	skill_tree_panel.skill_unlocked.connect(_on_skill_unlocked)
 	market_panel.traded.connect(_on_market_traded)
 	market_panel.closed.connect(_on_market_closed)
+	RandomEventManager.notification_added.connect(_update_info_badge)
 
 	# Active-pill highlight style is the pill's own StyleBoxFlat_pill_bg
 	# (all rows share the same one, cached here so it can be reapplied
@@ -451,6 +463,10 @@ func _on_round_ended(round_number: int) -> void:
 			u.reset_movement_points()
 	_update_mp_label()
 	_update_stats_labels()
+	# Random events (RandomEventManager) can change a player's money/resources
+	# between rounds (Dotacja, Inspekcja środowiskowa...) - refresh so the
+	# Sidebar's "Odblokuj" buttons never show a stale afford/can't-afford state.
+	_refresh_buildings_preview()
 	var season_name = GameBalance.SEASON_DISPLAY_NAMES[TurnManager.get_current_season()]
 	info_label.text = "Runda zakończona. Rozpoczyna się runda %d (%s)." % [round_number, season_name]
 	await _continue_all_queued_routes()
@@ -1126,24 +1142,44 @@ func _on_harvest_pressed() -> void:
 	_refresh_action_panel()
 
 
-## --- City Card (Phase 8) ---
+## Random event "Pożar lasu" (autoloads/random_event_manager.gd) - acts on
+## the selected hex, same convention as `_on_repair_pressed()`/
+## `_on_harvest_pressed()` above. The cost is charged for the ATTEMPT, not
+## for success - see RandomEventManager.extinguish_fire().
+func _on_extinguish_fire_pressed() -> void:
+	var hex_id = selected_hex_id
+	var result = RandomEventManager.extinguish_fire(hex_id, active_player.player_id)
+	if result["success"]:
+		info_label.text = (
+			"Pożar na %s ugaszony!" % hex_id if result["extinguished"]
+			else "Próba ugaszenia pożaru na %s nie powiodła się. Spróbuj ponownie." % hex_id
+		)
+		_update_stats_labels()
+		_refresh_map_view()
+	else:
+		info_label.text = "Nie udało się ugasić pożaru na %s (%s)." % [hex_id, result["reason"]]
+	_refresh_action_panel()
 
-func _on_city_card_pressed() -> void:
-	city_card_panel.open_for_player(active_player)
+
+## --- Karta Miasta / powiadomienia ---
+## Budynki charakterystyczne miasta (prestiż, sekcja 7 GDD) są teraz kupowane
+## WPROST w tym pasku bocznym (poprzednio: tylko podgląd tutaj, zakup w
+## osobnym modalu CityCardPanel, otwieranym przyciskiem 🏛) - ten modal
+## zniknął. Kropka z literką "i" (`info_button`) otwiera teraz
+## `notifications_panel` zamiast Karty Miasta - na razie jedynym źródłem
+## informacji w nim są losowe wydarzenia (RandomEventManager).
+
+func _on_info_button_pressed() -> void:
+	notifications_panel.open_panel()
+	_update_info_badge()
 
 
-func _on_city_building_unlocked() -> void:
-	_update_stats_labels()
-	_refresh_buildings_preview()
+func _update_info_badge() -> void:
+	var count = RandomEventManager.unread_count
+	info_unread_badge.visible = count > 0
+	info_unread_badge_label.text = str(count) if count <= 9 else "9+"
 
 
-## Read-only preview of the active player's City Card buildings, shown
-## directly in the sidebar ("Budynki z Karty Miasta" list) - unlocking
-## itself still only happens in the full City Card modal (`city_card_panel`,
-## opened via `city_card_icon_button`/`_on_city_card_pressed()`), which also
-## shows cost and an unlock button; this preview is deliberately just a
-## glanceable list (icon + name + prestige value), colored by locked/
-## unlocked state, exactly like the mockup's building-item rows.
 func _refresh_buildings_preview() -> void:
 	for child in buildings_preview_list.get_children():
 		child.queue_free()
@@ -1155,16 +1191,31 @@ func _refresh_buildings_preview() -> void:
 		buildings_preview_list.add_child(_build_building_preview_row(building))
 
 
+func _on_building_unlock_pressed(building: Building) -> void:
+	var result = GameManager.unlock_city_building(active_player.player_id, building)
+	if result["success"]:
+		_update_stats_labels()
+	_refresh_buildings_preview()
+
+
+## Two-line, narrow-sidebar-friendly layout per building: icon/name/prestige
+## on top, cost + an "Odblokuj" button (disabled if unaffordable, hidden
+## once unlocked) underneath - the button IS the purchase now, unlike the
+## old read-only preview that only linked to the separate modal.
 func _build_building_preview_row(building: Building) -> Control:
 	var unlocked = active_player.unlocked_city_buildings.has(building.building_name)
 
-	var row = HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
+	var box = VBoxContainer.new()
+	box.add_theme_constant_override("separation", 2)
+
+	var top_row = HBoxContainer.new()
+	top_row.add_theme_constant_override("separation", 8)
+	box.add_child(top_row)
 
 	var icon = HexShape.new()
 	icon.custom_minimum_size = Vector2(20, 18)
 	icon.fill_color = Palette.GOLD if unlocked else Color(Palette.GOLD.r, Palette.GOLD.g, Palette.GOLD.b, 0.22)
-	row.add_child(icon)
+	top_row.add_child(icon)
 
 	var name_label = Label.new()
 	name_label.text = building.building_name
@@ -1174,15 +1225,35 @@ func _build_building_preview_row(building: Building) -> Control:
 	)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_label.clip_text = true
-	row.add_child(name_label)
+	top_row.add_child(name_label)
 
 	var prestige_label = Label.new()
 	prestige_label.text = "+%d" % building.prestige_value
 	prestige_label.add_theme_font_size_override("font_size", 11)
 	prestige_label.add_theme_color_override("font_color", Palette.GOLD_BRIGHT)
-	row.add_child(prestige_label)
+	top_row.add_child(prestige_label)
 
-	return row
+	var bottom_row = HBoxContainer.new()
+	bottom_row.add_theme_constant_override("separation", 6)
+	box.add_child(bottom_row)
+
+	var cost_label = Label.new()
+	cost_label.text = "Odblokowano" if unlocked else HexData.format_resource_costs(building.required_resources)
+	cost_label.add_theme_font_size_override("font_size", 10)
+	cost_label.add_theme_color_override("font_color", Palette.CREAM_DIM)
+	cost_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cost_label.clip_text = true
+	bottom_row.add_child(cost_label)
+
+	if not unlocked:
+		var buy_button = Button.new()
+		buy_button.text = "Odblokuj"
+		buy_button.add_theme_font_size_override("font_size", 10)
+		buy_button.disabled = not active_player.can_afford(building.required_resources)
+		buy_button.pressed.connect(_on_building_unlock_pressed.bind(building))
+		bottom_row.add_child(buy_button)
+
+	return box
 
 
 ## --- Market (new) ---
@@ -1307,6 +1378,7 @@ func _refresh_action_panel() -> void:
 	if hex == null:
 		hex_info_label.text = "Zaznacz pole (kliknij na mapie)."
 		repair_button.disabled = true
+		extinguish_fire_button.disabled = true
 		harvest_slider.visible = false
 		harvest_value_label.visible = false
 		harvest_button.visible = false
@@ -1319,14 +1391,16 @@ func _refresh_action_panel() -> void:
 		HexData.FogState.SEEN:
 			hex_info_label.text = _describe_seen_hex(hex)
 		HexData.FogState.ANNEXED:
-			hex_info_label.text = "%s | %s\nteren: %s | właściciel: %s\nbudynek: %s\npoziom zasobu: %.0f%%" % [
+			hex_info_label.text = "%s | %s\nteren: %s | właściciel: %s\nbudynek: %s\npoziom zasobu: %.0f%%%s" % [
 				hex.hex_id, hex.label_raw, HexData.TerrainType.keys()[hex.terrain_type],
-				_describe_owner(hex), _describe_building(hex), hex.resource_level
+				_describe_owner(hex), _describe_building(hex), hex.resource_level,
+				"\n🔥 POŻAR!" if hex.is_on_fire else ""
 			]
 
 	var is_owned_by_me = hex.owner_id == active_player.player_id
 
 	repair_button.disabled = not (is_owned_by_me and hex.building != null and hex.building_damaged)
+	extinguish_fire_button.disabled = not (is_owned_by_me and hex.is_on_fire)
 
 	var is_forest = hex.is_forest()
 	harvest_slider.visible = is_forest

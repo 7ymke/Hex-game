@@ -20,6 +20,7 @@ run/main_scene="res://scenes/start_screen.tscn"
 MapData="*res://autoloads/map_data.gd"
 GameManager="*res://autoloads/game_manager.gd"
 MarketManager="*res://autoloads/market_manager.gd"
+RandomEventManager="*res://autoloads/random_event_manager.gd"
 TurnManager="*res://autoloads/turn_manager.gd"
 GameSetup="*res://autoloads/game_setup.gd"
 

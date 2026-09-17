@@ -46,7 +46,6 @@ const CHART_WINDOW_ALL = -1
 @onready var close_button: Button = $CloseButton
 @onready var head_dot: Panel = $Background/VBox/HeaderRow/HeadDot
 @onready var name_label: Label = $Background/VBox/HeaderRow/NameLabel
-@onready var round_label: Label = $Background/VBox/HeaderRow/RoundLabel
 @onready var range_5_button: Button = $Background/VBox/ChartRangeRow/Range5Button
 @onready var range_15_button: Button = $Background/VBox/ChartRangeRow/Range15Button
 @onready var range_all_button: Button = $Background/VBox/ChartRangeRow/RangeAllButton
@@ -100,13 +99,12 @@ func _refresh() -> void:
 		return
 
 	name_label.text = HexData.RESOURCE_DISPLAY_NAMES.get(_current_resource, "?")
-	round_label.text = "Runda %d" % TurnManager.round_number
 	head_dot.self_modulate = _resource_dot_color(_current_resource)
 
 	_update_chart_range_buttons()
 	chart_view.values = MarketManager.get_price_history(_current_resource, _chart_window)
-	# The last/rightmost point in `values` is always the CURRENT price - same
-	# round as `round_label` above - so the hover readout can label every
+	# The last/rightmost point in `values` is always the CURRENT price
+	# (TurnManager.round_number) - so the hover readout can label every
 	# other point by counting backwards from here (see price_chart_view.gd).
 	chart_view.end_round = TurnManager.round_number
 	chart_view.queue_redraw()

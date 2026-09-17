@@ -225,3 +225,19 @@ func _recent_trend(resource: HexData.ResourceType) -> float:
 		var older: float = history[history.size() - 2 - i]
 		total += log(newer) - log(older)
 	return total / window
+
+
+## Forces an immediate, large price jump for `resource` - the "Market Crash"
+## random event (autoloads/random_event_manager.gd), the only caller.
+## Appends a NEW price point (rather than mutating the last one), so it
+## shows as a visible jump on the market page's chart, exactly like a
+## normal round-end price move - clamped to the same [0.2, 5.0] x p_eq
+## bounds _update_price() itself uses, so a crash can never send a price to
+## an absurd or non-positive value.
+func trigger_price_shock(resource: HexData.ResourceType, multiplier: float) -> void:
+	if not MarketBalance.RESOURCE_PARAMS.has(resource):
+		return
+	var p_eq: float = MarketBalance.RESOURCE_PARAMS[resource]["p_eq"]
+	var history: Array = price_history[resource]
+	var new_price = clampf(history[-1] * multiplier, 0.2 * p_eq, 5.0 * p_eq)
+	history.append(new_price)

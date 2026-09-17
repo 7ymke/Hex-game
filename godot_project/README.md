@@ -212,6 +212,8 @@ godot_project/
 │   ├── turn_manager.gd       # kolejność graczy, przeliczenie rundy
 │   ├── market_manager.gd     # symulacja cen rynku surowców + kupno/sprzedaż
 │   │                          # (patrz "Rynek surowców" wyżej)
+│   ├── random_event_manager.gd  # losowe wydarzenia (patrz "Wydarzenia
+│   │                              # losowe" niżej)
 │   └── game_setup.gd         # GameSetup: wybór miast z ekranu startowego,
 │                              # przekazany do game_map_controller.gd
 ├── resources/
@@ -256,7 +258,8 @@ godot_project/
 │   │                              # player_units w kontrolerze to już
 │   │                              # Array[Unit] per gracz (skill "Drugi ludzik"
 │   │                              # dodaje kolejnego bez zmian w reszcie logiki)
-│   ├── city_card_panel.gd        # UI Karty Miasta (osobny ekran, sekcja 7 GDD)
+│   ├── notifications_panel.gd    # UI panelu powiadomień (kropka "i" w pasku
+│   │                              # bocznym) - patrz "Wydarzenia losowe" niżej
 │   ├── skill_tree_panel.gd       # UI Drzewka Umiejętności - radialny graf,
 │   │                              # prawie cały ekran, najwyższa warstwa UI,
 │   │                              # jedno współdzielone okienko szczegółów
@@ -403,6 +406,101 @@ Kluczowe pliki:
   zapobieganie zamiast błędu do przeczytania, zgodnie z minimalizmem
   makiety (sekcja "Restylizacja UI wg makiety `UI_Gry_Makieta_11.html`"
   niżej).
+
+### Wydarzenia losowe (nowość)
+
+Na życzenie: "Chcę abyś dodał random event który wydaża się napewno co
+5 rund. Oraz jest szansa 5% w każdej rundzie na dodatkowy event", z listą
+10 konkretnych wydarzeń pogrupowanych w 4 kategorie (żywioł/pogoda,
+gospodarka, kontrola, rzadkie/specjalne). Nowy autoload
+`autoloads/random_event_manager.gd`, wołany z `TurnManager.end_round()`
+JAKO PIERWSZY (przed regeneracją lasu i naliczeniem dochodu - patrz
+komentarz tam), więc świeżo wylosowane wydarzenie wpływa od razu na WYNIK
+BIEŻĄCEJ rundy, nie dopiero następnej.
+
+- **Włącznik/wyłącznik** - `GameBalance.RANDOM_EVENTS_ENABLED` (domyślnie
+  `true`). `RandomEventManager.process_round_end()` sam sprawdza tę flagę
+  na wejściu i wraca bez efektu, gdy `false` - `TurnManager` woła ją
+  bezwarunkowo co rundę, bez własnej kopii tego samego warunku.
+- **Losowanie**: jedno wydarzenie GWARANTOWANE co
+  `GameBalance.RANDOM_EVENT_GUARANTEED_INTERVAL` (5) rund, plus osobna,
+  niezależna `GameBalance.RANDOM_EVENT_EXTRA_CHANCE` (5%) szansa sprawdzana
+  w KAŻDEJ rundzie (także tej z gwarantowanym wydarzeniem - może więc
+  wypaść więcej niż jedno wydarzenie naraz).
+- **Każde wydarzenie losowane TYLKO spośród aktualnie sensownych opcji** -
+  np. "Pożar lasu" nigdy nie wypadnie, jeśli akurat żaden gracz nie
+  posiada niepłonącego pola lasu, zamiast wylosować wydarzenie, które by
+  nic nie zrobiło. Jedyny wyjątek: "Inspekcja środowiskowa" jest zawsze
+  dostępna - "brak naruszeń" to sama w sobie sensowna informacja.
+- **Wydarzenia wieloturowe** (Strajk górniczy, Plaga szkodników,
+  Rekordowe żniwa) są przechowywane jako "aktywne DO rundy X" (nie jako
+  malejący licznik dekrementowany co rundę) - odczyt po prostu porównuje
+  `TurnManager.round_number` z zapisaną wartością, więc nie ma ryzyka
+  rozjazdu przy dekrementowaniu w złym miejscu kodu. "Łagodna zima" działa
+  inaczej - nie ma ustalonego czasu trwania, tylko CZEKA na najbliższą
+  rundę zimową (nawet jeśli wylosowana latem) i zużywa się przy niej raz,
+  więc zawsze realnie coś zmienia, niezależnie od tego, kiedy akurat
+  wypadnie.
+
+Poszczególne wydarzenia (pełne uzasadnienia decyzji projektowych, które
+wymagały własnej interpretacji, są w sekcji "Decyzje projektowe" niżej):
+
+- **Pożar lasu** (tylko 1 gracz) - płonący heks (`HexData.is_on_fire`,
+  stan gry jak `fog_state`, nieeksportowane) traci 25% aktualnego poziomu
+  zasobu KAŻDĄ rundę (`GameBalance.FOREST_FIRE_DECAY_RATIO`), z 15% szansą
+  na rozprzestrzenienie na sąsiedni, niepłonący heks lasu, dopóki się nie
+  wypali (< 5% zasobu) albo nie zostanie ugaszony. Gaszenie to jedyna
+  akcja INICJOWANA przez gracza - nowy przycisk "🔥 Gaś pożar" w pasku
+  bocznym (obok "🔧 Napraw budynek", ten sam wzorzec: działa na
+  `selected_hex_id`, widoczny zawsze, wyłączony poza właściwym stanem),
+  koszt 50 pieniędzy płacony za samą PRÓBĘ, 40% szansy na sukces. Płonący
+  heks jest widoczny na mapie (czerwony naddruk, ten sam mechanizm co
+  `FOG_SEEN_OVERLAY`) i w tekście panelu informacji o polu ("🔥 POŻAR!").
+- **Szkody górnicze** (tylko 1 gracz) - uszkadza jeden budynek górniczy
+  gracza (`hex.building_damaged = true`) - naprawia się istniejącym
+  przyciskiem "Napraw budynek", bez nowej mechaniki.
+- **Łagodna zima** (wszyscy gracze) - patrz wyżej.
+- **Plaga szkodników** (tylko 1 gracz) - żywność gracza nie rośnie przez
+  2 rundy, niezależnie od pory roku.
+- **Dotacja** (tylko 1 gracz) - losowa kwota 400-800 pieniędzy.
+- **Strajk górniczy** (tylko 1 gracz) - kopalnie/gazoporty gracza (budynek
+  produkujący GAS/COPPER/COAL/NICKEL/URANIUM -
+  `RandomEventManager.MINING_RESOURCE_TYPES`, w odróżnieniu od rolnictwa i
+  drewna) nie produkują nic przez 3 rundy.
+- **Rekordowe żniwa stulecia** (tylko 1 gracz) - produkcja żywności x5
+  przez 5 rund.
+- **Inspekcja środowiskowa** (wszyscy gracze) - sprawdza WSZYSTKICH
+  graczy (nie losuje jednego), karze -20 prestiżu/-150 pieniędzy KAŻDEGO,
+  kto akurat "nadużywa środowiska" - patrz definicja w "Decyzje
+  projektowe".
+- **Turystyczny boom** (tylko 1 gracz) - płaska, losowa premia (150-300
+  pieniędzy, 10-20 prestiżu) - patrz uzasadnienie w "Decyzje projektowe".
+- **Market Crash** (wszyscy gracze) - cena losowego surowca skacze
+  ×1.5-2.5 (w górę) albo ×0.4-0.6 (w dół), losowany kierunek -
+  `MarketManager.trigger_price_shock()`, dopisuje NOWY punkt do historii
+  ceny (widać jak skok na wykresie Rynku), z tym samym ograniczeniem
+  [0.2, 5.0]×P_eq co zwykła zmiana ceny.
+
+**Panel powiadomień** (nowość, zastępuje Kartę Miasta - patrz niżej) -
+kropka z literką "i" w pasku bocznym (`InfoIconButton`, dawniej 🏛
+otwierająca Kartę Miasta) otwiera `NotificationsPanel` (ten sam wzorzec co
+Panel Rynku/Karta Miasta - samodzielny `CanvasLayer`), pokazujący
+przewijaną, jedną wspólną listę wpisów (na razie WYŁĄCZNIE wydarzenia
+losowe - `RandomEventManager.notifications`, najnowsze na górze). Liczba
+NIEPRZECZYTANYCH wpisów pokazuje się jako mały czerwony "badge" w prawym
+górnym rogu kropki "i" (`UnreadBadge`, ukryty gdy licznik = 0, ograniczony
+do "9+" zamiast rosnąć w nieskończoność) - otwarcie panelu oznacza
+wszystko jako przeczytane (`RandomEventManager.mark_all_read()`).
+
+**Budynki Karty Miasta kupowane teraz WPROST w pasku bocznym** - skoro
+kropka "i" przestała otwierać Kartę Miasta, `CityCardPanel` (osobny modal
+z listą budynków + przyciskiem odblokowania) został usunięty
+(`scenes/city_card_panel.gd` skasowany) - ta sama lista, którą pasek
+boczny już pokazywał jako PODGLĄD tylko do odczytu
+(`_build_building_preview_row()` w `game_map_controller.gd`), jest teraz
+w pełni interaktywna: koszt + przycisk "Odblokuj" (wyłączony, gdy nie
+stać, znika po odblokowaniu) na drugiej linii każdego wiersza, wołający
+wprost `GameManager.unlock_city_building()`.
 
 ### Drzewko Umiejętności (nowość)
 
@@ -711,6 +809,56 @@ jako heksy typu `city`: Wrocław (`H18`), Szczecin (`A7`), Warszawa (`R12`),
 Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
+
+- **Losowe wydarzenia + panel powiadomień + budynki kupowane w pasku
+  bocznym** (na życzenie: "Chcę abyś dodał random event który wydaża się
+  napewno co 5 rund. Oraz jest szansa 5% w każdej rundzie na dodatkowy
+  event" + lista 10 wydarzeń + "Dodaj też kropkę z literką i (zamiast
+  kropki z kartą miasta - budynki powinno dać się kupić w istniejącym
+  panelu po prawej)"). Pełny opis mechanizmu w sekcji "Wydarzenia losowe"
+  wyżej. Kilka miejsc wymagało własnej interpretacji, bo lista z życzenia
+  opisywała wydarzenia hasłowo, nie jako gotową specyfikację:
+  - **"Kopalnia" nie istnieje jako osobny typ danych** - budynki na mapie
+    mają tylko `Building.BuildingType` (RESOURCE_NODE/INDUSTRIAL/
+    CITY_LANDMARK) i `produced_resource`, żadnego pola "czy to kopalnia".
+    "Szkody górnicze"/"Strajk górniczy" potrzebowały konkretnej definicji
+    - przyjęte: budynek RESOURCE_NODE produkujący GAS/COPPER/COAL/NICKEL/
+      URANIUM (`RandomEventManager.MINING_RESOURCE_TYPES`), w odróżnieniu
+      od rolnictwa (FOOD - osobny mechanizm sezonowy) i drewna (w ogóle
+      nie pochodzi z budynku, tylko z ręcznego wycinania lasu suwakiem).
+  - **"Turystyczny boom" nie ma się do czego dosłownie odnieść** - gra nie
+    modeluje "miejsc turystycznych" jako osobnego typu heksa/budynku
+    (konwerter KML rozpoznaje etykiety "atrakcja/UNESCO", ale świadomie
+    NIE tworzy dla nich żadnego budynku - `map_data.gd`). Próba
+    "skalowania premii liczbą pól turystycznych" i tak sprowadzałaby się
+    do stałej wartości w praktyce (jedyny heks typu `CITY`, jaki gracz
+    zwykle posiada, to jego własna stolica) - więc zamiast tego płaska,
+    losowa premia (pieniądze + prestiż), tym samym wzorcem co Dotacja.
+  - **"Nadużywanie lasów/obiektów chronionych"** (Inspekcja środowiskowa)
+    potrzebowało DETEKOWALNEGO w danym momencie kryterium, nie historii
+    zdarzeń (gra jej nie loguje) - przyjęte: gracz "nadużywa", jeśli
+    WŁAŚNIE TERAZ posiada choć jeden las poniżej bezpiecznego progu
+    (`GameBalance.FOREST_SAFE_THRESHOLD_PERCENT` + bonus ze skilli) LUB
+    choć jedną zabudowaną strefę chronioną (`hex.is_protected() and
+    hex.building != null` - dokładnie ta sama definicja "zniszczenia
+    strefy chronionej", której już używa `GameManager.repair_building()`
+    do naliczenia własnej, natychmiastowej kary). Sprawdzane dla
+    WSZYSTKICH graczy na raz (nie losuje jednego, w odróżnieniu od reszty
+    listy) - zgodnie z dosłownym brzmieniem życzenia ("Jeśli KTOŚ
+    nadużywa... dla wszystkich graczy").
+  - **Zdarzenia losowane tylko spośród aktualnie sensownych opcji** -
+    zamiast losować "Pożar lasu" dla gracza bez żadnego lasu (co by nic
+    nie zrobiło i wyglądało jak błąd), `RandomEventManager._roll_event()`
+    filtruje pulę do wydarzeń, które akurat MAJĄ na kogo/co zadziałać -
+    ten sam wzorzec co ukrywanie zakładek "5"/"15" na wykresie Rynku,
+    gdy rund jeszcze za mało (patrz wpis niżej).
+  - `Array.pick_random()` (nowa metoda w tej sesji) zweryfikowana wprost
+    ze źródła silnika przed użyciem, tak jak reszta nowych wywołań API od
+    czasu literówki `add_theme_style_override` (patrz wpis niżej).
+
+- **Usunięty `RoundLabel` z nagłówka Panelu Rynku** (na życzenie: "You can
+  remove round_label from the market") - numer rundy nadal widoczny w
+  pasku górnym gry, był tu zwyczajnie zbędnym powtórzeniem.
 
 - **Wybór zakresu wykresu ceny: 5 / 15 / wszystkie rundy** (na życzenie:
   "Chcę aby dało się zmieniać wykres - między ostatnimi 5 rundami, 15 a

@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://scenes/camera_controller.gd" id="2"]
 [ext_resource type="Script" path="res://scenes/hex_map_view.gd" id="3"]
 [ext_resource type="Script" path="res://scenes/unit.gd" id="4"]
-[ext_resource type="Script" path="res://scenes/city_card_panel.gd" id="5"]
+[ext_resource type="Script" path="res://scenes/notifications_panel.gd" id="5"]
 [ext_resource type="Script" path="res://scenes/skill_tree_panel.gd" id="6"]
 [ext_resource type="Theme" path="res://theme/ui_theme.tres" id="7"]
 [ext_resource type="Script" path="res://scenes/skill_graph_view.gd" id="8"]
@@ -177,6 +177,22 @@ content_margin_left = 10.0
 content_margin_top = 8.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge_bg"]
+bg_color = Color(0.878431, 0.313725, 0.227451, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.180392, 0.105882, 0.062745, 1)
+content_margin_left = 4.0
+content_margin_top = 1.0
+content_margin_right = 4.0
+content_margin_bottom = 1.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_normal"]
 bg_color = Color(0.878431, 0.313725, 0.227451, 1)
@@ -715,14 +731,35 @@ text = "-"
 [node name="CitySpacer" type="Control" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow"]
 size_flags_horizontal = 3
 
-[node name="CityCardIconButton" type="Button" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow"]
+[node name="InfoIconButton" type="Button" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow"]
 custom_minimum_size = Vector2(38, 38)
-tooltip_text = "Karta Miasta"
+tooltip_text = "Informacje"
 theme_override_styles/normal = SubResource("StyleBoxFlat_skill_circle_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_skill_circle_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_skill_circle_hover")
-theme_override_font_sizes/font_size = 15
-text = "🏛"
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 18
+text = "i"
+
+[node name="UnreadBadge" type="PanelContainer" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/InfoIconButton"]
+visible = false
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -14.0
+offset_top = -6.0
+offset_right = 6.0
+offset_bottom = 14.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_badge_bg")
+
+[node name="UnreadBadgeLabel" type="Label" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/InfoIconButton/UnreadBadge"]
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 10
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "0"
 
 [node name="SkillTreeButton" type="Button" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow"]
 custom_minimum_size = Vector2(38, 38)
@@ -771,11 +808,16 @@ theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 15
 theme_override_constants/margin_bottom = 10
 
-[node name="ActionRow" type="HBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/ActionRowMargin"]
+[node name="ActionRow" type="VBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/ActionRowMargin"]
+theme_override_constants/separation = 6
 
 [node name="RepairButton" type="Button" parent="UI/Root/Sidebar/SidebarVBox/ActionRowMargin/ActionRow"]
 size_flags_horizontal = 3
 text = "🔧 Napraw budynek"
+
+[node name="ExtinguishFireButton" type="Button" parent="UI/Root/Sidebar/SidebarVBox/ActionRowMargin/ActionRow"]
+size_flags_horizontal = 3
+text = "🔥 Gaś pożar"
 
 [node name="HarvestBlockMargin" type="MarginContainer" parent="UI/Root/Sidebar/SidebarVBox"]
 theme_override_constants/margin_left = 15
@@ -960,35 +1002,47 @@ theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
 theme_override_font_sizes/font_size = 10
 text = "✕"
 
-[node name="CityCardPanel" type="CanvasLayer" parent="."]
-layer = 10
+[node name="NotificationsPanel" type="CanvasLayer" parent="."]
+layer = 12
 script = ExtResource("5")
 
-[node name="Panel" type="PanelContainer" parent="CityCardPanel"]
+[node name="Background" type="PanelContainer" parent="NotificationsPanel"]
 theme = ExtResource("7")
-offset_left = 200.0
+offset_left = 350.0
 offset_top = 80.0
-offset_right = 900.0
+offset_right = 850.0
 offset_bottom = 620.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_market_bg")
 
-[node name="VBox" type="VBoxContainer" parent="CityCardPanel/Panel"]
+[node name="VBox" type="VBoxContainer" parent="NotificationsPanel/Background"]
 theme_override_constants/separation = 10
 
-[node name="TitleLabel" type="Label" parent="CityCardPanel/Panel/VBox"]
+[node name="TitleLabel" type="Label" parent="NotificationsPanel/Background/VBox"]
+theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
 theme_override_font_sizes/font_size = 20
-text = "Karta Miasta"
+text = "Informacje"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="CityCardPanel/Panel/VBox"]
-custom_minimum_size = Vector2(0, 400)
+[node name="ScrollContainer" type="ScrollContainer" parent="NotificationsPanel/Background/VBox"]
+custom_minimum_size = Vector2(0, 420)
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
-[node name="BuildingList" type="VBoxContainer" parent="CityCardPanel/Panel/VBox/ScrollContainer"]
-custom_minimum_size = Vector2(680, 0)
+[node name="NotificationList" type="VBoxContainer" parent="NotificationsPanel/Background/VBox/ScrollContainer"]
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
-[node name="CloseButton" type="Button" parent="CityCardPanel/Panel/VBox"]
-text = "Zamknij"
+[node name="CloseButton" type="Button" parent="NotificationsPanel"]
+offset_left = 818.0
+offset_top = 88.0
+custom_minimum_size = Vector2(22, 22)
+tooltip_text = "Zamknij panel powiadomień"
+theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_circle")
+theme_override_styles/hover = SubResource("StyleBoxFlat_cancel_circle_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cancel_circle_hover")
+theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_font_sizes/font_size = 10
+text = "✕"
 
 [node name="MarketPanel" type="CanvasLayer" parent="."]
 layer = 15
@@ -1018,11 +1072,6 @@ theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
 theme_override_fonts/font = SubResource("FontVariation_nunito_800")
 theme_override_font_sizes/font_size = 20
 text = "Rynek"
-
-[node name="RoundLabel" type="Label" parent="MarketPanel/Background/VBox/HeaderRow"]
-theme_override_colors/font_color = Color(0.890196, 0.803922, 0.658824, 1)
-theme_override_font_sizes/font_size = 12
-text = "Runda -"
 
 [node name="ChartRangeRow" type="HBoxContainer" parent="MarketPanel/Background/VBox"]
 theme_override_constants/separation = 4

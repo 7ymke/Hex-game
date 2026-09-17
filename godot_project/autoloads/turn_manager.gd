@@ -46,7 +46,15 @@ func switch_to_player(player_id: int) -> void:
 
 ## Resolves the round on demand (the "Zakończ rundę" / end round button) -
 ## does NOT change which player is currently in control.
+##
+## RandomEventManager runs FIRST (a no-op if GameBalance.RANDOM_EVENTS_ENABLED
+## is false) - before forest regeneration, so a freshly-ignited/decayed
+## burning hex doesn't ALSO regrow in the very same round, and before
+## resource income, so a freshly-rolled event (pest plague, mining strike,
+## record harvest, mild winter) already affects THIS round's numbers instead
+## of only the next one.
 func end_round() -> void:
+	RandomEventManager.process_round_end()
 	_process_forest_regeneration()
 	_process_resource_income()
 	MarketManager.process_round_end()
@@ -68,7 +76,10 @@ func get_current_season() -> int:
 
 func _process_forest_regeneration() -> void:
 	for hex: HexData in MapData.hexes.values():
-		if not hex.is_forest():
+		# A burning hex already lost resource_level THIS round via
+		# RandomEventManager._process_burning_fires() (called before this,
+		# in end_round()) - it doesn't also regrow while on fire.
+		if not hex.is_forest() or hex.is_on_fire:
 			continue
 
 		var current = hex.resource_level
@@ -89,8 +100,22 @@ func _process_forest_regeneration() -> void:
 ## season (round_number has not been incremented yet at this point in
 ## end_round()), i.e. the harvest reflects the season of the round that is
 ## being resolved.
+##
+## Random events (RandomEventManager) can override this per-player, on top
+## of the season: Łagodna zima replaces a WINTER multiplier of 0.0 with
+## GameBalance.MILD_WINTER_FOOD_MULTIPLIER (computed ONCE here, not per hex -
+## consume_mild_winter() is one-shot, so calling it inside the loop would
+## only ever apply to the FIRST agricultural hex it happened to visit).
+## Plaga szkodników zeruje food income outright (checked first - a plague
+## ruins the crop regardless of how good the harvest would otherwise have
+## been), Rekordowe żniwa multiplies it, and Strajk górniczy zeroes mining
+## income (MINING_RESOURCE_TYPES - anything that isn't food or wood).
 func _process_resource_income() -> void:
 	var season = get_current_season()
+	var food_multiplier = GameBalance.SEASON_FOOD_MULTIPLIER[season]
+	if season == GameBalance.Season.WINTER and RandomEventManager.consume_mild_winter():
+		food_multiplier = GameBalance.MILD_WINTER_FOOD_MULTIPLIER
+
 	for hex: HexData in MapData.hexes.values():
 		if hex.owner_id == -1 or hex.is_forest():
 			continue
@@ -101,7 +126,19 @@ func _process_resource_income() -> void:
 		if player == null:
 			continue
 
+		var resource = hex.building.produced_resource
 		var amount = hex.building.produced_amount_per_turn
+
 		if hex.is_agricultural():
-			amount *= GameBalance.SEASON_FOOD_MULTIPLIER[season]
-		player.add_resource(hex.building.produced_resource, amount)
+			amount *= food_multiplier
+			if RandomEventManager.is_pest_plague_active(player.player_id):
+				amount = 0.0
+			elif RandomEventManager.is_record_harvest_active(player.player_id):
+				amount *= GameBalance.RECORD_HARVEST_MULTIPLIER
+		elif (
+			RandomEventManager.MINING_RESOURCE_TYPES.has(resource)
+			and RandomEventManager.is_mining_disabled(player.player_id)
+		):
+			amount = 0.0
+
+		player.add_resource(resource, amount)

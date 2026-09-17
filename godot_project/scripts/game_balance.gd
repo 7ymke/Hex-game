@@ -107,3 +107,74 @@ const SEASON_FOOD_MULTIPLIER = {
 	Season.SUMMER: 1.0,
 	Season.AUTUMN: 2.0,
 }
+
+## Wydarzenia losowe (nowość, autoloads/random_event_manager.gd) -------------
+## Wyłącznik dla całego systemu - ustaw na false, żeby grać bez wydarzeń
+## losowych w ogóle (np. przy testowaniu reszty gry).
+const RANDOM_EVENTS_ENABLED = true
+
+## Co ile rund jest GWARANTOWANE choć jedno wydarzenie
+## (`TurnManager.round_number % RANDOM_EVENT_GUARANTEED_INTERVAL == 0`).
+const RANDOM_EVENT_GUARANTEED_INTERVAL = 5
+## Dodatkowa, niezależna szansa na wydarzenie sprawdzana w KAŻDEJ rundzie
+## (także tej z gwarantowanym wydarzeniem - może więc wypaść więcej niż
+## jedno wydarzenie w tej samej rundzie).
+const RANDOM_EVENT_EXTRA_CHANCE = 0.05
+
+## Pożar lasu - ile % SWOJEGO AKTUALNEGO poziomu zasobu (nie 100%) płonący
+## las traci każdą rundę, dopóki się nie wypali albo nie zostanie ugaszony.
+const FOREST_FIRE_DECAY_RATIO = 0.25
+## Szansa, sprawdzana raz na rundę dopóki pożar trwa, że rozprzestrzeni się
+## na sąsiedni heks lasu.
+const FOREST_FIRE_SPREAD_CHANCE = 0.15
+## Koszt (w pieniądzach) jednej próby ugaszenia pożaru + szansa, że się uda -
+## zawsze można spróbować ponownie w kolejnej rundzie, jeśli się nie uda.
+const FOREST_FIRE_EXTINGUISH_COST = 50.0
+const FOREST_FIRE_EXTINGUISH_CHANCE = 0.4
+
+## Dotacja - losowa kwota pieniędzy z tego przedziału (włącznie).
+const GRANT_MONEY_MIN = 400.0
+const GRANT_MONEY_MAX = 800.0
+
+## Strajk górniczy - ile rund kopalnie/gazoporty dotkniętego gracza nie
+## produkują nic (patrz RandomEventManager - "kopalnia" = budynek
+## produkujący GAS/COPPER/COAL/NICKEL/URANIUM, w odróżnieniu od rolnictwa).
+const MINING_STRIKE_ROUNDS = 3
+
+## Rekordowe żniwa stulecia - mnożnik produkcji żywności dotkniętego gracza
+## i ile rund trwa.
+const RECORD_HARVEST_MULTIPLIER = 5.0
+const RECORD_HARVEST_ROUNDS = 5
+
+## Plaga szkodników - ile rund produkcja żywności dotkniętego gracza wynosi
+## zero, niezależnie od pory roku.
+const PEST_PLAGUE_ROUNDS = 2
+
+## Łagodna zima - mnożnik produkcji żywności zastępujący
+## SEASON_FOOD_MULTIPLIER[WINTER] (normalnie 0.0) przy NAJBLIŻSZEJ zimie po
+## wystąpieniu wydarzenia, dla WSZYSTKICH graczy.
+const MILD_WINTER_FOOD_MULTIPLIER = 1.0
+
+## Inspekcja środowiskowa - kara dla KAŻDEGO gracza, który w danym momencie
+## ma choć jeden nadmiernie wyeksploatowany las lub zabudowaną strefę
+## chronioną (RandomEventManager._is_player_abusing_environment()) - nie
+## tylko dla jednego wylosowanego gracza, w odróżnieniu od reszty wydarzeń.
+const ENVIRONMENTAL_INSPECTION_PRESTIGE_PENALTY = 20
+const ENVIRONMENTAL_INSPECTION_MONEY_PENALTY = 150.0
+
+## Turystyczny boom - gra nie modeluje osobnych "miejsc turystycznych" jako
+## odrębnego typu heksa/budynku, więc to płaska, losowa premia (podobnie jak
+## Dotacja) zamiast czegoś skalowanego z konkretnych pól - patrz
+## RandomEventManager.
+const TOURISM_BOOM_MONEY_MIN = 150.0
+const TOURISM_BOOM_MONEY_MAX = 300.0
+const TOURISM_BOOM_PRESTIGE_MIN = 10
+const TOURISM_BOOM_PRESTIGE_MAX = 20
+
+## Market Crash - cena jednego losowego surowca skacze o losowy mnożnik z
+## jednego z tych dwóch przedziałów (losowany też kierunek: w górę albo w
+## dół) - patrz MarketManager.trigger_price_shock().
+const MARKET_CRASH_MULTIPLIER_UP_MIN = 1.5
+const MARKET_CRASH_MULTIPLIER_UP_MAX = 2.5
+const MARKET_CRASH_MULTIPLIER_DOWN_MIN = 0.4
+const MARKET_CRASH_MULTIPLIER_DOWN_MAX = 0.6

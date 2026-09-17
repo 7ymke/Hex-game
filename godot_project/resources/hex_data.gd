@@ -125,6 +125,11 @@ const MOVEMENT_COST = {
 ## Nie eksportowane celowo - stan rozgrywki, nie dane startowe heksa.
 var fog_state: Dictionary = {}
 
+## Czy ten heks aktualnie płonie (wydarzenie losowe "Pożar lasu",
+## autoloads/random_event_manager.gd) - jak `fog_state`, stan rozgrywki, nie
+## dane startowe, więc też nie eksportowane.
+var is_on_fire: bool = false
+
 
 func get_fog_state(player_id: int) -> FogState:
 	return fog_state.get(player_id, FogState.UNEXPLORED)

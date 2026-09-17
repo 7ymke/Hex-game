@@ -42,6 +42,11 @@ const TERRAIN_COLORS = {
 
 const FOG_UNEXPLORED = Palette.FOG_UNEXPLORED
 const FOG_SEEN_OVERLAY = Color(0, 0, 0, 0.4)
+## Random event "Pożar lasu" (autoloads/random_event_manager.gd, HexData.is_on_fire) -
+## a translucent red wash drawn on top of the terrain, same technique as
+## FOG_SEEN_OVERLAY, so a burning hex is visible on the map itself, not just
+## in the notification log / hex-info text.
+const FIRE_OVERLAY = Color(0.878431, 0.313725, 0.227451, 0.45)
 const OUTLINE_COLOR = Color(0, 0, 0, 0.5)
 ## Distinct from PREVIEW_ROUTE_COLOR below (see Palette.SELECTION) - a
 ## selected hex used to be visually indistinguishable from one merely on a
@@ -88,6 +93,8 @@ func _draw_hex(hex: HexData) -> void:
 		draw_colored_polygon(corners, base_color)
 		if fog == HexData.FogState.SEEN:
 			draw_colored_polygon(corners, FOG_SEEN_OVERLAY)
+		if hex.is_on_fire:
+			draw_colored_polygon(corners, FIRE_OVERLAY)
 
 	var outline = corners.duplicate()
 	outline.append(corners[0])
