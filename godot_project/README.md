@@ -33,10 +33,13 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
 2. Naciśnij **F5** (Run Project) — scena `scenes/main_menu.tscn` jest
    ustawiona jako główna, więc powinna wystartować od razu.
 3. **Ekran główny**: "Nowa gra" (przechodzi do ekranu wyboru miast),
-   "Wczytaj grę" (wyszarzony, dopóki nie ma zapisu na dysku) i "Zakończ
-   grę". Zapis powstaje AUTOMATYCZNIE po każdym "Zakończ rundę" (jeden
-   slot, `user://save.json`) - nie ma osobnego przycisku "Zapisz" w
-   rozgrywce, patrz "Decyzje projektowe" niżej.
+   "Wczytaj grę" (wyszarzony, dopóki nie ma żadnego zapisu na dysku, w
+   przeciwnym razie prowadzi do listy WSZYSTKICH zapisanych rozgrywek -
+   `scenes/load_game_screen.tscn`, patrz "Decyzje projektowe" niżej) i
+   "Zakończ grę". Zapis powstaje AUTOMATYCZNIE po każdym "Zakończ rundę" -
+   każda rozgrywka ma WŁASNY plik (`user://saves/<id>.json`), więc kilka
+   różnych gier można trzymać naraz i wczytać dowolną z listy; nie ma
+   osobnego przycisku "Zapisz" w rozgrywce.
 4. **Ekran wyboru miast** (po "Nowa gra"): checkbox per miasto (wszystkie 6
    z sekcji 7 GDD: Wrocław `H18`, Szczecin `A7`, Warszawa `R12`, Kraków
    `O22`, Gdańsk `L3`, Poznań `G12`, lista współdzielona ze scenę grywalną w
@@ -224,8 +227,10 @@ godot_project/
 │   │                              # losowe" niżej)
 │   ├── game_setup.gd         # GameSetup: wybór miast z ekranu startowego,
 │   │                          # przekazany do game_map_controller.gd
-│   └── save_manager.gd       # SaveManager: zapis/wczytanie gry (JEDEN slot,
-│                              # user://save.json) - patrz "Decyzje projektowe"
+│   └── save_manager.gd       # SaveManager: zapis/wczytanie gry - jeden plik
+│                              # PER ROZGRYWKA (user://saves/<id>.json),
+│                              # list_saves() do ekranu wczytywania - patrz
+│                              # "Decyzje projektowe"
 ├── resources/
 │   ├── hex_data.gd              # class_name HexData (Resource)
 │   ├── building.gd               # class_name Building (Resource)
@@ -251,6 +256,9 @@ godot_project/
 ├── scenes/
 │   ├── main_menu.tscn / main_menu.gd  # ekran główny (main_scene) - Nowa
 │   │                              # gra/Wczytaj grę/Zakończ grę
+│   ├── load_game_screen.tscn / load_game_screen.gd  # lista WSZYSTKICH
+│   │                              # zapisanych rozgrywek (SaveManager.list_saves())
+│   │                              # do wyboru, "Wstecz" wraca do main_menu.tscn
 │   ├── start_screen.tscn / start_screen.gd  # ekran wyboru miast - wybór, ile
 │   │                              # i które miasta grają (checkboxy, min. 2),
 │   │                              # "Wstecz" wraca do main_menu.tscn
@@ -838,6 +846,67 @@ jako heksy typu `city`: Wrocław (`H18`), Szczecin (`A7`), Warszawa (`R12`),
 Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
+
+- **Lista zapisanych gier + stylizacja rozwijanej listy graczy** (na
+  życzenie: "Chcę aby opcja wczytaj grę wyświetlała listę wszystkich gier
+  jakie były grane. Zrób też aby zmiana gracza była w tym samym stylu
+  wizualnym co reszta UI"). Dwie niezależne zmiany:
+
+  **Wiele zapisów zamiast jednego slotu** - `autoloads/save_manager.gd`
+  przepisany z pojedynczego `user://save.json` na jeden PLIK PER ROZGRYWKA
+  w `user://saves/<id>.json`:
+  - `SaveManager.current_save_id` - id AKTUALNIE granej rozgrywki. Nowa gra
+    (`game_map_controller._setup_players()`) woła
+    `SaveManager.new_save_id()` (znacznik czasu Unix + losowy 3-cyfrowy
+    sufiks, wyłącznie cyfry/podkreślnik - bezpieczne jako nazwa pliku na
+    każdej platformie, w odróżnieniu od formatu ISO ze znakami `:`) na
+    starcie, więc każda rozgrywka od razu dostaje własny plik. Wczytana gra
+    NIE przechodzi przez `_setup_players()` - zamiast tego
+    `SaveManager.load_game(save_id)` ustawia `current_save_id` na wczytane
+    id jako efekt uboczny, więc kolejne autosave'y tej (wznowionej) gry
+    nadpisują TEN SAM plik, zamiast zakładać nowy przy każdej rundzie.
+  - Każdy zapis niesie teraz też `meta` (`id`, `saved_at_unix`,
+    `saved_at_display` - sformatowana data lokalna gracza, `round_number`,
+    `player_names`) - osobno od reszty stanu gry (heksy/gracze/jednostki),
+    żeby `SaveManager.list_saves()` mogło zbudować listę do wyświetlenia
+    bez parsowania/interpretowania całego pliku każdej rozgrywki (samo
+    parsowanie JSON jest tanie, ale rozdzielenie "opis zapisu" od "treść
+    zapisu" jest czytelniejsze i gotowe pod ewentualne future
+    optymalizacje, np. gdyby lista zapisów kiedyś urosła na tyle, że
+    warto by czytać tylko nagłówki plików).
+  - Nowy ekran `scenes/load_game_screen.tscn`/`.gd` (ten sam wzorzec co
+    `start_screen.gd` - lista przycisków budowana w kodzie, tu z
+    `SaveManager.list_saves()` zamiast `PlayerSetup.LIST`) pokazuje
+    WSZYSTKIE zapisane rozgrywki jako klikalne wiersze (data, numer rundy,
+    lista miast/graczy), posortowane od najnowszej. Kliknięcie wiersza od
+    razu wczytuje TĘ rozgrywkę i przechodzi do `main.tscn` - dokładnie tak
+    samo jak "Rozpocznij grę" na ekranie wyboru miast. `main_menu.gd`'s
+    "Wczytaj grę" prowadzi teraz tutaj zamiast cicho wczytywać jeden
+    domyślny zapis (nadal wyszarzony, gdy `SaveManager.has_save()` - teraz
+    "czy jest COKOLWIEK w `user://saves/`" - zwraca `false`). Pusta lista
+    (np. katalog zapisów istnieje, ale wszystkie pliki są uszkodzone)
+    pokazuje komunikat "Brak zapisanych gier." zamiast pustego panelu.
+
+  **Rozwijana lista "Zmiana gracza"** - zamknięty stan przycisku
+  (`OptionButton`) już był stylizowany (lokalny override w `main.tscn`,
+  `StyleBoxFlat_selector_normal`/`_hover`), ale sama ROZWIJANA LISTA (okno
+  wyskakujące po kliknięciu) to osobny, wewnętrzny węzeł `PopupMenu`
+  Godota, który czerpie wygląd z typów motywu `Popup`/`PopupMenu`, a nie
+  `OptionButton` - żaden z nich nie miał żadnego wpisu w
+  `theme/ui_theme.tres`, więc lista renderowała się domyślnym, szarym
+  motywem silnika, kontrastując z resztą drewnianego UI. Dodane wpisy:
+  `Popup/styles/panel` (tło samego okienka listy - `panel` to
+  theme_item zdefiniowany na klasie `Popup`, nie `PopupMenu`, ale
+  `PopupMenu` go dziedziczy przez normalne wyszukiwanie motywu po
+  hierarchii klas silnika, więc wystarczy ustawić go raz na `Popup`;
+  celowo re-używa istniejący `StyleBoxFlat_panel`, ten sam co Karta
+  Miasta/Rynek/Drzewko Umiejętności, zamiast nowego zasobu - żeby lista
+  wyglądała jak KAŻDY inny panel w grze, nie jak coś osobnego),
+  `PopupMenu/styles/hover` (nowy `StyleBoxFlat_popupmenu_hover` -
+  te same kolory co podświetlenie zwykłego przycisku, ale mniejszy promień
+  zaokrąglenia i bez obwódki, bo to pojedynczy wiersz listy, nie
+  samodzielny przycisk) i `PopupMenu/colors,fonts` dopasowane do reszty UI
+  (ta sama czcionka/rozmiar/kolory co `Label`/`Button`).
 
 - **Ekran główny (menu) + system zapisu/wczytania gry** (na życzenie: "Chcę
   abyś dodał start screen gdzie będzie opcja - New game, Load game, Exit

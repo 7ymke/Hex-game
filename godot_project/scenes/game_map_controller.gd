@@ -312,6 +312,13 @@ func _ready() -> void:
 ## list (e.g. when running main.tscn directly, skipping the start screen)
 ## means "all of them", as before.
 func _setup_players() -> void:
+	# Nowa rozgrywka dostaje własne, osobne id zapisu (SaveManager) - dzięki
+	# temu kolejne autosave'y (_on_round_ended()) trafiają do WŁASNEGO pliku
+	# tej gry, a nie nadpisują zapis innej, wcześniejszej rozgrywki. Wczytana
+	# gra NIE przechodzi przez tę funkcję (patrz _load_saved_game()) -
+	# current_save_id ustawia wtedy SaveManager.load_game() samo.
+	SaveManager.current_save_id = SaveManager.new_save_id()
+
 	var existing_unit: Unit = $Unit
 	var existing_unit_used = false
 	var allowed_ids: Array = GameSetup.selected_player_ids

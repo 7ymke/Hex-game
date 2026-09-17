@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=11 format=3 uid="uid://cuithemeui01"]
+[gd_resource type="Theme" load_steps=12 format=3 uid="uid://cuithemeui01"]
 
 [ext_resource type="FontFile" path="res://assets/fonts/Nunito-Variable.ttf" id="1"]
 
@@ -106,6 +106,17 @@ corner_radius_bottom_left = 3
 content_margin_left = 3.0
 content_margin_right = 3.0
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_popupmenu_hover"]
+bg_color = Color(0.615686, 0.415686, 0.239216, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+
 [resource]
 default_font = SubResource("FontVariation_nunito_600")
 default_font_size = 14
@@ -132,6 +143,13 @@ OptionButton/styles/disabled = SubResource("StyleBoxFlat_button_disabled")
 OptionButton/colors/font_color = Color(1, 0.952941, 0.866667, 1)
 OptionButton/fonts/font = SubResource("FontVariation_nunito_700")
 OptionButton/font_sizes/font_size = 14
+Popup/styles/panel = SubResource("StyleBoxFlat_panel")
+PopupMenu/styles/hover = SubResource("StyleBoxFlat_popupmenu_hover")
+PopupMenu/colors/font_color = Color(1, 0.952941, 0.866667, 1)
+PopupMenu/colors/font_hover_color = Color(1, 0.839216, 0.360784, 1)
+PopupMenu/colors/font_disabled_color = Color(0.890196, 0.803922, 0.658824, 0.6)
+PopupMenu/fonts/font = SubResource("FontVariation_nunito_600")
+PopupMenu/font_sizes/font_size = 14
 VScrollBar/styles/scroll = SubResource("StyleBoxFlat_scroll")
 VScrollBar/styles/scroll_focus = SubResource("StyleBoxFlat_scroll")
 VScrollBar/styles/grabber = SubResource("StyleBoxFlat_grabber")

@@ -4,10 +4,12 @@ extends Control
 ## gry (project.godot -> main_scene), przed scenes/start_screen.tscn
 ## (wybór miast).
 ##
-## "Wczytaj grę" jest wyszarzony, jeśli nie ma zapisu (SaveManager.has_save())
-## - wczytane dane trafiają do SaveManager.pending_load_data, tak samo jak
-## start_screen.gd przekazuje wybór miast przez GameSetup.selected_player_ids
-## (zwykłe węzły sceny nie przeżywają change_scene_to_file()).
+## "Wczytaj grę" jest wyszarzony, jeśli nie ma żadnego zapisu
+## (SaveManager.has_save()) - w przeciwnym razie prowadzi do
+## scenes/load_game_screen.tscn, gdzie widać listę WSZYSTKICH zapisanych
+## rozgrywek do wyboru (na życzenie: "Chcę aby opcja wczytaj grę
+## wyświetlała listę wszystkich gier jakie były grane"), zamiast cicho
+## wczytywać jeden domyślny zapis.
 
 @onready var new_game_button: Button = $CenterContainer/Panel/VBox/NewGameButton
 @onready var load_game_button: Button = $CenterContainer/Panel/VBox/LoadGameButton
@@ -26,11 +28,7 @@ func _on_new_game_pressed() -> void:
 
 
 func _on_load_game_pressed() -> void:
-	var data = SaveManager.load_game()
-	if data.is_empty():
-		return  # zapis uszkodzony/zniknął - przycisk i tak zostanie wyszarzony po odświeżeniu
-	SaveManager.pending_load_data = data
-	get_tree().change_scene_to_file("res://scenes/main.tscn")
+	get_tree().change_scene_to_file("res://scenes/load_game_screen.tscn")
 
 
 func _on_exit_pressed() -> void:
