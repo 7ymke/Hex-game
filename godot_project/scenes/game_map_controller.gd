@@ -451,6 +451,7 @@ func _on_player_turn_started(player_id: int) -> void:
 	_refresh_action_panel()
 	_refresh_route_panel()
 	_refresh_buildings_preview()
+	_maybe_popup_notifications()
 
 
 ## After a round is resolved, fresh movement points let all confirmed but
@@ -472,6 +473,7 @@ func _on_round_ended(round_number: int) -> void:
 	await _continue_all_queued_routes()
 	_refresh_map_view()
 	_refresh_action_panel()
+	_maybe_popup_notifications()
 	_refresh_route_panel()
 
 
@@ -1167,17 +1169,30 @@ func _on_extinguish_fire_pressed() -> void:
 ## osobnym modalu CityCardPanel, otwieranym przyciskiem 🏛) - ten modal
 ## zniknął. Kropka z literką "i" (`info_button`) otwiera teraz
 ## `notifications_panel` zamiast Karty Miasta - na razie jedynym źródłem
-## informacji w nim są losowe wydarzenia (RandomEventManager).
+## informacji w nim są losowe wydarzenia (RandomEventManager), pokazywane
+## TYLKO temu graczowi, którego dotyczą (albo wszystkim - patrz
+## RandomEventManager).
 
 func _on_info_button_pressed() -> void:
-	notifications_panel.open_panel()
+	notifications_panel.open_panel(active_player.player_id)
 	_update_info_badge()
 
 
 func _update_info_badge() -> void:
-	var count = RandomEventManager.unread_count
+	var count = RandomEventManager.get_unread_count_for_player(active_player.player_id)
 	info_unread_badge.visible = count > 0
 	info_unread_badge_label.text = str(count) if count <= 9 else "9+"
+
+
+## Wołane po zakończeniu rundy i po zmianie aktywnego gracza - jeśli jakieś
+## wydarzenie dotyczy TERAZ aktywnego gracza, panel powiadomień otwiera się
+## sam, zamiast czekać, aż gracz zauważy licznik i kliknie "i" ("Po
+## kliknięciu Zakończ rundę lub zmianie gracza powinno wyskakiwać okienko
+## jeśli jakiś event cie dotyczy").
+func _maybe_popup_notifications() -> void:
+	_update_info_badge()
+	if RandomEventManager.get_unread_count_for_player(active_player.player_id) > 0:
+		_on_info_button_pressed()
 
 
 func _refresh_buildings_preview() -> void:

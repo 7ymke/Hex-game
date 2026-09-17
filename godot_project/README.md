@@ -485,12 +485,16 @@ wymagały własnej interpretacji, są w sekcji "Decyzje projektowe" niżej):
 kropka z literką "i" w pasku bocznym (`InfoIconButton`, dawniej 🏛
 otwierająca Kartę Miasta) otwiera `NotificationsPanel` (ten sam wzorzec co
 Panel Rynku/Karta Miasta - samodzielny `CanvasLayer`), pokazujący
-przewijaną, jedną wspólną listę wpisów (na razie WYŁĄCZNIE wydarzenia
-losowe - `RandomEventManager.notifications`, najnowsze na górze). Liczba
-NIEPRZECZYTANYCH wpisów pokazuje się jako mały czerwony "badge" w prawym
-górnym rogu kropki "i" (`UnreadBadge`, ukryty gdy licznik = 0, ograniczony
-do "9+" zamiast rosnąć w nieskończoność) - otwarcie panelu oznacza
-wszystko jako przeczytane (`RandomEventManager.mark_all_read()`).
+przewijaną listę wpisów (na razie WYŁĄCZNIE wydarzenia losowe, najnowsze
+na górze) - ale TYLKO tych, które dotyczą AKTUALNIE AKTYWNEGO gracza
+(jego własne wydarzenia + te dla wszystkich, patrz "Powiadomienia per
+gracz" w "Decyzje projektowe" niżej). Liczba NIEPRZECZYTANYCH (dla tego
+gracza) wpisów pokazuje się jako mały czerwony "badge" w prawym górnym
+rogu kropki "i" (`UnreadBadge`, ukryty gdy licznik = 0, ograniczony do
+"9+" zamiast rosnąć w nieskończoność) - otwarcie panelu oznacza wszystko
+jako przeczytane DLA TEGO GRACZA. Panel otwiera się też SAM (bez
+klikania "i"), jeśli po zakończeniu rundy albo zmianie aktywnego gracza
+okaże się, że ten gracz ma coś nieprzeczytanego.
 
 **Budynki Karty Miasta kupowane teraz WPROST w pasku bocznym** - skoro
 kropka "i" przestała otwierać Kartę Miasta, `CityCardPanel` (osobny modal
@@ -809,6 +813,42 @@ jako heksy typu `city`: Wrocław (`H18`), Szczecin (`A7`), Warszawa (`R12`),
 Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
+
+- **Powiadomienia per gracz + automatyczne otwarcie panelu** (na życzenie:
+  "Informacje powinny pokazywać się tylko graczowi którego dotyczą - lub
+  wszystkim jeśli dotyczą wszyskich. Po kliknięciu Zakończ rundę lub
+  zmianie gracza powinno wyskakiwać okienko jeśli jakiś event cie
+  dotyczy"). Poprzednia wersja panelu powiadomień miała jedną globalną
+  listę i jeden globalny licznik nieprzeczytanych - każdy gracz widział
+  KAŻDE wydarzenie (łącznie z np. Dotacją, którą dostał ktoś inny), a
+  otwarcie panelu przez jednego gracza chowało licznik wszystkim.
+  - `RandomEventManager.notifications` - każdy wpis niesie teraz
+    `player_id`: konkretnego gracza dla wydarzeń "tylko dla 1 gracza",
+    albo nową stałą `ALL_PLAYERS` (`-1`) dla Łagodnej zimy/Inspekcji
+    środowiskowej/Market Crash (te same trzy, które już wcześniej były
+    oznaczone jako "dla wszystkich" w liście z życzenia). Wiadomości o
+    dopalaniu się/rozprzestrzenianiu pożaru (`_process_burning_fires()`)
+    też dostały `player_id` - właściciela heksa, którego dotyczą (przy
+    rozprzestrzenieniu na teren innego gracza: właściciel ŹRÓDŁA, ten
+    drugi i tak dowie się, gdy jego własny heks zacznie tracić zasób).
+  - "Nieprzeczytane" liczy się PER GRACZ (`_last_seen_index: Dictionary`,
+    player_id -> ile pierwszych wpisów globalnej listy dany gracz już
+    widział) zamiast jednym globalnym licznikiem - odczyt przez gracza A
+    nie rusza stanu gracza B. `NotificationsPanel.open_panel()` przyjmuje
+    teraz `player_id` i filtruje wyświetlaną listę
+    (`RandomEventManager.get_notifications_for_player()`) do wpisów
+    dotyczących TEGO gracza (własne + ALL_PLAYERS) - `game_map_controller.gd`
+    przekazuje `active_player.player_id` zarówno przy ręcznym kliknięciu
+    "i", jak i przy automatycznym otwarciu.
+  - **Automatyczne wyskakiwanie panelu**: nowa
+    `_maybe_popup_notifications()` w `game_map_controller.gd`, wołana na
+    końcu `_on_round_ended()` (po "Zakończ rundę") i `_on_player_turn_started()`
+    (po zmianie aktywnego gracza, w tym przy starcie gry - wtedy licznik
+    jest zerowy, więc nic się nie otwiera) - sprawdza, czy TERAZ aktywny
+    gracz ma choć jedno nieprzeczytane powiadomienie i jeśli tak, otwiera
+    panel dokładnie tą samą ścieżką co ręczne kliknięcie "i"
+    (`_on_info_button_pressed()`), więc oznaczenie-jako-przeczytane i
+    odświeżenie licznika działają identycznie w obu przypadkach.
 
 - **Losowe wydarzenia + panel powiadomień + budynki kupowane w pasku
   bocznym** (na życzenie: "Chcę abyś dodał random event który wydaża się

@@ -25,8 +25,25 @@ extends Node
 ## najbliższą rundę zimową (nawet jeśli wypadnie latem) i wtedy się zużywa
 ## raz (`consume_mild_winter()`), więc zawsze coś realnie zmienia, niezależnie
 ## od tego, w której rundzie akurat wypadnie.
+##
+## Powiadomienia są SKOPOWANE do gracza, którego dotyczy dane wydarzenie
+## ("Informacje powinny pokazywać się tylko graczowi którego dotyczą - lub
+## wszystkim jeśli dotyczą wszystkich") - każdy wpis w `notifications` niesie
+## `player_id` (konkretny gracz dla wydarzeń "tylko dla 1 gracza") albo
+## `ALL_PLAYERS` (Łagodna zima/Inspekcja środowiskowa/Market Crash - patrz
+## `_log()`). "Nieprzeczytane" liczy się PER GRACZ (`_last_seen_index`) - nie
+## ma jednego globalnego licznika, więc odczyt przez gracza A nie chowa
+## powiadomień gracza B ani nie zalicza mu jako przeczytane niczego, co go
+## nie dotyczy.
 
 signal notification_added
+
+## Sentinel dla `notifications[i]["player_id"]` - wydarzenie dotyczące
+## WSZYSTKICH graczy (Łagodna zima, Inspekcja środowiskowa, Market Crash),
+## w odróżnieniu od wydarzeń "tylko dla 1 gracza" (reszta listy), które
+## zapisują konkretne `player_id`. ("Informacje powinny pokazywać się tylko
+## graczowi którego dotyczą - lub wszystkim jeśli dotyczą wszystkich.")
+const ALL_PLAYERS = -1
 
 ## Kolejność = kolejność w liście z życzenia użytkownika (żywioł/pogoda,
 ## gospodarka, kontrola, rzadkie/specjalne).
@@ -57,10 +74,18 @@ const MINING_RESOURCE_TYPES = [
 ## dokładnie zera).
 const FIRE_BURNOUT_THRESHOLD = 5.0
 
-## Każdy wpis: {"round": int, "message": String}, od najstarszego. UI
-## (panel powiadomień) pokazuje je od najnowszego - patrz notifications_panel.gd.
+## Każdy wpis: {"round": int, "message": String, "player_id": int - konkretny
+## gracz albo ALL_PLAYERS}, od najstarszego. UI (panel powiadomień) pokazuje
+## je od najnowszego - patrz notifications_panel.gd.
 var notifications: Array[Dictionary] = []
-var unread_count: int = 0
+
+## player_id(int) -> ile pierwszych wpisów `notifications` ten gracz już
+## widział (nie licznik "ile nieprzeczytanych", tylko indeks odcięcia - stąd
+## "nieprzeczytane dla gracza X" to wpisy notifications[seen:] przefiltrowane
+## do tych, które go dotyczą, patrz `get_unread_for_player()`). Otwarcie
+## panelu przez danego gracza przesuwa odcięcie do bieżącej długości listy -
+## nie ma osobnego śledzenia "przeczytane/nieprzeczytane" per wpis.
+var _last_seen_index: Dictionary = {}
 
 ## player_id(int) -> ostatnia runda (włącznie), w której efekt jeszcze trwa.
 var _pest_plague_until_round: Dictionary = {}
@@ -87,13 +112,36 @@ func process_round_end() -> void:
 		_roll_event()
 
 
-func mark_all_read() -> void:
-	unread_count = 0
+## All notifications concerning `player_id` (its own, plus every ALL_PLAYERS
+## one), oldest first.
+func get_notifications_for_player(player_id: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for entry in notifications:
+		if entry["player_id"] == ALL_PLAYERS or entry["player_id"] == player_id:
+			result.append(entry)
+	return result
 
 
-func _log(message: String) -> void:
-	notifications.append({"round": TurnManager.round_number, "message": message})
-	unread_count += 1
+func get_unread_for_player(player_id: int) -> Array[Dictionary]:
+	var seen: int = _last_seen_index.get(player_id, 0)
+	var result: Array[Dictionary] = []
+	for i in range(seen, notifications.size()):
+		var entry = notifications[i]
+		if entry["player_id"] == ALL_PLAYERS or entry["player_id"] == player_id:
+			result.append(entry)
+	return result
+
+
+func get_unread_count_for_player(player_id: int) -> int:
+	return get_unread_for_player(player_id).size()
+
+
+func mark_read_for_player(player_id: int) -> void:
+	_last_seen_index[player_id] = notifications.size()
+
+
+func _log(message: String, player_id: int = ALL_PLAYERS) -> void:
+	notifications.append({"round": TurnManager.round_number, "message": message, "player_id": player_id})
 	notification_added.emit()
 
 
@@ -108,14 +156,17 @@ func _process_burning_fires() -> void:
 		hex.resource_level *= (1.0 - GameBalance.FOREST_FIRE_DECAY_RATIO)
 		if hex.resource_level < FIRE_BURNOUT_THRESHOLD:
 			hex.is_on_fire = false
-			_log("🔥 Pożar lasu na polu %s wypalił się doszczętnie." % hex.hex_id)
+			_log("🔥 Pożar lasu na polu %s wypalił się doszczętnie." % hex.hex_id, hex.owner_id)
 			continue
 
 		if randf() < GameBalance.FOREST_FIRE_SPREAD_CHANCE:
 			var spread_target = _pick_spread_target(hex.hex_id)
 			if spread_target != null:
 				newly_ignited.append(spread_target)
-				_log("🔥 Pożar rozprzestrzenił się z pola %s na %s!" % [hex.hex_id, spread_target.hex_id])
+				# Dotyczy właściciela ŹRÓDŁA (heksa, który już płonął) - jeśli
+				# ogień akurat przeskoczył na teren innego gracza, ten drugi
+				# i tak dowie się, gdy ten heks sam zacznie tracić zasób.
+				_log("🔥 Pożar rozprzestrzenił się z pola %s na %s!" % [hex.hex_id, spread_target.hex_id], hex.owner_id)
 
 	# Zapalane DOPIERO po pętli, żeby nowo zapalony heks nie dostał od razu
 	# tej samej rundy dodatkowego, "darmowego" tiku spadku (kolejność
@@ -228,7 +279,8 @@ func _apply_forest_fire() -> void:
 		"🔥 Pożar lasu wybuchł na polu %s gracza %s! Las traci %.0f%% drzew z każdą rundą, dopóki się nie wypali albo nie zostanie ugaszony (przycisk w pasku bocznym, koszt %.0f pieniędzy, %.0f%% szansy powodzenia)." % [
 			hex.hex_id, player.player_name, GameBalance.FOREST_FIRE_DECAY_RATIO * 100.0,
 			GameBalance.FOREST_FIRE_EXTINGUISH_COST, GameBalance.FOREST_FIRE_EXTINGUISH_CHANCE * 100.0,
-		]
+		],
+		player.player_id
 	)
 
 
@@ -239,7 +291,8 @@ func _apply_mining_damage() -> void:
 	_log(
 		"⛏️ Szkody górnicze uszkodziły budynek \"%s\" (%s) gracza %s - przestał produkować. Napraw go przyciskiem w pasku bocznym." % [
 			hex.building.building_name, hex.hex_id, player.player_name,
-		]
+		],
+		player.player_id
 	)
 
 
@@ -255,7 +308,8 @@ func _apply_pest_plague() -> void:
 	_log(
 		"🐛 Plaga szkodników uderzyła w pola gracza %s - żywność nie urośnie przez %d rundy (do rundy %d włącznie)." % [
 			player.player_name, GameBalance.PEST_PLAGUE_ROUNDS, until_round,
-		]
+		],
+		player.player_id
 	)
 
 
@@ -263,7 +317,7 @@ func _apply_grant(players: Array) -> void:
 	var player: PlayerData = players.pick_random()
 	var amount = randf_range(GameBalance.GRANT_MONEY_MIN, GameBalance.GRANT_MONEY_MAX)
 	player.add_money(amount)
-	_log("💶 Dotacja unijna! Gracz %s otrzymał %.0f pieniędzy." % [player.player_name, amount])
+	_log("💶 Dotacja unijna! Gracz %s otrzymał %.0f pieniędzy." % [player.player_name, amount], player.player_id)
 
 
 func _apply_mining_strike() -> void:
@@ -273,7 +327,8 @@ func _apply_mining_strike() -> void:
 	_log(
 		"⚒️ Strajk górniczy u gracza %s - kopalnie i gazoporty nie produkują przez %d rundy (do rundy %d włącznie)." % [
 			player.player_name, GameBalance.MINING_STRIKE_ROUNDS, until_round,
-		]
+		],
+		player.player_id
 	)
 
 
@@ -284,7 +339,8 @@ func _apply_record_harvest() -> void:
 	_log(
 		"🌾 Rekordowe żniwa stulecia u gracza %s - produkcja żywności x%.0f przez %d rund (do rundy %d włącznie)." % [
 			player.player_name, GameBalance.RECORD_HARVEST_MULTIPLIER, GameBalance.RECORD_HARVEST_ROUNDS, until_round,
-		]
+		],
+		player.player_id
 	)
 
 
@@ -321,7 +377,8 @@ func _apply_tourism_boom(players: Array) -> void:
 	_log(
 		"🏰 Turystyczny boom u gracza %s - +%.0f pieniędzy, +%d prestiżu." % [
 			player.player_name, money, prestige,
-		]
+		],
+		player.player_id
 	)
 
 
