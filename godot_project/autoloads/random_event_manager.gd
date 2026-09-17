@@ -8,13 +8,24 @@ extends Node
 ## od razu wraca, jeśli wyłączone, więc `TurnManager` może wołać ją bezwarunkowo
 ## co rundę bez własnej kopii tego samego warunku.
 ##
-## Każde wydarzenie jest losowane TYLKO spośród aktualnie SENSOWNYCH opcji
-## (np. "Pożar lasu" nigdy nie wypadnie, jeśli akurat żaden gracz nie
-## posiada niepłonącego pola lasu) - zamiast wydarzenia, które i tak nic by
-## nie zrobiło, patrz `_roll_event()`. Jedyny wyjątek to "Inspekcja
-## środowiskowa", zawsze dostępna - jej efekt to "brak naruszeń", jeśli akurat
-## nikt nie nadużywa środowiska, co samo w sobie jest sensowną, czytelną
-## informacją (patrz `_is_player_abusing_environment()`).
+## Losowanie samo jest dwuetapowe ("Chcę aby system losowania eventówy był
+## trochę zmieniony"): (1) najpierw losuje KATEGORIĘ -
+## `GameBalance.RANDOM_EVENT_SINGLE_PLAYER_CHANCE` szansy, że to będzie
+## wydarzenie "dla 1 gracza", inaczej "dla wszystkich". (2a) "dla
+## wszystkich" -> losuje JEDNO z trzech takich wydarzeń (Łagodna zima/
+## Inspekcja środowiskowa/Market Crash) i stosuje raz. (2b) "dla 1 gracza"
+## -> losuje ILU graczy (1 do liczby graczy w grze) dostanie w tej samej
+## turze WŁASNE wydarzenie, wybiera tylu różnych graczy, i dla KAŻDEGO z
+## osobna losuje NIEZALEŻNIE jego konkretne wydarzenie (spośród tych, na
+## które akurat kwalifikuje się WŁAŚNIE TEN gracz - np. Pożar lasu tylko z
+## niepłonącym lasem) - więc w jednej turze może naraz wypaść kilku różnych
+## graczy z różnymi wydarzeniami. Każde wydarzenie jest losowane TYLKO
+## spośród aktualnie SENSOWNYCH opcji dla danego gracza (zamiast wydarzenia,
+## które i tak nic by nie zrobiło) - patrz `_eligible_single_player_events()`.
+## Jedyny wyjątek to "Inspekcja środowiskowa", zawsze dostępna - jej efekt to
+## "brak naruszeń", jeśli akurat nikt nie nadużywa środowiska, co samo w
+## sobie jest sensowną, czytelną informacją (patrz
+## `_is_player_abusing_environment()`).
 ##
 ## Wydarzenia trwające kilka rund (Strajk górniczy, Plaga szkodników,
 ## Rekordowe żniwa) są przechowywane jako "aktywne DO rundy X" (nie jako
@@ -226,53 +237,87 @@ func is_mining_disabled(player_id: int) -> bool:
 
 ## --- Losowanie wydarzeń -----------------------------------------------------
 
+## Wydarzenia "dla wszystkich" - dokładnie jedno z nich stosowane naraz.
+## (Wydarzenia "tylko dla 1 gracza" nie mają odpowiednika tej stałej - która
+## z nich są dostępne zależy od KAŻDEGO wylosowanego gracza z osobna, patrz
+## `_eligible_single_player_events()`.)
+const ALL_PLAYERS_EVENTS: Array[EventId] = [
+	EventId.MILD_WINTER, EventId.ENVIRONMENTAL_INSPECTION, EventId.MARKET_CRASH,
+]
+
+
 func _roll_event() -> void:
 	var players: Array = GameManager.players.values()
 	if players.is_empty():
 		return
 
-	var eligible: Array[int] = [
-		EventId.MILD_WINTER, EventId.GRANT, EventId.ENVIRONMENTAL_INSPECTION,
-		EventId.TOURISM_BOOM, EventId.MARKET_CRASH,
-	]
-	if not _players_with_undamaged_mining().is_empty():
-		eligible.append(EventId.MINING_DAMAGE)
-		eligible.append(EventId.MINING_STRIKE)
-	if not _players_with_unburning_forest().is_empty():
-		eligible.append(EventId.FOREST_FIRE)
-	if not _players_with_agriculture().is_empty():
-		eligible.append(EventId.PEST_PLAGUE)
-		eligible.append(EventId.RECORD_HARVEST)
-
-	_apply_event(eligible[randi() % eligible.size()], players)
+	if randf() < GameBalance.RANDOM_EVENT_SINGLE_PLAYER_CHANCE:
+		_roll_single_player_events(players)
+	else:
+		_apply_all_players_event(ALL_PLAYERS_EVENTS[randi() % ALL_PLAYERS_EVENTS.size()])
 
 
-func _apply_event(event_id: EventId, players: Array) -> void:
+## Losuje ILU graczy (1..liczba graczy) dostanie własne wydarzenie w tej
+## samej turze, wybiera tylu RÓŻNYCH graczy (każdy co najwyżej raz), i dla
+## KAŻDEGO z osobna losuje NIEZALEŻNIE jego konkretne wydarzenie spośród
+## tych, na które akurat kwalifikuje się WŁAŚNIE TEN gracz - GRANT/
+## TOURISM_BOOM nie mają żadnych wymagań, więc `_eligible_single_player_events()`
+## nigdy nie zwraca pustej listy.
+func _roll_single_player_events(players: Array) -> void:
+	var shuffled = players.duplicate()
+	shuffled.shuffle()
+	var count = randi_range(1, shuffled.size())
+
+	for i in range(count):
+		var player: PlayerData = shuffled[i]
+		var eligible = _eligible_single_player_events(player)
+		if eligible.is_empty():
+			continue
+		_apply_single_player_event(eligible[randi() % eligible.size()], player)
+
+
+func _eligible_single_player_events(player: PlayerData) -> Array[EventId]:
+	var result: Array[EventId] = [EventId.GRANT, EventId.TOURISM_BOOM]
+	if _pick_unburning_forest_hex(player.player_id) != null:
+		result.append(EventId.FOREST_FIRE)
+	if _pick_undamaged_mining_hex(player.player_id) != null:
+		result.append(EventId.MINING_DAMAGE)
+		result.append(EventId.MINING_STRIKE)
+	if _player_has_agriculture(player.player_id):
+		result.append(EventId.PEST_PLAGUE)
+		result.append(EventId.RECORD_HARVEST)
+	return result
+
+
+func _apply_single_player_event(event_id: EventId, player: PlayerData) -> void:
 	match event_id:
 		EventId.FOREST_FIRE:
-			_apply_forest_fire()
+			_apply_forest_fire(player)
 		EventId.MINING_DAMAGE:
-			_apply_mining_damage()
+			_apply_mining_damage(player)
+		EventId.PEST_PLAGUE:
+			_apply_pest_plague(player)
+		EventId.GRANT:
+			_apply_grant(player)
+		EventId.MINING_STRIKE:
+			_apply_mining_strike(player)
+		EventId.RECORD_HARVEST:
+			_apply_record_harvest(player)
+		EventId.TOURISM_BOOM:
+			_apply_tourism_boom(player)
+
+
+func _apply_all_players_event(event_id: EventId) -> void:
+	match event_id:
 		EventId.MILD_WINTER:
 			_apply_mild_winter()
-		EventId.PEST_PLAGUE:
-			_apply_pest_plague()
-		EventId.GRANT:
-			_apply_grant(players)
-		EventId.MINING_STRIKE:
-			_apply_mining_strike()
-		EventId.RECORD_HARVEST:
-			_apply_record_harvest()
 		EventId.ENVIRONMENTAL_INSPECTION:
 			_apply_environmental_inspection()
-		EventId.TOURISM_BOOM:
-			_apply_tourism_boom(players)
 		EventId.MARKET_CRASH:
 			_apply_market_crash()
 
 
-func _apply_forest_fire() -> void:
-	var player: PlayerData = _players_with_unburning_forest().pick_random()
+func _apply_forest_fire(player: PlayerData) -> void:
 	var hex = _pick_unburning_forest_hex(player.player_id)
 	hex.is_on_fire = true
 	_log(
@@ -284,8 +329,7 @@ func _apply_forest_fire() -> void:
 	)
 
 
-func _apply_mining_damage() -> void:
-	var player: PlayerData = _players_with_undamaged_mining().pick_random()
+func _apply_mining_damage(player: PlayerData) -> void:
 	var hex = _pick_undamaged_mining_hex(player.player_id)
 	hex.building_damaged = true
 	_log(
@@ -301,8 +345,7 @@ func _apply_mild_winter() -> void:
 	_log("❄️ Łagodna zima! Plony będą rosnąć normalnie mimo zimy - premia zadziała przy najbliższej zimowej rundzie.")
 
 
-func _apply_pest_plague() -> void:
-	var player: PlayerData = _players_with_agriculture().pick_random()
+func _apply_pest_plague(player: PlayerData) -> void:
 	var until_round = TurnManager.round_number + GameBalance.PEST_PLAGUE_ROUNDS - 1
 	_pest_plague_until_round[player.player_id] = until_round
 	_log(
@@ -313,15 +356,13 @@ func _apply_pest_plague() -> void:
 	)
 
 
-func _apply_grant(players: Array) -> void:
-	var player: PlayerData = players.pick_random()
+func _apply_grant(player: PlayerData) -> void:
 	var amount = randf_range(GameBalance.GRANT_MONEY_MIN, GameBalance.GRANT_MONEY_MAX)
 	player.add_money(amount)
 	_log("💶 Dotacja unijna! Gracz %s otrzymał %.0f pieniędzy." % [player.player_name, amount], player.player_id)
 
 
-func _apply_mining_strike() -> void:
-	var player: PlayerData = _players_with_undamaged_mining().pick_random()
+func _apply_mining_strike(player: PlayerData) -> void:
 	var until_round = TurnManager.round_number + GameBalance.MINING_STRIKE_ROUNDS - 1
 	_mining_strike_until_round[player.player_id] = until_round
 	_log(
@@ -332,8 +373,7 @@ func _apply_mining_strike() -> void:
 	)
 
 
-func _apply_record_harvest() -> void:
-	var player: PlayerData = _players_with_agriculture().pick_random()
+func _apply_record_harvest(player: PlayerData) -> void:
 	var until_round = TurnManager.round_number + GameBalance.RECORD_HARVEST_ROUNDS - 1
 	_record_harvest_until_round[player.player_id] = until_round
 	_log(
@@ -368,8 +408,7 @@ func _apply_environmental_inspection() -> void:
 ## Gra nie modeluje osobnych "miejsc turystycznych" jako własnego typu
 ## heksa/budynku (patrz GameBalance) - stąd płaska, losowa premia zamiast
 ## czegoś skalowanego z konkretnych pól.
-func _apply_tourism_boom(players: Array) -> void:
-	var player: PlayerData = players.pick_random()
+func _apply_tourism_boom(player: PlayerData) -> void:
 	var money = randf_range(GameBalance.TOURISM_BOOM_MONEY_MIN, GameBalance.TOURISM_BOOM_MONEY_MAX)
 	var prestige = randi_range(GameBalance.TOURISM_BOOM_PRESTIGE_MIN, GameBalance.TOURISM_BOOM_PRESTIGE_MAX)
 	player.add_money(money)
@@ -423,14 +462,6 @@ func _pick_unburning_forest_hex(player_id: int) -> HexData:
 	return candidates[randi() % candidates.size()]
 
 
-func _players_with_unburning_forest() -> Array[PlayerData]:
-	var result: Array[PlayerData] = []
-	for player: PlayerData in GameManager.players.values():
-		if _pick_unburning_forest_hex(player.player_id) != null:
-			result.append(player)
-	return result
-
-
 func _pick_undamaged_mining_hex(player_id: int) -> HexData:
 	var candidates: Array[HexData] = []
 	for hex: HexData in MapData.hexes.values():
@@ -444,19 +475,8 @@ func _pick_undamaged_mining_hex(player_id: int) -> HexData:
 	return candidates[randi() % candidates.size()]
 
 
-func _players_with_undamaged_mining() -> Array[PlayerData]:
-	var result: Array[PlayerData] = []
-	for player: PlayerData in GameManager.players.values():
-		if _pick_undamaged_mining_hex(player.player_id) != null:
-			result.append(player)
-	return result
-
-
-func _players_with_agriculture() -> Array[PlayerData]:
-	var result: Array[PlayerData] = []
-	for player: PlayerData in GameManager.players.values():
-		for hex: HexData in MapData.hexes.values():
-			if hex.owner_id == player.player_id and hex.is_agricultural():
-				result.append(player)
-				break
-	return result
+func _player_has_agriculture(player_id: int) -> bool:
+	for hex: HexData in MapData.hexes.values():
+		if hex.owner_id == player_id and hex.is_agricultural():
+			return true
+	return false

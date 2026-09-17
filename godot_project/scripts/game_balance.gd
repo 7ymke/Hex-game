@@ -121,6 +121,12 @@ const RANDOM_EVENT_GUARANTEED_INTERVAL = 5
 ## jedno wydarzenie w tej samej rundzie).
 const RANDOM_EVENT_EXTRA_CHANCE = 0.05
 
+## Za każdym razem, gdy wydarzenie akurat ma wypaść, ta szansa decyduje, czy
+## będzie to KATEGORIA "dla 1 gracza" (i wtedy osobno losuje się, ilu graczy
+## dostanie po własnym wydarzeniu - patrz RandomEventManager._roll_event())
+## czy "dla wszystkich" (wtedy losuje się jedno z trzech takich wydarzeń).
+const RANDOM_EVENT_SINGLE_PLAYER_CHANCE = 0.5
+
 ## Pożar lasu - ile % SWOJEGO AKTUALNEGO poziomu zasobu (nie 100%) płonący
 ## las traci każdą rundę, dopóki się nie wypali albo nie zostanie ugaszony.
 const FOREST_FIRE_DECAY_RATIO = 0.25

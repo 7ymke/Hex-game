@@ -427,8 +427,18 @@ BIEŻĄCEJ rundy, nie dopiero następnej.
   niezależna `GameBalance.RANDOM_EVENT_EXTRA_CHANCE` (5%) szansa sprawdzana
   w KAŻDEJ rundzie (także tej z gwarantowanym wydarzeniem - może więc
   wypaść więcej niż jedno wydarzenie naraz).
+- **Losowanie samo jest DWUETAPOWE** (na życzenie: "Chcę aby system
+  losowania eventówy był trochę zmieniony", patrz "Decyzje projektowe"
+  niżej po pełny opis): (1) najpierw KATEGORIA -
+  `GameBalance.RANDOM_EVENT_SINGLE_PLAYER_CHANCE` (50%) szansy na "dla 1
+  gracza", inaczej "dla wszystkich"; (2a) "dla wszystkich" - losuje JEDNO
+  z trzech takich wydarzeń; (2b) "dla 1 gracza" - osobno losuje, ILU
+  graczy (1 do liczby graczy w grze) dostanie w tej samej turze WŁASNE
+  wydarzenie, i dla KAŻDEGO z osobna losuje NIEZALEŻNIE jego konkretne
+  wydarzenie - może więc naraz wypaść kilku różnych graczy z różnymi
+  wydarzeniami.
 - **Każde wydarzenie losowane TYLKO spośród aktualnie sensownych opcji** -
-  np. "Pożar lasu" nigdy nie wypadnie, jeśli akurat żaden gracz nie
+  np. "Pożar lasu" nigdy nie wypadnie danemu graczowi, jeśli akurat nie
   posiada niepłonącego pola lasu, zamiast wylosować wydarzenie, które by
   nic nie zrobiło. Jedyny wyjątek: "Inspekcja środowiskowa" jest zawsze
   dostępna - "brak naruszeń" to sama w sobie sensowna informacja.
@@ -813,6 +823,57 @@ jako heksy typu `city`: Wrocław (`H18`), Szczecin (`A7`), Warszawa (`R12`),
 Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
+
+- **Dwuetapowe losowanie wydarzeń** (na życzenie: "Chcę aby system
+  losowania eventówy był trochę zmieniony: 1) Najpierw losuje czy będzie
+  to event dla 1 gracza 2) Jeśli jest to event dla 1 gracza to gra losuje
+  ile graczy dostanie różne eventy dla 1 gracza. 3) Jeśli jest to event
+  dla wszystkich to gra losuje 1 event dla wszystkich"). Poprzednia wersja
+  `_roll_event()` po prostu losowała JEDNO wydarzenie z płaskiej puli
+  wszystkich 10 (przefiltrowanej do sensownych), niezależnie od kategorii
+  "dla 1"/"dla wszystkich". `autoloads/random_event_manager.gd` przepisany
+  dokładnie wg trzech punktów z życzenia:
+  1. `_roll_event()` najpierw losuje kategorię - nowa
+     `GameBalance.RANDOM_EVENT_SINGLE_PLAYER_CHANCE` (50%, wartość nigdzie
+     nie podana w życzeniu, więc domyślny "uczciwy" podział 50/50, łatwy
+     do przestrojenia).
+  2. Gałąź "dla 1 gracza" (`_roll_single_player_events()`) losuje `count =
+     randi_range(1, liczba_graczy)`, tasuje listę graczy
+     (`Array.shuffle()`) i bierze pierwszych `count` - każdy co najwyżej
+     raz. Dla KAŻDEGO z osobna NIEZALEŻNIE losuje jego konkretne
+     wydarzenie spośród tych, na które WŁAŚNIE TEN gracz się kwalifikuje
+     (`_eligible_single_player_events()` - GRANT/TOURISM_BOOM zawsze,
+     reszta warunkowo, jak poprzednio) - "różne eventy" przełożone jako
+     "różni gracze, każdy z osobno, niezależnie wylosowanym wydarzeniem"
+     (mogą się więc PRZYPADKIEM powtórzyć u dwóch graczy, tekst życzenia
+     nie wymaga wymuszonej unikalności TYPU wydarzenia, tylko że gracze są
+     różni i każdy dostaje swój własny rzut).
+  3. Gałąź "dla wszystkich" (`_apply_all_players_event()`) losuje jedno z
+     trzech (Łagodna zima/Inspekcja środowiskowa/Market Crash) - dokładnie
+     to, co już wcześniej istniało dla tej kategorii, teraz jako osobna,
+     jawna ścieżka zamiast wspólnej puli z resztą.
+
+  Wszystkie funkcje `_apply_forest_fire()` itd. przyjmują teraz
+  `player: PlayerData` jako parametr zamiast same losować sobie gracza
+  wewnątrz (`_players_with_X().pick_random()`) - gracza wybiera teraz
+  WYŁĄCZNIE `_roll_single_player_events()`, więc te trzy funkcje
+  (`_players_with_unburning_forest()`, `_players_with_undamaged_mining()`,
+  `_players_with_agriculture()`) straciły rację bytu i zostały usunięte -
+  eligibility sprawdza się teraz PER GRACZ (`_pick_unburning_forest_hex()
+  != null` itd.), nie przez zbieranie listy WSZYSTKICH kwalifikujących
+  się graczy z góry.
+
+  **Przy okazji złapana realna luka w skrypcie weryfikującym**:
+  `verify3.py` (heurystyka "nieużywany const/func/signal") miał
+  zaszytą na sztywno listę plików do sprawdzenia z dużo wcześniejszego
+  etapu sesji - `random_event_manager.gd`/`notifications_panel.gd`/
+  `game_balance.gd`/`hex_data.gd` nigdy nie zostały do niej dodane, więc
+  wszystkie poprzednie "czyste" przebiegi tego skryptu w tej sesji
+  faktycznie w ogóle NIE sprawdzały tych plików. Odkryte przy tej zmianie,
+  bo pierwsza wersja przepisanego kodu zostawiła prawdziwie martwą stałą
+  (`SINGLE_PLAYER_EVENTS`, zdefiniowaną, ale nigdzie nieużywaną - logika
+  eligibility per gracz nie potrzebowała już płaskiej listy) - lista
+  plików w skrypcie zaktualizowana, martwa stała usunięta.
 
 - **Powiadomienia per gracz + automatyczne otwarcie panelu** (na życzenie:
   "Informacje powinny pokazywać się tylko graczowi którego dotyczą - lub
