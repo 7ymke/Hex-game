@@ -275,14 +275,13 @@ godot_project/
 │                                 # z makiety UI (jedno źródło prawdy)
 ├── ui/
 │   ├── hex_shape.gd             # class_name HexShape - rysuje/rasteryzuje
-│   │                             # heksagon dla odznak/ikon/pipsów UI
-│   ├── two_tone_track.gd        # tło suwaka "Zetnij drzewa" (bezpiecznie/
-│   │                             # niebezpiecznie), rysowane pod suwakiem
+│   │                             # heksagon (zaokrąglone rogi) dla odznak/
+│   │                             # ikon/pipsów UI
 │   ├── unit_card.gd             # class_name UnitCard - pływająca, przeciągalna
 │   │                             # karta ludzika nad mapą
 │   └── price_chart_view.gd      # class_name PriceChartView - ręcznie rysowany
 │                                 # wykres liniowy ceny (Rynek surowców)
-├── assets/fonts/                # IBM Plex Sans (zmienny font) + licencja OFL -
+├── assets/fonts/                # Nunito (zmienny font) + licencja OFL -
 │                                 # jedyna rodzina czcionek używana w UI
 ├── data/map_data.json         # wygenerowane przez tools/convert_kml_to_json.py
 └── icon.svg
@@ -386,19 +385,24 @@ Kluczowe pliki:
   odchylenia (sekcja 3.4/6.6).
 - `ui/price_chart_view.gd` - `class_name PriceChartView extends Control`:
   ręcznie rysowany wykres liniowy (`_draw()`) - Godot nie ma wbudowanego
-  widgetu do wykresów. Łamana przez punkty ceny + przerywana linia
-  odniesienia na `P_eq` + etykiety min/max na osi Y. Panel rynku pokazuje
-  ostatnie 24 rundy (`MarketPanel.CHART_ROUNDS`) - sam model trzyma PEŁNĄ
+  widgetu do wykresów. Łamana przez punkty ceny + lekko wypełniony obszar
+  pod nią, bez linii odniesienia i bez etykiet osi (restylizacja wg
+  `UI_Gry_Makieta_11.html` - panel rynku celowo NIE pokazuje niczego o TYM,
+  DLACZEGO cena jest taka, jaka jest, patrz niżej). Panel rynku pokazuje
+  ostatnie 8 rund (`MarketPanel.CHART_ROUNDS`) - sam model trzyma PEŁNĄ
   historię (potrzebną też do liczenia momentum), to tylko ograniczenie
   wyświetlania, żeby wykres się nie zagęszczał w długiej rozgrywce.
 - `scenes/market_panel.gd` - UI strony rynku (ten sam wzorzec co
-  `city_card_panel.gd`), z `SpinBox` do wyboru ilości - jego `max_value`
-  to CAŁY limit na rundę (nie "ile jeszcze zostało"), więc próba
-  przekroczenia już wykorzystanej części limitu wciąż da się wpisać w pole,
-  ale zostanie odrzucona przez `attempt_trade()` z czytelnym komunikatem
-  (`LimitLabel` pokazuje, ile już wykorzystano) - uproszczenie świadome, nie
-  błąd: osobne śledzenie "ile zostało" per kierunek dla dzielonego pola
-  ilości niepotrzebnie komplikowałoby UI na tym etapie.
+  `city_card_panel.gd`), z `HSlider` do wyboru ilości - jego `max_value` to
+  cały limit na rundę, więc suwak strukturalnie NIE POZWALA wybrać ilości
+  przekraczającej limit (w przeciwieństwie do wcześniejszego `SpinBox`,
+  w którym dało się wpisać liczbę większą niż dostępna część limitu).
+  Zamiast osobnego komunikatu o błędzie przyciski Kup/Sprzedaj same się
+  wyłączają (`disabled`), gdy bieżąca ilość akurat nie jest
+  dostępna/opłacalna (przekroczony pozostały limit, brak pieniędzy/zapasu) -
+  zapobieganie zamiast błędu do przeczytania, zgodnie z minimalizmem
+  makiety (sekcja "Restylizacja UI wg makiety `UI_Gry_Makieta_11.html`"
+  niżej).
 
 ### Drzewko Umiejętności (nowość)
 
@@ -515,66 +519,108 @@ Efekty dzielą się na dwie kategorie:
 ### Wygląd UI - restylizacja wg makiety (nowość)
 
 Cały ekran rozgrywki (`scenes/main.tscn`, węzeł `UI`) został przebudowany
-wg dostarczonej makiety `UI_Gry_Makieta.html` - nowa paleta kolorów,
-jedna rodzina czcionek (IBM Plex Sans - patrz niżej), heksagonalne
-odznaki/piny zamiast prostokątnych etykiet, i inny układ ekranu. Kluczowe
-pliki:
+wg dostarczonej makiety `UI_Gry_Makieta_11.html` (drugie, **kompletne
+przepisanie** poprzedniej wersji restylizacji - dokument sam to zaznacza:
+"Traktuj ten dokument jako jedyne aktualne źródło prawdy, nie jako diff
+względem czegokolwiek wcześniejszego" - patrz też wpis w "Decyzje
+projektowe" niżej) - nowa paleta "drewno/BTD6" (ciemne drewniane panele,
+tan/kremowe teksty, złoto/zieleń/czerwień jako akcenty), jedna rodzina
+czcionek (Nunito - patrz niżej), heksagony z ZAOKRĄGLONYMI rogami zamiast
+ostrych, i inny układ ekranu. Kluczowe pliki:
 
 - `theme/palette.gd` - `class_name Palette`, jedno miejsce z nazwanymi
-  stałymi kolorów (np. `Palette.COPPER`, `Palette.PARCHMENT`) odpowiadającymi
-  zmiennym CSS `:root` z makiety. Kod GDScript (np. `hex_map_view.gd`,
-  `game_map_controller.gd`) odwołuje się do tych stałych wprost. Zasoby
-  `.tscn`/`.tres` (Godot nie potrafi tam odwoływać się do stałych GDScript)
-  mają te same wartości RGB wpisane ręcznie jako literały `Color(...)` -
-  `Palette` jest wtedy źródłem prawdy/dokumentacją tych literałów, nie
-  bezpośrednio "używane" przez silnik w tamtych miejscach.
-- `theme/ui_theme.tres` - zasób `Theme` z NOWĄ paletą (zamiast starej
-  granatowej) - domyślne style `PanelContainer`/`Button`/`Label`/
-  `CheckBox`/`OptionButton`/`VScrollBar`. Podpięty do głównych paneli w
-  `main.tscn`, więc `CityCardPanel`/`SkillTreePanel` (te dwa ekrany NIE
-  zostały w tym przejściu przebudowane szczegółowo - patrz niżej) i tak
-  automatycznie dostają nową paletę/czcionkę za darmo, przez współdzielony
-  motyw.
+  stałymi kolorów (np. `Palette.WOOD_PANEL`, `Palette.GOLD`, `Palette.TAN`)
+  odpowiadającymi zmiennym CSS `:root` z makiety. Kod GDScript (np.
+  `hex_map_view.gd`, `game_map_controller.gd`) odwołuje się do tych stałych
+  wprost. Zasoby `.tscn`/`.tres` (Godot nie potrafi tam odwoływać się do
+  stałych GDScript) mają te same wartości RGB wpisane ręcznie jako literały
+  `Color(...)` - `Palette` jest wtedy źródłem prawdy/dokumentacją tych
+  literałów, nie bezpośrednio "używane" przez silnik w tamtych miejscach.
+- `theme/ui_theme.tres` - zasób `Theme` z paletą drewna - domyślne style
+  `PanelContainer`/`Button`/`Label`/`CheckBox`/`OptionButton`/`VScrollBar`.
+  Podpięty do głównych paneli w `main.tscn`, więc `CityCardPanel`/
+  `SkillTreePanel` (te dwa ekrany NIE zostały w żadnym z dwóch przejść
+  restylizacji przebudowane szczegółowo - patrz niżej) i tak automatycznie
+  dostają nową paletę/czcionkę za darmo, przez współdzielony motyw.
 - `assets/fonts/` - JEDNA rodzina czcionek dla całego UI: zmienny font
-  (variable font) IBM Plex Sans, pobrany z oficjalnego mirrora Google Fonts
-  na GitHubie (fonts.google.com jest zablokowane polityką sieciową
-  środowiska deweloperskiego). Konkretne grubości (500/600/700) wybierane
-  są przez zasoby `FontVariation` (`variation_opentype = {"wght": 600.0}`
-  itp.) zamiast osobnych plików na każdą grubość - taki osobny plik po
-  prostu nie istnieje dla tej rodziny czcionek, tylko warianty zmienne.
-  Pierwsza wersja restylizacji używała DWÓCH rodzin (Fraunces do nagłówków
-  + IBM Plex Sans do reszty, jak w makiecie) - usunięte na życzenie
-  ("zrób też aby używać tylko 1 czcionki"): pliki `Fraunces-*.ttf` skasowane
-  z `assets/fonts/`, wszystkie miejsca, które używały Fraunces (odznaka
-  rundy, prestiż, nazwa miasta, wartość zbiórki drewna, nagłówek Karty
-  ludzika) przełączone na odpowiednie grubości IBM Plex Sans zamiast.
+  (variable font) Nunito, pobrany z oficjalnego mirrora Google Fonts na
+  GitHubie (fonts.google.com jest zablokowane polityką sieciową środowiska
+  deweloperskiego - ten sam mirror i to samo ograniczenie, tylko wariant
+  zmienny, bez osobnych plików per grubość, co poprzednio przy IBM Plex
+  Sans). Konkretne grubości (600/700) wybierane są przez zasoby
+  `FontVariation` (`variation_opentype = {"wght": 600.0}` itp.). Poprzednia
+  rodzina (IBM Plex Sans) skasowana z `assets/fonts/` razem z licencją OFL.
 - `ui/hex_shape.gd` - `class_name HexShape extends Control`, rysuje
   heksagon "flat-top" (te same proporcje co siatka mapy) na dowolnym
-  rozmiarze `Control` - używane wszędzie tam, gdzie w makiecie jest
-  `clip-path: polygon(...)` (odznaka numeru rundy, kropki punktów ruchu na
-  Karcie ludzika, ikonki budynków, uchwyt suwaka zbiórki drewna). Ma też
-  `HexShape.make_texture()` - rasteryzuje ten sam heksagon do `ImageTexture`
-  (prosty algorytm scanline, bez zewnętrznych zależności) - potrzebne tam,
-  gdzie Godot wymaga faktycznej tekstury, nie węzła `Control` (ikony
-  `CheckBox`/uchwyt `HSlider`).
-- `ui/two_tone_track.gd` - dwukolorowe (bezpiecznie/niebezpiecznie) tło pod
-  suwakiem "Zetnij drzewa" - `HSlider` w Godocie ma tylko JEDEN StyleBox na
-  całe tło, bez wbudowanego przejścia koloru w połowie, więc widoczny pasek
-  to w rzeczywistości osobny `Control` rysowany POD suwakiem, który sam ma
-  w pełni przezroczyste tło (widać tylko jego uchwyt). Próg (60%) czyta
-  wprost z `GameBalance.FOREST_SAFE_THRESHOLD_PERCENT`, więc nigdy nie
-  rozjedzie się z faktyczną mechaniką.
+  rozmiarze `Control`, z ZAOKRĄGLONYMI rogami - używane wszędzie tam, gdzie
+  w makiecie jest `clip-path` w kształcie heksagonu z zaokrąglonymi
+  wierzchołkami (odznaka numeru rundy, kropki punktów ruchu na Karcie
+  ludzika, ikonki linków, uchwyty suwaków). Zaokrąglenie to `HexShape.
+  round_corners()` - każdy ostry wierzchołek zamieniony na kwadratową
+  krzywą Béziera (NIE łuk okręgu), z punktem kontrolnym w oryginalnym ostrym
+  wierzchołku i stałym "podcięciem" wzdłuż obu sąsiednich krawędzi równym
+  `promień × 0,24` (`HexShape.CORNER_TRIM_RATIO`). Ten współczynnik
+  wyprowadzony ręcznie ze ścieżki SVG podanej w specyfikacji (`M 19.00
+  10.39 Q 25.00 0.00 37.00 0.00 ...`) i zweryfikowany liczbowo: dla
+  heksagonu o promieniu opisanym 50 (czyli tej samej skali co ścieżka
+  wzorcowa), podcięcie 12 jednostek wzdłuż krawędzi od wierzchołka (75, 0)
+  w stronę (25, 0) daje dokładnie (63, 0) = 75−12 ✓, a w stronę
+  (100, 43,3) daje dokładnie (81, 10,39) = (75+12·0,5, 0+12·0,866) ✓ - oba
+  zgodne co do dwóch miejsc po przecinku z liczbami z podanej ścieżki. Ta
+  sama funkcja (`HexShape.round_corners()`) jest współdzielona przez ikonki
+  UI I przez faktyczne heksy mapy (`hex_map_view.gd._draw_hex()`, przez
+  `HexGridUtils.hex_corners()`), więc oba miejsca mają identyczną
+  matematykę zaokrąglenia bez duplikacji kodu. `HexShape.make_texture()`
+  rasteryzuje ten sam (zaokrąglony) heksagon do `ImageTexture` (prosty
+  algorytm scanline, bez zewnętrznych zależności, tylko wypełnienie - bez
+  obwódki/konturu) - potrzebne tam, gdzie Godot wymaga faktycznej tekstury,
+  nie węzła `Control` (ikony `CheckBox`/uchwyty `HSlider`).
 - `ui/unit_card.gd` - `class_name UnitCard`, pływająca, przeciągalna
-  "Karta ludzika" nad mapą (zastępuje dawny, zadokowany panel "Trasa
-  ludzika" - `RoutePanel`). Ten skrypt odpowiada WYŁĄCZNIE za pozycję
+  "Karta ludzika" nad mapą. Ten skrypt odpowiada WYŁĄCZNIE za pozycję
   (domyślnie lewy-dolny róg, jak w makiecie), przeciąganie za nagłówek, i
-  generowanie małych brązowych ikon heksagonu (przez `HexShape`) - to,
-  KTÓRE pola/przyciski pokazują jaki tekst, nadal w całości decyduje
-  `game_map_controller.gd._refresh_route_panel()`, dokładnie jak
-  wcześniej przy `RoutePanel`. Karta resetuje pozycję do domyślnej
-  WYŁĄCZNIE przy przejściu z ukrytej na widoczną (świeże zaznaczenie
-  jednostki) - przeciągnięcie w trakcie trwania tego samego zaznaczenia
-  nigdy się nie cofa.
+  generowanie małych złotych ikon heksagonu (przez `HexShape`) - to, KTÓRE
+  pola/przyciski pokazują jaki tekst, nadal w całości decyduje
+  `game_map_controller.gd._refresh_route_panel()`. Karta resetuje pozycję
+  do domyślnej WYŁĄCZNIE przy przejściu z ukrytej na widoczną (świeże
+  zaznaczenie jednostki) - przeciągnięcie w trakcie trwania tego samego
+  zaznaczenia nigdy się nie cofa. Przycisk X w rogu karty teraz ZAMYKA
+  całą kartę (odznacza jednostkę), a nie anuluje trasę - patrz "Decyzje
+  projektowe" niżej po pełne wyjaśnienie tej zmiany zachowania i
+  zachowanego wyjątku (`cancel_route_link`).
+
+Zarówno Karta ludzika (`ui/unit_card.gd`), jak i panel Rynku
+(`scenes/market_panel.gd`) mają przycisk zamknięcia pozycjonowany
+BEZWZGLĘDNIE we własnym rogu panelu, niezależnie od reszty treści (makieta:
+`.cancel-x { position: absolute; top: 8px; right: 8px }`) - a Godot'owy
+`PanelContainer` (jak każdy `Container`) WYMUSZA na wszystkich swoich
+bezpośrednich dzieciach wypełnienie dokładnie tego samego prostokąta treści
+(`fit_child_in_rect()` przy `NOTIFICATION_SORT_CHILDREN`), więc nie może
+mieć jednocześnie głównego dziecka z treścią (np. `VBox`) ORAZ tak
+swobodnie pozycjonowanego dziecka - drugie dziecko dostałoby nadpisane
+własne zakotwiczenie. Oba panele rozwiązują to inaczej, zależnie od tego,
+GDZIE w drzewie sceny żyją:
+- Panel Rynku jest samodzielnym `CanvasLayer`, tak jak `CityCardPanel`/
+  `SkillTreePanel` (osobna warstwa rysowania, dziecko sceny wprost pod
+  korzeniem, żeby rysować się NAD mapą i głównym UI niezależnie od
+  kolejności w drzewie) - a `CanvasLayer`, w przeciwieństwie do
+  `Container`, NIGDY nie wymusza układu swoich dzieci. Dzięki temu
+  `Background` (PanelContainer z treścią) i `CloseButton` mogą być
+  zwykłym, niezależnym rodzeństwem pod tym samym `CanvasLayer` bez
+  żadnego obejścia.
+- Karta ludzika NIE jest osobnym `CanvasLayer` - żyje WEWNĄTRZ zwykłego
+  drzewa Control głównego UI (`UI/Root/...`), więc gdyby jej korzeniem był
+  `PanelContainer`, problem by wystąpił naprawdę. Dlatego jej korzeń to
+  zwykły `Control` (nie wymusza układu dzieci) z dzieckiem `Background`
+  typu `PanelContainer` (zakotwiczony na cały prostokąt, 0,0,1,1), a
+  przycisk zamknięcia jest NIEZALEŻNYM rodzeństwem `Background`,
+  pozycjonowanym przez własne zakotwiczenie - działa, bo zwykły `Control`
+  respektuje zakotwiczenie KAŻDEGO dziecka z osobna. Skutek uboczny:
+  zwykły `Control`, w przeciwieństwie do `Container`, NIE dopasowuje się
+  automatycznie do rozmiaru minimalnego swoich dzieci, więc
+  `unit_card.gd._reset_position()` musi jawnie odczytać
+  `background.get_combined_minimum_size()` i ustawić `self.size` na tę
+  wartość (co propaguje się dalej do `Background` przez jego
+  zakotwiczenie na pełny prostokąt).
 
 Układ ekranu (`UI/Root`): górny pasek (`TopBar` - odznaka rundy, kropki
 surowców, prestiż - BEZ punktów ruchu, te mieszkają wyłącznie na Karcie
@@ -585,8 +631,9 @@ Drzewka Umiejętności, podgląd budynków Karty Miasta ze scrollem
 (kliknięcie "Pełna karta →" otwiera pełny, interaktywny modal
 `CityCardPanel` - podgląd w pasku bocznym jest tylko do odczytu), przycisk
 naprawy, suwak zbiórki drewna, dół z wyborem gracza i "Zakończ rundę"), oraz
-dwie pływające "karty" w stylu pergaminu nad samą mapą: Karta ludzika (opis
-wyżej) i nowy, mały panel informacji o zaznaczonym polu (`HexInfoPanel` -
+dwie pływające "karty" w stylu drewnianych paneli nad samą mapą: Karta
+ludzika (opis wyżej) i mały panel informacji o zaznaczonym polu
+(`HexInfoPanel` -
 którego W OGÓLE nie było w makiecie; dodany, żeby nie stracić informacji,
 którą pokazywał stary `ActionPanel`/`HexInfoLabel`).
 
@@ -600,8 +647,8 @@ detal, niewart ryzyka bez możliwości podglądu na żywo w edytorze).
 ### UI skaluje się z oknem
 
 `project.godot` -> `[display]`: `window/stretch/mode = "canvas_items"`,
-`window/stretch/aspect = "expand"`, bazowa rozdzielczość 1280×800,
-`window/size/min_width`/`min_height` = 1000×650 (nowość - zapobiega
+`window/stretch/aspect = "expand"`, bazowa rozdzielczość 1600×900,
+`window/size/min_width`/`min_height` = 1200×720 (zapobiega
 skurczeniu okna do rozmiaru, przy którym pasek boczny/karty by się nie
 mieściły) - zmiana rozmiaru okna skaluje całą scenę (mapę i UI)
 proporcjonalnie, zamiast przycinać ją czarnymi pasami albo zostawiać UI w
@@ -664,6 +711,75 @@ jako heksy typu `city`: Wrocław (`H18`), Szczecin (`A7`), Warszawa (`R12`),
 Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
+
+- **Druga, kompletna restylizacja UI ("drewno/BTD6") wg
+  `Instrukcje_Restylizacji_UI_Godot_2.md` + `UI_Gry_Makieta_11.html`** (na
+  życzenie: "Zaimplementuj to do gry"). Dokument sam siebie opisuje jako
+  pełne przepisanie poprzedniej restylizacji ("Traktuj ten dokument jako
+  jedyne aktualne źródło prawdy, nie jako diff") - w praktyce oznaczało to
+  wymianę CAŁEGO języka wizualnego (paleta pergamin/miedź/mosiądz + Fraunces
+  i IBM Plex Sans → ciemne drewniane panele, tan/krem, złoto/zieleń/
+  czerwień, Nunito), nie tylko poprawki. Pełny opis nowego wyglądu w sekcji
+  "Wygląd UI - restylizacja wg makiety" wyżej. Najważniejsze punkty:
+  - **Nunito zamiast IBM Plex Sans** - ta sama sytuacja co poprzednio z IBM
+    Plex Sans/Fraunces: `fonts.google.com` zablokowany, mirror na GitHubie
+    (`raw.githubusercontent.com/google/fonts/main/ofl/nunito/`) publikuje
+    TYLKO zmienny plik `.ttf` (żadnych osobnych plików per grubość), mimo że
+    dokument specyfikacji zakłada gotowe pliki 600/700 - rozwiązane tak samo
+    jak poprzednio: jeden zmienny plik + zasoby `FontVariation` per grubość.
+  - **Zaokrąglone rogi heksagonów** - makieta pokazuje heksagony z
+    zaokrąglonymi (nie ostrymi) wierzchołkami. Współczynnik zaokrąglenia
+    wyprowadzony ręcznie z podanej w specyfikacji ścieżki SVG i
+    zweryfikowany liczbowo (pełne wyprowadzenie w sekcji "Wygląd UI"
+    wyżej, przy opisie `ui/hex_shape.gd`) - `HexShape.round_corners()` jest
+    współdzielona przez ikonki UI ORAZ prawdziwe heksy mapy
+    (`hex_map_view.gd`), więc oba miejsca rysują identycznie zaokrąglone
+    kształty bez duplikowania matematyki.
+  - **Odkrycie architektoniczne: `PanelContainer` (jak każdy `Container`)
+    wymusza jednakowy rozmiar/pozycję na WSZYSTKICH swoich bezpośrednich
+    dzieciach** - co koliduje z bezwzględnie pozycjonowanym przyciskiem
+    zamknięcia w rogu panelu (makieta: `.cancel-x { position: absolute }`).
+    Karta ludzika (`ui/unit_card.gd`) naprawdę na to trafia (żyje wewnątrz
+    zwykłego drzewa Control głównego UI) - jej korzeń zmieniony na zwykły
+    `Control` z osobnym dzieckiem `Background` (PanelContainer, treść) i
+    niezależnym rodzeństwem `CloseButton`. Panel Rynku
+    (`scenes/market_panel.gd`) NIE ma tego problemu wcale - jest
+    samodzielnym `CanvasLayer` (jak `CityCardPanel`/`SkillTreePanel`), a
+    `CanvasLayer` nigdy nie wymusza układu dzieci - podczas przepisywania
+    skryptu omyłkowo uogólniono jednak poprawkę z Karty ludzika i
+    zadeklarowano `extends Control` zamiast `extends CanvasLayer`, mimo że
+    węzeł w `main.tscn` cały czas był (poprawnie) typu `CanvasLayer` - taki
+    niezgodny skrypt Godot odrzuciłby przy starcie gry. Złapane manualnym
+    przeglądem (żaden z trzech skryptów weryfikujących w tej sesji nie
+    sprawdza zgodności typu węzła ze `extends` skryptu), naprawione
+    przywróceniem `extends CanvasLayer` - reszta pliku nie wymagała zmian,
+    bo nic w nim nie używało właściwości specyficznych dla `Control`.
+    Pełne wyjaśnienie różnicy między oboma panelami w sekcji "Wygląd UI"
+    wyżej.
+  - **X na Karcie ludzika teraz zamyka kartę, a nie anuluje trasę** (zmiana
+    znaczenia wprost ze specyfikacji: "X zamyka kartę, nie anuluje trasę").
+    Zamknięcie odznacza jednostkę, co i tak już czyściło niezatwierdzony
+    podgląd trasy jako efekt uboczny `_set_selected_unit(null)` - więc X
+    nadal "anuluje" niezatwierdzony podgląd, tyle że przy okazji zamknięcia
+    karty. Anulowanie ZATWIERDZONEJ, trwającej trasy to inna czynność, o
+    której specyfikacja w ogóle nie wspomina (nowy projekt karty pokazuje
+    tylko linki "Zaanektuj"/"Anektuj napotkane pola") - zamiast po cichu
+    usunąć działającą funkcję "odblokuj się", zachowana jako osobny,
+    warunkowy link `cancel_route_link` ("Anuluj trasę"), widoczny TYLKO
+    gdy jednostka ma zatwierdzoną, niedokończoną trasę - świadoma decyzja,
+    nie przeoczenie.
+  - **Panel Rynku stracił osobny obszar komunikatu błędu** (dawny
+    `LimitLabel`/komunikat "przekroczono limit") - suwak ilości (`HSlider`)
+    ma teraz `max_value` ustawione na cały limit na rundę, więc
+    STRUKTURALNIE nie da się nim wybrać ilości większej niż limit (w
+    przeciwieństwie do poprzedniego `SpinBox`, w którym dało się wpisać
+    liczbę spoza dostępnego zakresu). Przyciski Kup/Sprzedaj same się
+    wyłączają, gdy bieżąca ilość nie jest akurat dostępna/opłacalna -
+    zapobieganie błędowi zamiast komunikatu o błędzie, zgodnie z
+    minimalizmem samej makiety.
+  - Cała reszta zmian (paleta, motyw, TopBar, Sidebar) to bezpośrednie,
+    mechaniczne przełożenie nowej makiety na kolory/style/układ węzłów -
+    bez dodatkowych decyzji projektowych wartych osobnego wpisu.
 
 - **Rynek surowców z symulowaną ceną, kupnem i sprzedażą** (na podstawie
   przesłanego dokumentu "Model Ekonomii Rynku" + życzenia: "Chcę aby dało

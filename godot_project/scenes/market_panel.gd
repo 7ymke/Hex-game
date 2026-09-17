@@ -1,10 +1,33 @@
 class_name MarketPanel
 extends CanvasLayer
 ## The market page for a single resource (autoloads/market_manager.gd) -
-## price chart over recent rounds, plus buy/sell. Opened by clicking that
-## resource's chip in the top bar (game_map_controller.gd) - one panel
-## instance reused for whichever resource is currently open
-## (`open_for_resource`), same pattern as CityCardPanel/SkillTreePanel.
+## sparkline chart over recent rounds, plus buy/sell. Opened by clicking
+## that resource's pill in the top bar (game_map_controller.gd) - one
+## panel instance reused for whichever resource is currently open
+## (`open_for_resource`), same pattern as CityCardPanel/SkillTreePanel
+## (both also `extends CanvasLayer`, parented directly at the scene root
+## so they draw above the map and the main UI regardless of tree order).
+##
+## `Background` (the actual PanelContainer) and `CloseButton` are two
+## independent children of this CanvasLayer, not of each other - a
+## CanvasLayer, unlike a PanelContainer or any other Container, never
+## force-fits its children into a shared rect, so the close button can sit
+## in the panel's absolute corner (its own fixed offsets) while `Background`
+## lays out its own content normally. (ui/unit_card.gd has a real version of
+## this problem and fixes it differently - its card lives INSIDE the main
+## UI's Control tree, not on its own CanvasLayer, so its root has to be a
+## plain Control instead.)
+##
+## Deliberately shows NOTHING about how prices are computed (no mention of
+## mean-reversion, background demand/supply, or the model at all) - see
+## the restyle spec, section 5.1 point 5: "to wiedza projektowa, nie coś,
+## co gracz ma czytać w UI". The panel only ever shows numbers. There is
+## also no separate error-message area (the old UI had one) - the
+## quantity HSlider structurally CANNOT exceed the per-round trade limit
+## (unlike the previous SpinBox, which could be typed past the remaining
+## allowance), and Kup/Sprzedaj simply DISABLE themselves when the
+## current quantity isn't actually affordable/available - prevention
+## instead of an error to read, matching the panel's own minimalism.
 
 signal closed
 signal traded
@@ -12,19 +35,20 @@ signal traded
 ## How many of the most recent rounds the chart shows - the model itself
 ## keeps the FULL history (for momentum math elsewhere), this is purely a
 ## display choice so the chart doesn't get unreadably dense in a long game.
-const CHART_ROUNDS = 24
+const CHART_ROUNDS = 8
 
-@onready var title_label: Label = $Panel/VBox/TitleLabel
-@onready var mid_price_label: Label = $Panel/VBox/PriceRow/MidPriceLabel
-@onready var buy_price_label: Label = $Panel/VBox/PriceRow/BuyPriceLabel
-@onready var sell_price_label: Label = $Panel/VBox/PriceRow/SellPriceLabel
-@onready var chart_view: PriceChartView = $Panel/VBox/ChartArea
-@onready var limit_label: Label = $Panel/VBox/LimitLabel
-@onready var amount_spinbox: SpinBox = $Panel/VBox/TradeRow/AmountSpinBox
-@onready var buy_button: Button = $Panel/VBox/TradeRow/BuyButton
-@onready var sell_button: Button = $Panel/VBox/TradeRow/SellButton
-@onready var feedback_label: Label = $Panel/VBox/FeedbackLabel
-@onready var close_button: Button = $Panel/VBox/CloseButton
+@onready var background: PanelContainer = $Background
+@onready var close_button: Button = $CloseButton
+@onready var head_dot: Panel = $Background/VBox/HeaderRow/HeadDot
+@onready var name_label: Label = $Background/VBox/HeaderRow/NameLabel
+@onready var round_label: Label = $Background/VBox/HeaderRow/RoundLabel
+@onready var chart_view: PriceChartView = $Background/VBox/ChartArea
+@onready var qty_value_label: Label = $Background/VBox/QtyRow/QtyValueLabel
+@onready var qty_slider: HSlider = $Background/VBox/QtySlider
+@onready var buy_total_label: Label = $Background/VBox/BuyRow/BuyRowHBox/BuyTotalLabel
+@onready var buy_button: Button = $Background/VBox/BuyRow/BuyRowHBox/BuyButton
+@onready var sell_total_label: Label = $Background/VBox/SellRow/SellRowHBox/SellTotalLabel
+@onready var sell_button: Button = $Background/VBox/SellRow/SellRowHBox/SellButton
 
 var _current_player: PlayerData
 var _current_resource: HexData.ResourceType = HexData.ResourceType.NONE
@@ -35,14 +59,14 @@ func _ready() -> void:
 	close_button.pressed.connect(_on_close_pressed)
 	buy_button.pressed.connect(_on_buy_pressed)
 	sell_button.pressed.connect(_on_sell_pressed)
-	amount_spinbox.min_value = 1
-	amount_spinbox.step = 1
+	qty_slider.min_value = 1.0
+	qty_slider.step = 1.0
+	qty_slider.value_changed.connect(_on_qty_changed)
 
 
 func open_for_resource(resource: HexData.ResourceType, player: PlayerData) -> void:
 	_current_resource = resource
 	_current_player = player
-	feedback_label.text = ""
 	visible = true
 	_refresh()
 
@@ -56,28 +80,64 @@ func _refresh() -> void:
 	if _current_player == null or not MarketBalance.RESOURCE_PARAMS.has(_current_resource):
 		return
 
-	title_label.text = "Rynek: %s" % HexData.RESOURCE_DISPLAY_NAMES.get(_current_resource, "?")
-
-	var mid = MarketManager.get_current_price(_current_resource)
-	var prices = MarketManager.get_trade_prices(_current_resource)
-	mid_price_label.text = "Cena środkowa: %.2f" % mid
-	buy_price_label.text = "Kupno: %.2f" % prices["buy_price"]
-	sell_price_label.text = "Sprzedaż: %.2f" % prices["sell_price"]
+	name_label.text = HexData.RESOURCE_DISPLAY_NAMES.get(_current_resource, "?")
+	round_label.text = "Runda %d" % TurnManager.round_number
+	head_dot.self_modulate = _resource_dot_color(_current_resource)
 
 	chart_view.values = MarketManager.get_price_history(_current_resource, CHART_ROUNDS)
-	chart_view.reference_value = MarketBalance.RESOURCE_PARAMS[_current_resource]["p_eq"]
 	chart_view.queue_redraw()
+
+	var limit = MarketManager.get_trade_limit(_current_resource)
+	qty_slider.max_value = maxf(1.0, limit)
+	if qty_slider.value < qty_slider.min_value:
+		qty_slider.value = maxf(1.0, roundf(limit / 2.0))
+
+	_update_totals()
+
+
+func _resource_dot_color(resource: HexData.ResourceType) -> Color:
+	match resource:
+		HexData.ResourceType.WOOD:
+			return Palette.RESOURCE_DOT_WOOD
+		HexData.ResourceType.FOOD:
+			return Palette.RESOURCE_DOT_FOOD
+		HexData.ResourceType.COPPER:
+			return Palette.RESOURCE_DOT_COPPER
+		HexData.ResourceType.COAL:
+			return Palette.RESOURCE_DOT_COAL
+		HexData.ResourceType.GAS:
+			return Palette.RESOURCE_DOT_GAS
+		HexData.ResourceType.NICKEL:
+			return Palette.RESOURCE_DOT_NICKEL
+		HexData.ResourceType.URANIUM:
+			return Palette.RESOURCE_DOT_URANIUM
+		_:
+			return Palette.GOLD
+
+
+func _on_qty_changed(_value: float) -> void:
+	_update_totals()
+
+
+## Live-updates both trade line totals (restyle spec 5.1 point 4:
+## "aktualizowane na żywo przy przesuwaniu suwaka") and whether Kup/Sprzedaj
+## are actually usable right now.
+func _update_totals() -> void:
+	var qty = qty_slider.value
+	qty_value_label.text = "%d szt." % int(qty)
+
+	var prices = MarketManager.get_trade_prices(_current_resource)
+	var buy_total = qty * prices["buy_price"]
+	var sell_total = qty * prices["sell_price"]
+	buy_total_label.text = "%.2f" % buy_total
+	sell_total_label.text = "%.2f" % sell_total
 
 	var limit = MarketManager.get_trade_limit(_current_resource)
 	var bought = MarketManager.get_traded_this_round(_current_player.player_id, _current_resource, MarketManager.DIRECTION_BUY)
 	var sold = MarketManager.get_traded_this_round(_current_player.player_id, _current_resource, MarketManager.DIRECTION_SELL)
-	limit_label.text = "Limit tej rundy: kupno %d/%d, sprzedaż %d/%d | masz %.0f zasobu, %.0f pieniędzy" % [
-		int(bought), limit, int(sold), limit,
-		_current_player.get_resource_amount(_current_resource), _current_player.money
-	]
 
-	amount_spinbox.max_value = maxf(1.0, limit)
-	sell_button.disabled = _current_player.get_resource_amount(_current_resource) < 1.0
+	buy_button.disabled = (bought + qty > limit) or (_current_player.money < buy_total)
+	sell_button.disabled = (sold + qty > limit) or (_current_player.get_resource_amount(_current_resource) < qty)
 
 
 func _on_buy_pressed() -> void:
@@ -89,26 +149,7 @@ func _on_sell_pressed() -> void:
 
 
 func _trade(direction: String) -> void:
-	var amount = amount_spinbox.value
-	var result = MarketManager.attempt_trade(_current_player.player_id, _current_resource, direction, amount)
+	var result = MarketManager.attempt_trade(_current_player.player_id, _current_resource, direction, qty_slider.value)
 	if result["success"]:
-		var verb = "Kupiono" if direction == MarketManager.DIRECTION_BUY else "Sprzedano"
-		feedback_label.text = "%s %.0f szt. za %.2f (%.2f/szt.)." % [
-			verb, result["amount"], result["total"], result["unit_price"]
-		]
 		traded.emit()
-	else:
-		feedback_label.text = _describe_failure(result)
 	_refresh()
-
-
-func _describe_failure(result: Dictionary) -> String:
-	match result.get("reason", ""):
-		"limit_exceeded":
-			return "Przekroczono limit tej rundy (%d szt.)." % result.get("limit", 0)
-		"cannot_afford":
-			return "Za mało pieniędzy (potrzeba %.2f)." % result.get("cost", 0.0)
-		"insufficient_stock":
-			return "Za mało tego surowca do sprzedania."
-		_:
-			return "Nie udało się zrealizować transakcji."

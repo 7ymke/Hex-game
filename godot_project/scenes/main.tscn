@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3 uid="uid://cmapmain0001"]
+[gd_scene load_steps=40 format=3 uid="uid://cmapmain0001"]
 
 [ext_resource type="Script" path="res://scenes/game_map_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scenes/camera_controller.gd" id="2"]
@@ -10,119 +10,110 @@
 [ext_resource type="Script" path="res://scenes/skill_graph_view.gd" id="8"]
 [ext_resource type="Script" path="res://ui/hex_shape.gd" id="9"]
 [ext_resource type="Script" path="res://ui/unit_card.gd" id="10"]
-[ext_resource type="Script" path="res://ui/two_tone_track.gd" id="11"]
-[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexSans-Variable.ttf" id="14"]
 [ext_resource type="Script" path="res://scenes/market_panel.gd" id="15"]
 [ext_resource type="Script" path="res://ui/price_chart_view.gd" id="16"]
+[ext_resource type="FontFile" path="res://assets/fonts/Nunito-Variable.ttf" id="17"]
 
-[sub_resource type="FontVariation" id="FontVariation_plex_500"]
-base_font = ExtResource("14")
-variation_opentype = {"wght": 500.0}
-
-[sub_resource type="FontVariation" id="FontVariation_plex_600"]
-base_font = ExtResource("14")
-variation_opentype = {"wght": 600.0}
-
-[sub_resource type="FontVariation" id="FontVariation_plex_700"]
-base_font = ExtResource("14")
-variation_opentype = {"wght": 700.0}
+[sub_resource type="FontVariation" id="FontVariation_nunito_800"]
+base_font = ExtResource("17")
+variation_opentype = {"wght": 800.0}
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar_bg"]
-bg_color = Color(0.094117, 0.141176, 0.090196, 1)
-border_width_bottom = 1
-border_color = Color(0.788235, 0.635294, 0.294117, 0.32)
+bg_color = Color(0.478431, 0.309804, 0.172549, 1)
+border_width_bottom = 4
+border_color = Color(0.180392, 0.105882, 0.062745, 1)
 content_margin_left = 14.0
 content_margin_right = 14.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_infobar_bg"]
-bg_color = Color(0.117647, 0.172549, 0.109803, 1)
+bg_color = Color(0.419608, 0.266667, 0.14902, 1)
 content_margin_left = 14.0
 content_margin_right = 14.0
 content_margin_top = 3.0
 content_margin_bottom = 3.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sidebar_bg"]
-bg_color = Color(0.094117, 0.141176, 0.090196, 1)
-border_width_left = 1
-border_color = Color(0.788235, 0.635294, 0.294117, 0.32)
+bg_color = Color(0.478431, 0.309804, 0.172549, 1)
+border_width_left = 4
+border_color = Color(0.180392, 0.105882, 0.062745, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_divider"]
-bg_color = Color(0.788235, 0.635294, 0.294117, 0.16)
+bg_color = Color(0, 0, 0, 0.22)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot_wood"]
-bg_color = Color(0.486274, 0.658823, 0.415686, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot_food"]
-bg_color = Color(0.850980, 0.698039, 0.298039, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot_copper"]
-bg_color = Color(0.878431, 0.6, 0.372549, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot_coal"]
-bg_color = Color(0.290196, 0.274509, 0.250980, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pill_bg"]
+bg_color = Color(0, 0, 0, 0.18)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.419607, 0.396078, 0.360784, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+border_color = Color(0, 0, 0, 0.3)
+corner_radius_top_left = 999
+corner_radius_top_right = 999
+corner_radius_bottom_right = 999
+corner_radius_bottom_left = 999
+content_margin_left = 5.0
+content_margin_top = 4.0
+content_margin_right = 9.0
+content_margin_bottom = 4.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot_gas"]
-bg_color = Color(0.435294, 0.658823, 0.847058, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chip_bg"]
+bg_color = Color(0, 0, 0, 0.2)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 0.3)
+corner_radius_top_left = 999
+corner_radius_top_right = 999
+corner_radius_bottom_right = 999
+corner_radius_bottom_left = 999
+content_margin_left = 6.0
+content_margin_top = 4.0
+content_margin_right = 11.0
+content_margin_bottom = 4.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot_nickel"]
-bg_color = Color(0.75, 0.75, 0.78, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_round_dot"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 999
+corner_radius_top_right = 999
+corner_radius_bottom_right = 999
+corner_radius_bottom_left = 999
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 0.35)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot_uranium"]
-bg_color = Color(0.7, 0.85, 0.25, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_parchment_card"]
-bg_color = Color(0.937254, 0.901960, 0.827450, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_bg"]
+bg_color = Color(0.937255, 0.827451, 0.658824, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.180392, 0.105882, 0.062745, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
 content_margin_left = 14.0
-content_margin_top = 11.0
+content_margin_top = 12.0
 content_margin_right = 14.0
-content_margin_bottom = 11.0
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 14
+content_margin_bottom = 12.0
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 12
 shadow_offset = Vector2(0, 6)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_parchment_card_small"]
-bg_color = Color(0.937254, 0.901960, 0.827450, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_bg_small"]
+bg_color = Color(0.937255, 0.827451, 0.658824, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.180392, 0.105882, 0.062745, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
 content_margin_left = 12.0
 content_margin_top = 10.0
 content_margin_right = 12.0
@@ -132,86 +123,211 @@ shadow_size = 10
 shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel_circle"]
-bg_color = Color(0.757254, 0.329411, 0.239215, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+bg_color = Color(0.878431, 0.313725, 0.227451, 1)
+corner_radius_top_left = 11
+corner_radius_top_right = 11
+corner_radius_bottom_right = 11
+corner_radius_bottom_left = 11
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.180392, 0.105882, 0.062745, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel_circle_hover"]
-bg_color = Color(0.85, 0.4, 0.29, 1)
+bg_color = Color(0.94902, 0.407843, 0.317647, 1)
+corner_radius_top_left = 11
+corner_radius_top_right = 11
+corner_radius_bottom_right = 11
+corner_radius_bottom_left = 11
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.180392, 0.105882, 0.062745, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_green_normal"]
+bg_color = Color(0.486275, 0.72549, 0.247059, 1)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_primary_copper_normal"]
-bg_color = Color(0.788235, 0.478431, 0.290196, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.298039, 0.478431, 0.133333, 1)
 content_margin_left = 10.0
 content_margin_top = 8.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_primary_copper_hover"]
-bg_color = Color(0.878431, 0.6, 0.372549, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_green_hover"]
+bg_color = Color(0.556863, 0.788235, 0.309804, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.298039, 0.478431, 0.133333, 1)
 content_margin_left = 10.0
 content_margin_top = 8.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_normal"]
+bg_color = Color(0.878431, 0.313725, 0.227451, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.627451, 0.184314, 0.117647, 1)
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_hover"]
+bg_color = Color(0.94902, 0.407843, 0.317647, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.627451, 0.184314, 0.117647, 1)
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_skill_circle_normal"]
-bg_color = Color(0.117647, 0.172549, 0.109803, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.788235, 0.635294, 0.294117, 0.32)
-corner_radius_top_left = 17
-corner_radius_top_right = 17
-corner_radius_bottom_right = 17
-corner_radius_bottom_left = 17
+bg_color = Color(0.549020, 0.368627, 0.211765, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.180392, 0.105882, 0.062745, 1)
+corner_radius_top_left = 19
+corner_radius_top_right = 19
+corner_radius_bottom_right = 19
+corner_radius_bottom_left = 19
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_skill_circle_hover"]
-bg_color = Color(0.788235, 0.478431, 0.290196, 0.15)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.878431, 0.6, 0.372549, 1)
-corner_radius_top_left = 17
-corner_radius_top_right = 17
-corner_radius_bottom_right = 17
-corner_radius_bottom_left = 17
+bg_color = Color(0.647059, 0.443137, 0.258824, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.180392, 0.105882, 0.062745, 1)
+corner_radius_top_left = 19
+corner_radius_top_right = 19
+corner_radius_bottom_right = 19
+corner_radius_bottom_left = 19
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gold_circle_normal"]
+bg_color = Color(0.960784, 0.760784, 0.258824, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.180392, 0.105882, 0.062745, 1)
+corner_radius_top_left = 19
+corner_radius_top_right = 19
+corner_radius_bottom_right = 19
+corner_radius_bottom_left = 19
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gold_circle_hover"]
+bg_color = Color(1, 0.839216, 0.360784, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.180392, 0.105882, 0.062745, 1)
+corner_radius_top_left = 19
+corner_radius_top_right = 19
+corner_radius_bottom_right = 19
+corner_radius_bottom_left = 19
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sidebar_bottom_bg"]
 bg_color = Color(0, 0, 0, 0)
-border_width_top = 1
-border_color = Color(0.788235, 0.635294, 0.294117, 0.32)
+border_width_top = 3
+border_color = Color(0, 0, 0, 0.22)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_selector_normal"]
-bg_color = Color(0.117647, 0.172549, 0.109803, 1)
+bg_color = Color(0.549020, 0.368627, 0.211765, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.180392, 0.105882, 0.062745, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 content_margin_left = 10.0
 content_margin_top = 8.0
 content_margin_right = 6.0
 content_margin_bottom = 8.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_selector_hover"]
-bg_color = Color(0.16, 0.22, 0.15, 1)
+bg_color = Color(0.647059, 0.443137, 0.258824, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.180392, 0.105882, 0.062745, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 content_margin_left = 10.0
 content_margin_top = 8.0
 content_margin_right = 6.0
 content_margin_bottom = 8.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_transparent_track"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_harvest_track"]
+bg_color = Color(0.549020, 0.368627, 0.211765, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 0.35)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_transparent"]
 bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_market_bg"]
+bg_color = Color(0.478431, 0.309804, 0.172549, 1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(0.180392, 0.105882, 0.062745, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+content_margin_left = 18.0
+content_margin_top = 14.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 14
+shadow_offset = Vector2(0, 8)
 
 [node name="GameMapController" type="Node2D"]
 script = ExtResource("1")
@@ -237,45 +353,39 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 
 [node name="TopBar" type="PanelContainer" parent="UI/Root"]
-custom_minimum_size = Vector2(0, 56)
+custom_minimum_size = Vector2(0, 60)
 anchor_right = 1.0
-offset_bottom = 56.0
+offset_bottom = 60.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_topbar_bg")
 
 [node name="HBox" type="HBoxContainer" parent="UI/Root/TopBar"]
-theme_override_constants/separation = 14
+theme_override_constants/separation = 10
 
 [node name="RoundChip" type="HBoxContainer" parent="UI/Root/TopBar/HBox"]
-theme_override_constants/separation = 8
+theme_override_constants/separation = 7
 
 [node name="HexNumBadge" type="Control" parent="UI/Root/TopBar/HBox/RoundChip"]
-custom_minimum_size = Vector2(30, 27)
+custom_minimum_size = Vector2(32, 28)
 script = ExtResource("9")
-fill_color = Color(0.788235, 0.478431, 0.290196, 1)
+fill_color = Color(0.960784, 0.760784, 0.258824, 1)
+border_color = Color(0.180392, 0.105882, 0.062745, 1)
+border_width = 2.5
 
 [node name="RoundNumberLabel" type="Label" parent="UI/Root/TopBar/HBox/RoundChip/HexNumBadge"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-theme_override_colors/font_color = Color(0.047058, 0.078431, 0.047058, 1)
-theme_override_fonts/font = SubResource("FontVariation_plex_700")
+theme_override_colors/font_color = Color(0.231373, 0.141176, 0.082353, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
 theme_override_font_sizes/font_size = 13
 text = "1"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="RoundCaptionVBox" type="VBoxContainer" parent="UI/Root/TopBar/HBox/RoundChip"]
-theme_override_constants/separation = 0
-
-[node name="RoundCaptionLabel" type="Label" parent="UI/Root/TopBar/HBox/RoundChip/RoundCaptionVBox"]
-theme_override_colors/font_color = Color(0.623529, 0.690196, 0.603921, 1)
-theme_override_font_sizes/font_size = 10
+[node name="RoundCaptionLabel" type="Label" parent="UI/Root/TopBar/HBox/RoundChip"]
+theme_override_colors/font_color = Color(0.890196, 0.803922, 0.658824, 1)
+theme_override_font_sizes/font_size = 11
 text = "RUNDA"
-
-[node name="RoundBigLabel" type="Label" parent="UI/Root/TopBar/HBox/RoundChip/RoundCaptionVBox"]
-theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_fonts/font = SubResource("FontVariation_plex_600")
-theme_override_font_sizes/font_size = 13
-text = "Runda 1"
+vertical_alignment = 1
 
 [node name="Divider1" type="Panel" parent="UI/Root/TopBar/HBox"]
 custom_minimum_size = Vector2(1, 30)
@@ -284,196 +394,291 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_divider")
 
 [node name="ResourcesRow" type="HBoxContainer" parent="UI/Root/TopBar/HBox"]
 size_flags_horizontal = 3
-theme_override_constants/separation = 18
+theme_override_constants/separation = 5
 
-[node name="ResourceWood" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+[node name="ResourceWood" type="PanelContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
 mouse_filter = 1
 mouse_default_cursor_shape = 2
-theme_override_constants/separation = 6
+theme_override_styles/panel = SubResource("StyleBoxFlat_pill_bg")
 
-[node name="DotWood" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceWood"]
+[node name="ResourceWoodBox" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceWood"]
 mouse_filter = 2
-custom_minimum_size = Vector2(9, 9)
+theme_override_constants/separation = 4
+
+[node name="DotWood" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceWood/ResourceWoodBox"]
+mouse_filter = 2
+custom_minimum_size = Vector2(11, 11)
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_dot_wood")
+self_modulate = Color(0.54902, 0.776471, 0.247059, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
 
-[node name="ResourceWoodCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceWood"]
-theme_override_font_sizes/font_size = 12
-text = "Drewno"
+[node name="ResourceWoodCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceWood/ResourceWoodBox"]
+theme_override_font_sizes/font_size = 11
+text = "Drw"
 
-[node name="ResourceWoodValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceWood"]
-theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_font_sizes/font_size = 12
+[node name="ResourceWoodValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceWood/ResourceWoodBox"]
+theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 11
 text = "0"
 
-[node name="ResourceFood" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+[node name="ResourceFood" type="PanelContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
 mouse_filter = 1
 mouse_default_cursor_shape = 2
-theme_override_constants/separation = 6
+theme_override_styles/panel = SubResource("StyleBoxFlat_pill_bg")
 
-[node name="DotFood" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceFood"]
+[node name="ResourceFoodBox" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceFood"]
 mouse_filter = 2
-custom_minimum_size = Vector2(9, 9)
+theme_override_constants/separation = 4
+
+[node name="DotFood" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceFood/ResourceFoodBox"]
+mouse_filter = 2
+custom_minimum_size = Vector2(11, 11)
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_dot_food")
+self_modulate = Color(1, 0.839216, 0.360784, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
 
-[node name="ResourceFoodCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceFood"]
-theme_override_font_sizes/font_size = 12
-text = "Żywność"
+[node name="ResourceFoodCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceFood/ResourceFoodBox"]
+theme_override_font_sizes/font_size = 11
+text = "Żyw"
 
-[node name="ResourceFoodValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceFood"]
-theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_font_sizes/font_size = 12
+[node name="ResourceFoodValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceFood/ResourceFoodBox"]
+theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 11
 text = "0"
 
-[node name="ResourceCopper" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+[node name="ResourceFoodProd" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceFood/ResourceFoodBox"]
+visible = false
+theme_override_colors/font_color = Color(0.643137, 0.847059, 0.494118, 1)
+theme_override_font_sizes/font_size = 10
+text = "+0"
+
+[node name="ResourceCopper" type="PanelContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
 mouse_filter = 1
 mouse_default_cursor_shape = 2
-theme_override_constants/separation = 6
+theme_override_styles/panel = SubResource("StyleBoxFlat_pill_bg")
 
-[node name="DotCopper" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper"]
+[node name="ResourceCopperBox" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper"]
 mouse_filter = 2
-custom_minimum_size = Vector2(9, 9)
+theme_override_constants/separation = 4
+
+[node name="DotCopper" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper/ResourceCopperBox"]
+mouse_filter = 2
+custom_minimum_size = Vector2(11, 11)
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_dot_copper")
+self_modulate = Color(0.878431, 0.6, 0.372549, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
 
-[node name="ResourceCopperCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper"]
-theme_override_font_sizes/font_size = 12
-text = "Miedź"
+[node name="ResourceCopperCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper/ResourceCopperBox"]
+theme_override_font_sizes/font_size = 11
+text = "Mie"
 
-[node name="ResourceCopperValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper"]
-theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_font_sizes/font_size = 12
+[node name="ResourceCopperValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper/ResourceCopperBox"]
+theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 11
 text = "0"
 
-[node name="ResourceCoal" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+[node name="ResourceCopperProd" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper/ResourceCopperBox"]
+visible = false
+theme_override_colors/font_color = Color(0.643137, 0.847059, 0.494118, 1)
+theme_override_font_sizes/font_size = 10
+text = "+0"
+
+[node name="ResourceCoal" type="PanelContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
 mouse_filter = 1
 mouse_default_cursor_shape = 2
-theme_override_constants/separation = 6
+theme_override_styles/panel = SubResource("StyleBoxFlat_pill_bg")
 
-[node name="DotCoal" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal"]
+[node name="ResourceCoalBox" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal"]
 mouse_filter = 2
-custom_minimum_size = Vector2(9, 9)
+theme_override_constants/separation = 4
+
+[node name="DotCoal" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal/ResourceCoalBox"]
+mouse_filter = 2
+custom_minimum_size = Vector2(11, 11)
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_dot_coal")
+self_modulate = Color(0.360784, 0.32549, 0.290196, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
 
-[node name="ResourceCoalCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal"]
-theme_override_font_sizes/font_size = 12
-text = "Węgiel"
+[node name="ResourceCoalCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal/ResourceCoalBox"]
+theme_override_font_sizes/font_size = 11
+text = "Węg"
 
-[node name="ResourceCoalValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal"]
-theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_font_sizes/font_size = 12
+[node name="ResourceCoalValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal/ResourceCoalBox"]
+theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 11
 text = "0"
 
-[node name="ResourceGas" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+[node name="ResourceCoalProd" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal/ResourceCoalBox"]
+visible = false
+theme_override_colors/font_color = Color(0.643137, 0.847059, 0.494118, 1)
+theme_override_font_sizes/font_size = 10
+text = "+0"
+
+[node name="ResourceGas" type="PanelContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
 mouse_filter = 1
 mouse_default_cursor_shape = 2
-theme_override_constants/separation = 6
+theme_override_styles/panel = SubResource("StyleBoxFlat_pill_bg")
 
-[node name="DotGas" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceGas"]
+[node name="ResourceGasBox" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceGas"]
 mouse_filter = 2
-custom_minimum_size = Vector2(9, 9)
-size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_dot_gas")
+theme_override_constants/separation = 4
 
-[node name="ResourceGasCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceGas"]
-theme_override_font_sizes/font_size = 12
+[node name="DotGas" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceGas/ResourceGasBox"]
+mouse_filter = 2
+custom_minimum_size = Vector2(11, 11)
+size_flags_vertical = 4
+self_modulate = Color(0.435294, 0.756863, 0.909804, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
+
+[node name="ResourceGasCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceGas/ResourceGasBox"]
+theme_override_font_sizes/font_size = 11
 text = "Gaz"
 
-[node name="ResourceGasValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceGas"]
-theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_font_sizes/font_size = 12
+[node name="ResourceGasValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceGas/ResourceGasBox"]
+theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 11
 text = "0"
 
-[node name="ResourceNickel" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+[node name="ResourceGasProd" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceGas/ResourceGasBox"]
+visible = false
+theme_override_colors/font_color = Color(0.643137, 0.847059, 0.494118, 1)
+theme_override_font_sizes/font_size = 10
+text = "+0"
+
+[node name="ResourceNickel" type="PanelContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
 visible = false
 mouse_filter = 1
 mouse_default_cursor_shape = 2
-theme_override_constants/separation = 6
+theme_override_styles/panel = SubResource("StyleBoxFlat_pill_bg")
 
-[node name="DotNickel" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel"]
+[node name="ResourceNickelBox" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel"]
 mouse_filter = 2
-custom_minimum_size = Vector2(9, 9)
+theme_override_constants/separation = 4
+
+[node name="DotNickel" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel/ResourceNickelBox"]
+mouse_filter = 2
+custom_minimum_size = Vector2(11, 11)
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_dot_nickel")
+self_modulate = Color(0.662745, 0.717647, 0.67451, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
 
-[node name="ResourceNickelCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel"]
-theme_override_font_sizes/font_size = 12
-text = "Nikiel"
+[node name="ResourceNickelCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel/ResourceNickelBox"]
+theme_override_font_sizes/font_size = 11
+text = "Nik"
 
-[node name="ResourceNickelValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel"]
-theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_font_sizes/font_size = 12
+[node name="ResourceNickelValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel/ResourceNickelBox"]
+theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 11
 text = "0"
 
-[node name="ResourceUranium" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+[node name="ResourceNickelProd" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel/ResourceNickelBox"]
+visible = false
+theme_override_colors/font_color = Color(0.643137, 0.847059, 0.494118, 1)
+theme_override_font_sizes/font_size = 10
+text = "+0"
+
+[node name="ResourceUranium" type="PanelContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
 visible = false
 mouse_filter = 1
 mouse_default_cursor_shape = 2
-theme_override_constants/separation = 6
+theme_override_styles/panel = SubResource("StyleBoxFlat_pill_bg")
 
-[node name="DotUranium" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium"]
+[node name="ResourceUraniumBox" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium"]
 mouse_filter = 2
-custom_minimum_size = Vector2(9, 9)
+theme_override_constants/separation = 4
+
+[node name="DotUranium" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumBox"]
+mouse_filter = 2
+custom_minimum_size = Vector2(11, 11)
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_dot_uranium")
+self_modulate = Color(0.780392, 0.878431, 0.298039, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
 
-[node name="ResourceUraniumCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium"]
-theme_override_font_sizes/font_size = 12
-text = "Uran"
+[node name="ResourceUraniumCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumBox"]
+theme_override_font_sizes/font_size = 11
+text = "Ura"
 
-[node name="ResourceUraniumValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium"]
-theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_font_sizes/font_size = 12
+[node name="ResourceUraniumValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumBox"]
+theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 11
 text = "0"
 
-[node name="Divider2" type="Panel" parent="UI/Root/TopBar/HBox"]
-custom_minimum_size = Vector2(1, 30)
-size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_divider")
-
-[node name="MoneyChip" type="HBoxContainer" parent="UI/Root/TopBar/HBox"]
-theme_override_constants/separation = 5
-
-[node name="MoneyIconLabel" type="Label" parent="UI/Root/TopBar/HBox/MoneyChip"]
-theme_override_font_sizes/font_size = 13
-text = "💰"
-
-[node name="MoneyValueLabel" type="Label" parent="UI/Root/TopBar/HBox/MoneyChip"]
-theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_fonts/font = SubResource("FontVariation_plex_700")
-theme_override_font_sizes/font_size = 13
-text = "0"
-
-[node name="Divider3" type="Panel" parent="UI/Root/TopBar/HBox"]
-custom_minimum_size = Vector2(1, 30)
-size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_divider")
+[node name="ResourceUraniumProd" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumBox"]
+visible = false
+theme_override_colors/font_color = Color(0.643137, 0.847059, 0.494118, 1)
+theme_override_font_sizes/font_size = 10
+text = "+0"
 
 [node name="PrestigeChip" type="HBoxContainer" parent="UI/Root/TopBar/HBox"]
+tooltip_text = "Prestiż"
 theme_override_constants/separation = 5
 
-[node name="PrestigeCaptionLabel" type="Label" parent="UI/Root/TopBar/HBox/PrestigeChip"]
-theme_override_colors/font_color = Color(0.788235, 0.635294, 0.294117, 1)
-theme_override_fonts/font = SubResource("FontVariation_plex_500")
-theme_override_font_sizes/font_size = 13
-text = "Prestiż"
+[node name="PrestigeChipBg" type="PanelContainer" parent="UI/Root/TopBar/HBox/PrestigeChip"]
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_chip_bg")
 
-[node name="PrestigeValueLabel" type="Label" parent="UI/Root/TopBar/HBox/PrestigeChip"]
-theme_override_colors/font_color = Color(0.878431, 0.6, 0.372549, 1)
-theme_override_fonts/font = SubResource("FontVariation_plex_700")
+[node name="PrestigeChipBox" type="HBoxContainer" parent="UI/Root/TopBar/HBox/PrestigeChip/PrestigeChipBg"]
+mouse_filter = 2
+theme_override_constants/separation = 5
+
+[node name="PrestigeDot" type="Panel" parent="UI/Root/TopBar/HBox/PrestigeChip/PrestigeChipBg/PrestigeChipBox"]
+mouse_filter = 2
+custom_minimum_size = Vector2(13, 13)
+size_flags_vertical = 4
+self_modulate = Color(1, 0.839216, 0.360784, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
+
+[node name="PrestigeValueLabel" type="Label" parent="UI/Root/TopBar/HBox/PrestigeChip/PrestigeChipBg/PrestigeChipBox"]
+theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 13
+text = "0"
+
+[node name="PrestigeStarLabel" type="Label" parent="UI/Root/TopBar/HBox/PrestigeChip/PrestigeChipBg/PrestigeChipBox"]
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 9
+text = "★"
+
+[node name="MoneyChip" type="HBoxContainer" parent="UI/Root/TopBar/HBox"]
+tooltip_text = "Pieniądze"
+theme_override_constants/separation = 5
+
+[node name="MoneyChipBg" type="PanelContainer" parent="UI/Root/TopBar/HBox/MoneyChip"]
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_chip_bg")
+
+[node name="MoneyChipBox" type="HBoxContainer" parent="UI/Root/TopBar/HBox/MoneyChip/MoneyChipBg"]
+mouse_filter = 2
+theme_override_constants/separation = 5
+
+[node name="MoneyDot" type="Panel" parent="UI/Root/TopBar/HBox/MoneyChip/MoneyChipBg/MoneyChipBox"]
+mouse_filter = 2
+custom_minimum_size = Vector2(13, 13)
+size_flags_vertical = 4
+self_modulate = Color(1, 0.913725, 0.658824, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
+
+[node name="MoneyValueLabel" type="Label" parent="UI/Root/TopBar/HBox/MoneyChip/MoneyChipBg/MoneyChipBox"]
+theme_override_colors/font_color = Color(1, 0.913725, 0.658824, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
 theme_override_font_sizes/font_size = 13
 text = "0"
 
 [node name="InfoBar" type="PanelContainer" parent="UI/Root"]
 anchor_right = 1.0
-offset_top = 56.0
-offset_bottom = 80.0
+offset_top = 60.0
+offset_bottom = 84.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_infobar_bg")
 
 [node name="InfoLabel" type="Label" parent="UI/Root/InfoBar"]
-theme_override_colors/font_color = Color(0.623529, 0.690196, 0.603921, 1)
+theme_override_colors/font_color = Color(0.890196, 0.803922, 0.658824, 1)
 theme_override_font_sizes/font_size = 12
 text = "Ładowanie..."
 autowrap_mode = 2
@@ -483,8 +688,8 @@ vertical_alignment = 1
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -258.0
-offset_top = 80.0
+offset_left = -264.0
+offset_top = 84.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_sidebar_bg")
 
 [node name="SidebarVBox" type="VBoxContainer" parent="UI/Root/Sidebar"]
@@ -500,27 +705,37 @@ theme_override_constants/margin_bottom = 14
 theme_override_constants/separation = 3
 
 [node name="CityLabelSmall" type="Label" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox"]
-theme_override_colors/font_color = Color(0.623529, 0.690196, 0.603921, 1)
+theme_override_colors/font_color = Color(0.890196, 0.803922, 0.658824, 1)
 theme_override_font_sizes/font_size = 10
 text = "MIASTO"
 
 [node name="CityNameRow" type="HBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox"]
+theme_override_constants/separation = 8
 
 [node name="CityNameLabel" type="Label" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow"]
-theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_fonts/font = SubResource("FontVariation_plex_600")
+theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
 theme_override_font_sizes/font_size = 20
 text = "-"
 
 [node name="CitySpacer" type="Control" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow"]
 size_flags_horizontal = 3
 
-[node name="SkillTreeButton" type="Button" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow"]
-custom_minimum_size = Vector2(34, 34)
-tooltip_text = "Drzewko Umiejętności"
+[node name="CityCardIconButton" type="Button" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow"]
+custom_minimum_size = Vector2(38, 38)
+tooltip_text = "Karta Miasta"
 theme_override_styles/normal = SubResource("StyleBoxFlat_skill_circle_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_skill_circle_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_skill_circle_hover")
+theme_override_font_sizes/font_size = 15
+text = "🏛"
+
+[node name="SkillTreeButton" type="Button" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow"]
+custom_minimum_size = Vector2(38, 38)
+tooltip_text = "Drzewko Umiejętności"
+theme_override_styles/normal = SubResource("StyleBoxFlat_gold_circle_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_gold_circle_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_gold_circle_hover")
 text = ""
 
 [node name="DividerCity" type="Panel" parent="UI/Root/Sidebar/SidebarVBox"]
@@ -537,23 +752,12 @@ theme_override_constants/margin_bottom = 12
 [node name="BuildingsBlockVBox" type="VBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin"]
 theme_override_constants/separation = 8
 
-[node name="BuildingsHeaderRow" type="HBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox"]
-
-[node name="BTitleLabel" type="Label" parent="UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox/BuildingsHeaderRow"]
-theme_override_colors/font_color = Color(0.788235, 0.635294, 0.294117, 1)
+[node name="BTitleLabel" type="Label" parent="UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox"]
+theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
 theme_override_font_sizes/font_size = 10
 text = "BUDYNKI Z KARTY MIASTA"
 autowrap_mode = 2
-
-[node name="BTitleSpacer" type="Control" parent="UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox/BuildingsHeaderRow"]
-size_flags_horizontal = 3
-
-[node name="OpenCityCardLink" type="Button" parent="UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox/BuildingsHeaderRow"]
-flat = true
-theme_override_colors/font_color = Color(0.623529, 0.690196, 0.603921, 1)
-theme_override_colors/font_hover_color = Color(0.878431, 0.6, 0.372549, 1)
-theme_override_font_sizes/font_size = 11
-text = "Pełna karta →"
 
 [node name="BuildingsScroll" type="ScrollContainer" parent="UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox"]
 size_flags_vertical = 3
@@ -591,7 +795,8 @@ theme_override_constants/separation = 7
 [node name="HTitleRow" type="HBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox"]
 
 [node name="HTitleLabel" type="Label" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/HTitleRow"]
-theme_override_colors/font_color = Color(0.788235, 0.635294, 0.294117, 1)
+theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
 theme_override_font_sizes/font_size = 10
 text = "ZETNIJ DRZEWA"
 
@@ -599,48 +804,20 @@ text = "ZETNIJ DRZEWA"
 size_flags_horizontal = 3
 
 [node name="HarvestValueLabel" type="Label" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/HTitleRow"]
-theme_override_colors/font_color = Color(0.878431, 0.6, 0.372549, 1)
-theme_override_fonts/font = SubResource("FontVariation_plex_700")
+theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
 theme_override_font_sizes/font_size = 14
 text = "50%"
 
-[node name="SliderStack" type="Control" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox"]
+[node name="HarvestSlider" type="HSlider" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox"]
 custom_minimum_size = Vector2(0, 18)
-
-[node name="HarvestTrack" type="Control" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/SliderStack"]
-mouse_filter = 2
-anchor_right = 1.0
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_top = -3.0
-offset_bottom = 3.0
-script = ExtResource("11")
-
-[node name="HarvestSlider" type="HSlider" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/SliderStack"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-theme_override_styles/slider = SubResource("StyleBoxFlat_transparent_track")
-theme_override_styles/grabber_area = SubResource("StyleBoxFlat_transparent_track")
-theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_transparent_track")
+theme_override_styles/slider = SubResource("StyleBoxFlat_harvest_track")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_transparent")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_transparent")
 min_value = 0.0
 max_value = 100.0
 step = 1.0
 value = 50.0
-
-[node name="MarksRow" type="HBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox"]
-
-[node name="SafeMarkLabel" type="Label" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/MarksRow"]
-theme_override_colors/font_color = Color(0.498039, 0.682352, 0.431372, 1)
-theme_override_font_sizes/font_size = 10
-text = "bezpiecznie do 60%"
-
-[node name="MarksSpacer" type="Control" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/MarksRow"]
-size_flags_horizontal = 3
-
-[node name="HundredLabel" type="Label" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/MarksRow"]
-theme_override_colors/font_color = Color(0.623529, 0.690196, 0.603921, 1)
-theme_override_font_sizes/font_size = 10
-text = "100%"
 
 [node name="HarvestButton" type="Button" parent="UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox"]
 theme_override_font_sizes/font_size = 12
@@ -653,134 +830,141 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_divider")
 [node name="SidebarBottom" type="PanelContainer" parent="UI/Root/Sidebar/SidebarVBox"]
 theme_override_styles/panel = SubResource("StyleBoxFlat_sidebar_bottom_bg")
 
-[node name="SidebarBottomHBox" type="HBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/SidebarBottom"]
-theme_override_constants/separation = 0
+[node name="SidebarBottomMargin" type="MarginContainer" parent="UI/Root/Sidebar/SidebarVBox/SidebarBottom"]
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
 
-[node name="PlayerSelector" type="OptionButton" parent="UI/Root/Sidebar/SidebarVBox/SidebarBottom/SidebarBottomHBox"]
+[node name="SidebarBottomHBox" type="HBoxContainer" parent="UI/Root/Sidebar/SidebarVBox/SidebarBottom/SidebarBottomMargin"]
+theme_override_constants/separation = 6
+
+[node name="PlayerSelector" type="OptionButton" parent="UI/Root/Sidebar/SidebarVBox/SidebarBottom/SidebarBottomMargin/SidebarBottomHBox"]
 size_flags_horizontal = 3
 theme_override_styles/normal = SubResource("StyleBoxFlat_selector_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_selector_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_selector_hover")
 theme_override_font_sizes/font_size = 12
 
-[node name="EndRoundButton" type="Button" parent="UI/Root/Sidebar/SidebarVBox/SidebarBottom/SidebarBottomHBox"]
+[node name="EndRoundButton" type="Button" parent="UI/Root/Sidebar/SidebarVBox/SidebarBottom/SidebarBottomMargin/SidebarBottomHBox"]
 size_flags_horizontal = 3
-theme_override_styles/normal = SubResource("StyleBoxFlat_primary_copper_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_primary_copper_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_primary_copper_hover")
-theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_colors/font_hover_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_fonts/font = SubResource("FontVariation_plex_600")
+theme_override_styles/normal = SubResource("StyleBoxFlat_green_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_green_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_green_hover")
+theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_colors/font_hover_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
 theme_override_font_sizes/font_size = 13
 text = "Zakończ rundę"
 
 [node name="HexInfoPanel" type="PanelContainer" parent="UI/Root"]
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -514.0
-offset_top = 92.0
-offset_right = -274.0
-offset_bottom = 212.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_parchment_card_small")
+offset_left = -520.0
+offset_top = 96.0
+offset_right = -280.0
+offset_bottom = 216.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_card_bg_small")
 
 [node name="HexInfoLabel" type="Label" parent="UI/Root/HexInfoPanel"]
-theme_override_colors/font_color = Color(0.168627, 0.149019, 0.125490, 1)
+theme_override_colors/font_color = Color(0.231373, 0.141176, 0.082353, 1)
 theme_override_font_sizes/font_size = 12
 text = "Zaznacz pole (kliknij na mapie)."
 autowrap_mode = 2
 
-[node name="UnitCard" type="PanelContainer" parent="UI"]
+[node name="UnitCard" type="Control" parent="UI"]
 top_level = true
-custom_minimum_size = Vector2(250, 0)
-theme = ExtResource("7")
 script = ExtResource("10")
-theme_override_styles/panel = SubResource("StyleBoxFlat_parchment_card")
 
-[node name="VBox" type="VBoxContainer" parent="UI/UnitCard"]
+[node name="Background" type="PanelContainer" parent="UI/UnitCard"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_card_bg")
+
+[node name="VBox" type="VBoxContainer" parent="UI/UnitCard/Background"]
 theme_override_constants/separation = 8
 
-[node name="Head" type="HBoxContainer" parent="UI/UnitCard/VBox"]
+[node name="Head" type="HBoxContainer" parent="UI/UnitCard/Background/VBox"]
 mouse_filter = 1
+custom_minimum_size = Vector2(0, 24)
 
-[node name="NameLabel" type="Label" parent="UI/UnitCard/VBox/Head"]
+[node name="NameLabel" type="Label" parent="UI/UnitCard/Background/VBox/Head"]
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.168627, 0.149019, 0.125490, 1)
-theme_override_fonts/font = SubResource("FontVariation_plex_700")
-theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.231373, 0.141176, 0.082353, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 16
 text = "Karta ludzika"
 
-[node name="HeadSpacer" type="Control" parent="UI/UnitCard/VBox/Head"]
-mouse_filter = 2
-size_flags_horizontal = 3
-
-[node name="HeadControls" type="HBoxContainer" parent="UI/UnitCard/VBox/Head"]
-mouse_filter = 2
-theme_override_constants/separation = 7
-
-[node name="CancelButton" type="Button" parent="UI/UnitCard/VBox/Head/HeadControls"]
-custom_minimum_size = Vector2(20, 20)
-tooltip_text = "Anuluj podgląd/trasę"
-theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_circle")
-theme_override_styles/hover = SubResource("StyleBoxFlat_cancel_circle_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_cancel_circle_hover")
-theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_font_sizes/font_size = 10
-text = "✕"
-
-[node name="MPLabel" type="Label" parent="UI/UnitCard/VBox/Head/HeadControls"]
-theme_override_colors/font_color = Color(0.419607, 0.372549, 0.301960, 1)
-theme_override_fonts/font = SubResource("FontVariation_plex_500")
-theme_override_font_sizes/font_size = 12
-text = "-/-"
-
-[node name="PipsRow" type="HBoxContainer" parent="UI/UnitCard/VBox"]
+[node name="PipsRow" type="HBoxContainer" parent="UI/UnitCard/Background/VBox"]
 theme_override_constants/separation = 4
 
-[node name="StatusLabel" type="Label" parent="UI/UnitCard/VBox"]
-theme_override_colors/font_color = Color(0.419607, 0.372549, 0.301960, 1)
+[node name="StatusLabel" type="Label" parent="UI/UnitCard/Background/VBox"]
+theme_override_colors/font_color = Color(0.419608, 0.290196, 0.172549, 1)
 theme_override_font_sizes/font_size = 11
 autowrap_mode = 2
 text = "Kliknij pole na mapie, żeby zaplanować trasę."
 
-[node name="ConfirmButton" type="Button" parent="UI/UnitCard/VBox"]
-theme_override_styles/normal = SubResource("StyleBoxFlat_primary_copper_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_primary_copper_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_primary_copper_hover")
-theme_override_colors/font_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_colors/font_hover_color = Color(0.937254, 0.901960, 0.827450, 1)
-theme_override_fonts/font = SubResource("FontVariation_plex_600")
+[node name="ConfirmButton" type="Button" parent="UI/UnitCard/Background/VBox"]
+theme_override_styles/normal = SubResource("StyleBoxFlat_green_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_green_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_green_hover")
+theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_colors/font_hover_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
 theme_override_font_sizes/font_size = 13
 text = "Potwierdź trasę"
 
-[node name="Links" type="VBoxContainer" parent="UI/UnitCard/VBox"]
+[node name="Links" type="VBoxContainer" parent="UI/UnitCard/Background/VBox"]
 theme_override_constants/separation = 5
 
-[node name="AnnexButton" type="Button" parent="UI/UnitCard/VBox/Links"]
+[node name="AnnexButton" type="Button" parent="UI/UnitCard/Background/VBox/Links"]
 flat = true
 alignment = 0
-theme_override_colors/font_color = Color(0.168627, 0.149019, 0.125490, 1)
-theme_override_colors/font_hover_color = Color(0.788235, 0.478431, 0.290196, 1)
-theme_override_fonts/font = SubResource("FontVariation_plex_600")
+theme_override_colors/font_color = Color(0.231373, 0.141176, 0.082353, 1)
+theme_override_colors/font_hover_color = Color(0.960784, 0.760784, 0.258824, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
 theme_override_font_sizes/font_size = 12
 text = "Zaanektuj"
 
-[node name="TakeoverButton" type="Button" parent="UI/UnitCard/VBox/Links"]
+[node name="TakeoverButton" type="Button" parent="UI/UnitCard/Background/VBox/Links"]
 flat = true
 alignment = 0
-theme_override_colors/font_color = Color(0.168627, 0.149019, 0.125490, 1)
-theme_override_colors/font_hover_color = Color(0.788235, 0.478431, 0.290196, 1)
-theme_override_fonts/font = SubResource("FontVariation_plex_600")
+theme_override_colors/font_color = Color(0.231373, 0.141176, 0.082353, 1)
+theme_override_colors/font_hover_color = Color(0.960784, 0.760784, 0.258824, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
 theme_override_font_sizes/font_size = 12
 text = "Przejmij teren gracza"
 
-[node name="AutoAnnexToggle" type="Button" parent="UI/UnitCard/VBox/Links"]
+[node name="CancelRouteLink" type="Button" parent="UI/UnitCard/Background/VBox/Links"]
+flat = true
+alignment = 0
+theme_override_colors/font_color = Color(0.231373, 0.141176, 0.082353, 1)
+theme_override_colors/font_hover_color = Color(0.960784, 0.760784, 0.258824, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 12
+text = "Anuluj trasę"
+
+[node name="AutoAnnexToggle" type="Button" parent="UI/UnitCard/Background/VBox/Links"]
 flat = true
 toggle_mode = true
 alignment = 0
-theme_override_colors/font_color = Color(0.352941, 0.313725, 0.250980, 1)
-theme_override_colors/font_hover_color = Color(0.168627, 0.149019, 0.125490, 1)
+theme_override_colors/font_color = Color(0.419608, 0.290196, 0.172549, 1)
+theme_override_colors/font_hover_color = Color(0.231373, 0.141176, 0.082353, 1)
 theme_override_font_sizes/font_size = 12
 text = "Anektuj napotkane pola"
+
+[node name="CloseButton" type="Button" parent="UI/UnitCard"]
+anchor_left = 1.0
+offset_left = -32.0
+offset_top = 8.0
+custom_minimum_size = Vector2(22, 22)
+tooltip_text = "Zamknij kartę ludzika"
+theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_circle")
+theme_override_styles/hover = SubResource("StyleBoxFlat_cancel_circle_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cancel_circle_hover")
+theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_font_sizes/font_size = 10
+text = "✕"
 
 [node name="CityCardPanel" type="CanvasLayer" parent="."]
 layer = 10
@@ -816,59 +1000,134 @@ text = "Zamknij"
 layer = 15
 script = ExtResource("15")
 
-[node name="Panel" type="PanelContainer" parent="MarketPanel"]
-theme = ExtResource("7")
-offset_left = 260.0
+[node name="Background" type="PanelContainer" parent="MarketPanel"]
+offset_left = 340.0
 offset_top = 90.0
-offset_right = 900.0
-offset_bottom = 610.0
+offset_right = 800.0
+offset_bottom = 560.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_market_bg")
 
-[node name="VBox" type="VBoxContainer" parent="MarketPanel/Panel"]
-theme_override_constants/separation = 10
+[node name="VBox" type="VBoxContainer" parent="MarketPanel/Background"]
+theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="MarketPanel/Panel/VBox"]
+[node name="HeaderRow" type="HBoxContainer" parent="MarketPanel/Background/VBox"]
+theme_override_constants/separation = 8
+
+[node name="HeadDot" type="Panel" parent="MarketPanel/Background/VBox/HeaderRow"]
+custom_minimum_size = Vector2(20, 20)
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
+
+[node name="NameLabel" type="Label" parent="MarketPanel/Background/VBox/HeaderRow"]
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
 theme_override_font_sizes/font_size = 20
 text = "Rynek"
 
-[node name="PriceRow" type="HBoxContainer" parent="MarketPanel/Panel/VBox"]
-theme_override_constants/separation = 20
+[node name="RoundLabel" type="Label" parent="MarketPanel/Background/VBox/HeaderRow"]
+theme_override_colors/font_color = Color(0.890196, 0.803922, 0.658824, 1)
+theme_override_font_sizes/font_size = 12
+text = "Runda -"
 
-[node name="MidPriceLabel" type="Label" parent="MarketPanel/Panel/VBox/PriceRow"]
-text = "Cena środkowa: -"
-
-[node name="BuyPriceLabel" type="Label" parent="MarketPanel/Panel/VBox/PriceRow"]
-text = "Kupno: -"
-
-[node name="SellPriceLabel" type="Label" parent="MarketPanel/Panel/VBox/PriceRow"]
-text = "Sprzedaż: -"
-
-[node name="ChartArea" type="Control" parent="MarketPanel/Panel/VBox"]
-custom_minimum_size = Vector2(600, 220)
+[node name="ChartArea" type="Control" parent="MarketPanel/Background/VBox"]
+custom_minimum_size = Vector2(400, 90)
 script = ExtResource("16")
 
-[node name="LimitLabel" type="Label" parent="MarketPanel/Panel/VBox"]
-autowrap_mode = 2
-text = "Limit tej rundy: -"
+[node name="QtyRow" type="HBoxContainer" parent="MarketPanel/Background/VBox"]
 
-[node name="TradeRow" type="HBoxContainer" parent="MarketPanel/Panel/VBox"]
-theme_override_constants/separation = 10
+[node name="QtyTitleLabel" type="Label" parent="MarketPanel/Background/VBox/QtyRow"]
+theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 10
+text = "ILOŚĆ"
 
-[node name="AmountSpinBox" type="SpinBox" parent="MarketPanel/Panel/VBox/TradeRow"]
+[node name="QtySpacer" type="Control" parent="MarketPanel/Background/VBox/QtyRow"]
+size_flags_horizontal = 3
+
+[node name="QtyValueLabel" type="Label" parent="MarketPanel/Background/VBox/QtyRow"]
+theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 15
+text = "1 szt."
+
+[node name="QtySlider" type="HSlider" parent="MarketPanel/Background/VBox"]
+custom_minimum_size = Vector2(0, 18)
+theme_override_styles/slider = SubResource("StyleBoxFlat_harvest_track")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_transparent")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_transparent")
 min_value = 1.0
+max_value = 10.0
+step = 1.0
 value = 1.0
 
-[node name="BuyButton" type="Button" parent="MarketPanel/Panel/VBox/TradeRow"]
+[node name="BuyRow" type="PanelContainer" parent="MarketPanel/Background/VBox"]
+theme_override_styles/panel = SubResource("StyleBoxFlat_chip_bg")
+
+[node name="BuyRowHBox" type="HBoxContainer" parent="MarketPanel/Background/VBox/BuyRow"]
+theme_override_constants/separation = 8
+
+[node name="BuyLabel" type="Label" parent="MarketPanel/Background/VBox/BuyRow/BuyRowHBox"]
+theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 13
+text = "Kupno"
+
+[node name="BuySpacer" type="Control" parent="MarketPanel/Background/VBox/BuyRow/BuyRowHBox"]
+size_flags_horizontal = 3
+
+[node name="BuyTotalLabel" type="Label" parent="MarketPanel/Background/VBox/BuyRow/BuyRowHBox"]
+theme_override_colors/font_color = Color(0.878431, 0.313725, 0.227451, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 16
+text = "0.00"
+
+[node name="BuyButton" type="Button" parent="MarketPanel/Background/VBox/BuyRow/BuyRowHBox"]
+theme_override_styles/normal = SubResource("StyleBoxFlat_red_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_red_hover")
+theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_font_sizes/font_size = 12
 text = "Kup"
 
-[node name="SellButton" type="Button" parent="MarketPanel/Panel/VBox/TradeRow"]
+[node name="SellRow" type="PanelContainer" parent="MarketPanel/Background/VBox"]
+theme_override_styles/panel = SubResource("StyleBoxFlat_chip_bg")
+
+[node name="SellRowHBox" type="HBoxContainer" parent="MarketPanel/Background/VBox/SellRow"]
+theme_override_constants/separation = 8
+
+[node name="SellLabel" type="Label" parent="MarketPanel/Background/VBox/SellRow/SellRowHBox"]
+theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 13
+text = "Sprzedaż"
+
+[node name="SellSpacer" type="Control" parent="MarketPanel/Background/VBox/SellRow/SellRowHBox"]
+size_flags_horizontal = 3
+
+[node name="SellTotalLabel" type="Label" parent="MarketPanel/Background/VBox/SellRow/SellRowHBox"]
+theme_override_colors/font_color = Color(0.486275, 0.72549, 0.247059, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 16
+text = "0.00"
+
+[node name="SellButton" type="Button" parent="MarketPanel/Background/VBox/SellRow/SellRowHBox"]
+theme_override_styles/normal = SubResource("StyleBoxFlat_green_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_green_hover")
+theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_font_sizes/font_size = 12
 text = "Sprzedaj"
 
-[node name="FeedbackLabel" type="Label" parent="MarketPanel/Panel/VBox"]
-autowrap_mode = 2
-text = ""
-
-[node name="CloseButton" type="Button" parent="MarketPanel/Panel/VBox"]
-text = "Zamknij"
+[node name="CloseButton" type="Button" parent="MarketPanel"]
+offset_left = 768.0
+offset_top = 98.0
+custom_minimum_size = Vector2(22, 22)
+tooltip_text = "Zamknij panel Rynku"
+theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_circle")
+theme_override_styles/hover = SubResource("StyleBoxFlat_cancel_circle_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cancel_circle_hover")
+theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_font_sizes/font_size = 10
+text = "✕"
 
 [node name="SkillTreePanel" type="CanvasLayer" parent="."]
 layer = 100

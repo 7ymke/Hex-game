@@ -1,52 +1,64 @@
 class_name Palette
 extends RefCounted
-## Color palette for the game's UI restyle (Godot port of UI_Gry_Makieta.html
-## - the CSS custom properties in its `:root` block). One place to look up
-## any color used across the theme, hex_shape drawing, and the map view, so
-## the whole UI stays visually consistent and easy to re-tune.
+## Color palette for the game's UI - the "wood / BTD6" visual language
+## (Godot port of UI_Gry_Makieta_11.html's `:root` custom properties).
+## Full replacement of the earlier "elegant atlas" palette (parchment/
+## copper/brass) - see the README's "Decyzje projektowe" entry for why.
+## One place to look up any color used across the theme, hex_shape
+## drawing, and the map view, so the whole UI stays visually consistent
+## and easy to re-tune.
 
-const INK = Color(0xED / 255.0, 0xE6 / 255.0, 0xD6 / 255.0)
-const INK_DIM = Color(0x9F / 255.0, 0xB0 / 255.0, 0x9A / 255.0)
-const BG_DEEP = Color(0x0C / 255.0, 0x14 / 255.0, 0x0C / 255.0)
-const BG_MAP = Color(0x16 / 255.0, 0x26 / 255.0, 0x1C / 255.0)
-const PANEL = Color(0x18 / 255.0, 0x24 / 255.0, 0x17 / 255.0)
-const PANEL_2 = Color(0x1E / 255.0, 0x2C / 255.0, 0x1C / 255.0)
-const COPPER = Color(0xC9 / 255.0, 0x7A / 255.0, 0x4A / 255.0)
-const COPPER_BRIGHT = Color(0xE0 / 255.0, 0x99 / 255.0, 0x5F / 255.0)
-const BRASS = Color(0xC9 / 255.0, 0xA2 / 255.0, 0x4B / 255.0)
-const PARCHMENT = Color(0xEF / 255.0, 0xE6 / 255.0, 0xD3 / 255.0)
-const PARCHMENT_INK = Color(0x2B / 255.0, 0x26 / 255.0, 0x20 / 255.0)
-## `.ludzik-card .head .mp` / `.links button` text color - a muted brown,
-## lighter than PARCHMENT_INK, for secondary text on the parchment card.
-const PARCHMENT_MUTED = Color(0x6B / 255.0, 0x5F / 255.0, 0x4D / 255.0)
-const DANGER = Color(0xC1 / 255.0, 0x54 / 255.0, 0x3D / 255.0)
-const SAFE = Color(0x7F / 255.0, 0xAE / 255.0, 0x6E / 255.0)
+const WOOD_DARK = Color(0x3B / 255.0, 0x24 / 255.0, 0x15 / 255.0)
+const BORDER = Color(0x2E / 255.0, 0x1B / 255.0, 0x10 / 255.0)
+const WOOD_MID = Color(0x6B / 255.0, 0x44 / 255.0, 0x26 / 255.0)
+const WOOD_PANEL = Color(0x7A / 255.0, 0x4F / 255.0, 0x2C / 255.0)
+const WOOD_PANEL_2 = Color(0x8C / 255.0, 0x5E / 255.0, 0x36 / 255.0)
 
-## rgba(201, 162, 75, alpha) - a brass hairline, used for borders/separators.
-const RULE = Color(0xC9 / 255.0, 0xA2 / 255.0, 0x4B / 255.0, 0.32)
-const RULE_DIM = Color(0xC9 / 255.0, 0xA2 / 255.0, 0x4B / 255.0, 0.16)
+const TAN = Color(0xE4 / 255.0, 0xBE / 255.0, 0x8D / 255.0)
+const TAN_2 = Color(0xEF / 255.0, 0xD3 / 255.0, 0xA8 / 255.0)
+const TAN_INK = Color(0x3B / 255.0, 0x24 / 255.0, 0x15 / 255.0)
+
+const CREAM = Color(0xFF / 255.0, 0xF3 / 255.0, 0xDD / 255.0)
+const CREAM_DIM = Color(0xE3 / 255.0, 0xCD / 255.0, 0xA8 / 255.0)
+
+const GOLD = Color(0xF5 / 255.0, 0xC2 / 255.0, 0x42 / 255.0)
+const GOLD_BRIGHT = Color(0xFF / 255.0, 0xD6 / 255.0, 0x5C / 255.0)
+
+const GREEN = Color(0x7C / 255.0, 0xB9 / 255.0, 0x3F / 255.0)
+const GREEN_DARK = Color(0x4C / 255.0, 0x7A / 255.0, 0x22 / 255.0)
+
+const RED = Color(0xE0 / 255.0, 0x50 / 255.0, 0x3A / 255.0)
+const RED_DARK = Color(0xA0 / 255.0, 0x2F / 255.0, 0x1E / 255.0)
 
 ## Resource dots in the top bar (`.resource .dot.*` in the mockup).
-const RESOURCE_DOT_WOOD = Color(0x7C / 255.0, 0xA8 / 255.0, 0x6A / 255.0)
-const RESOURCE_DOT_FOOD = Color(0xD9 / 255.0, 0xB2 / 255.0, 0x4C / 255.0)
-const RESOURCE_DOT_COPPER = COPPER_BRIGHT
-const RESOURCE_DOT_COAL = Color(0x4A / 255.0, 0x46 / 255.0, 0x40 / 255.0)
-const RESOURCE_DOT_COAL_BORDER = Color(0x6B / 255.0, 0x65 / 255.0, 0x5C / 255.0)
-const RESOURCE_DOT_GAS = Color(0x6F / 255.0, 0xA8 / 255.0, 0xD8 / 255.0)
+const RESOURCE_DOT_FOOD = GOLD_BRIGHT
+const RESOURCE_DOT_WOOD = Color(0x8C / 255.0, 0xC6 / 255.0, 0x3F / 255.0)
+const RESOURCE_DOT_COAL = Color(0x5C / 255.0, 0x53 / 255.0, 0x4A / 255.0)
+const RESOURCE_DOT_COPPER = Color(0xE0 / 255.0, 0x99 / 255.0, 0x5F / 255.0)
+const RESOURCE_DOT_GAS = Color(0x6F / 255.0, 0xC1 / 255.0, 0xE8 / 255.0)
 ## Not in the mockup (which only shows the 5 core resources) - picked to fit
 ## the same palette, so the two rarer late-game resources still get a
 ## distinct dot instead of being silently dropped from the top bar.
-const RESOURCE_DOT_NICKEL = Color(0.75, 0.75, 0.78)
-const RESOURCE_DOT_URANIUM = Color(0.7, 0.85, 0.25)
+const RESOURCE_DOT_NICKEL = Color(0xA9 / 255.0, 0xB7 / 255.0, 0xAC / 255.0)
+const RESOURCE_DOT_URANIUM = Color(0xC7 / 255.0, 0xE0 / 255.0, 0x4C / 255.0)
+
+## Prestige dot/star and Money dot - distinct from the resource dots above
+## (a different kind of "currency").
+const PRESTIGE_DOT = GOLD_BRIGHT
+const MONEY_DOT = Color(0xFF / 255.0, 0xE9 / 255.0, 0xA8 / 255.0)
 
 ## Map terrain colors (`.hex.*` in the mockup) - used by hex_map_view.gd
-## instead of its previous ad hoc colors, so the map matches the rest of the
-## restyled UI.
-const TERRAIN_AGRICULTURAL = Color(0x8C / 255.0, 0x83 / 255.0, 0x52 / 255.0)
-const TERRAIN_FOREST = Color(0x4C / 255.0, 0x7A / 255.0, 0x45 / 255.0)
-const TERRAIN_MOUNTAIN = Color(0x6B / 255.0, 0x64 / 255.0, 0x59 / 255.0)
-const TERRAIN_CITY = COPPER
+## instead of its previous ad hoc colors, so the map matches the rest of
+## the UI.
+const TERRAIN_AGRICULTURAL = Color(0xB0 / 255.0, 0x8D / 255.0, 0x4F / 255.0)
+const TERRAIN_FOREST = Color(0x5C / 255.0, 0x8A / 255.0, 0x2C / 255.0)
+const TERRAIN_MOUNTAIN = Color(0x7A / 255.0, 0x6E / 255.0, 0x5E / 255.0)
+const TERRAIN_CITY = GOLD
 const TERRAIN_PROTECTED_AREA = Color(0.18, 0.55, 0.5)
 const TERRAIN_WATER = Color(0.2, 0.4, 0.75)
 const TERRAIN_UNKNOWN = Color(0.6, 0.6, 0.6)
-const FOG_UNEXPLORED = Color(0.08, 0.1, 0.08)
+const FOG_UNEXPLORED = Color(20.0 / 255.0, 14.0 / 255.0, 8.0 / 255.0, 0.92)
+
+## The map viewport's own background (behind/around the hex field) -
+## project.godot's `rendering/environment/defaults/default_clear_color`.
+const MAP_BACKGROUND = BORDER

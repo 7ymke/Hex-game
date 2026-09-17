@@ -73,33 +73,52 @@ const PLAYER_SETUP = PlayerSetup.LIST
 @onready var skill_tree_panel: SkillTreePanel = $SkillTreePanel
 @onready var market_panel: MarketPanel = $MarketPanel
 
-## UI restyle (UI_Gry_Makieta.html) - top bar: round badge, resource dots,
-## prestige. No movement points here - MP now lives EXCLUSIVELY on the Unit
-## Card (see the "unit_card_*" group below), per the mockup's own legend.
+## UI restyle (UI_Gry_Makieta_11.html, "wood/BTD6" visual language) - top
+## bar: round badge, resource pills, prestige/money chips. No movement
+## points here - MP now lives EXCLUSIVELY on the Unit Card (see the
+## "unit_card_*" group below), per the mockup's own legend. The round
+## chip's "RUNDA" caption is static text now (no duplicate round number
+## next to the badge - restyle spec 4.1), so it needs no @onready var.
 @onready var info_label: Label = $UI/Root/InfoBar/InfoLabel
 @onready var round_hex_label: Label = $UI/Root/TopBar/HBox/RoundChip/HexNumBadge/RoundNumberLabel
-@onready var round_big_label: Label = $UI/Root/TopBar/HBox/RoundChip/RoundCaptionVBox/RoundBigLabel
-@onready var money_value_label: Label = $UI/Root/TopBar/HBox/MoneyChip/MoneyValueLabel
-@onready var prestige_value_label: Label = $UI/Root/TopBar/HBox/PrestigeChip/PrestigeValueLabel
+@onready var money_value_label: Label = $UI/Root/TopBar/HBox/MoneyChip/MoneyChipBg/MoneyChipBox/MoneyValueLabel
+@onready var prestige_value_label: Label = $UI/Root/TopBar/HBox/PrestigeChip/PrestigeChipBg/PrestigeChipBox/PrestigeValueLabel
 
 ## One value label per resource type, in the same left-to-right order as
 ## the mockup. Nickel/Uranium aren't in the mockup at all (rare, late-game
-## resources) - their whole row starts hidden and only appears once the
+## resources) - their whole pill starts hidden and only appears once the
 ## player actually has any (see `_update_stats_labels()`), so the common
-## case still matches the mockup exactly (5 visible resource chips).
-@onready var resource_wood_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceWood/ResourceWoodValue
-@onready var resource_food_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceFood/ResourceFoodValue
-@onready var resource_copper_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper/ResourceCopperValue
-@onready var resource_coal_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal/ResourceCoalValue
-@onready var resource_gas_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceGas/ResourceGasValue
-@onready var resource_nickel_row: HBoxContainer = $UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel
-@onready var resource_nickel_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel/ResourceNickelValue
-@onready var resource_uranium_row: HBoxContainer = $UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium
-@onready var resource_uranium_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumValue
+## case still matches the mockup exactly (5 visible resource pills).
+@onready var resource_wood_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceWood/ResourceWoodBox/ResourceWoodValue
+@onready var resource_food_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceFood/ResourceFoodBox/ResourceFoodValue
+@onready var resource_copper_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper/ResourceCopperBox/ResourceCopperValue
+@onready var resource_coal_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal/ResourceCoalBox/ResourceCoalValue
+@onready var resource_gas_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceGas/ResourceGasBox/ResourceGasValue
+@onready var resource_nickel_row: PanelContainer = $UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel
+@onready var resource_nickel_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel/ResourceNickelBox/ResourceNickelValue
+@onready var resource_uranium_row: PanelContainer = $UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium
+@onready var resource_uranium_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumBox/ResourceUraniumValue
 
-## Clicking any resource chip opens its market page (autoloads/market_manager.gd,
-## scenes/market_panel.gd) - see `_on_resource_row_gui_input()`. One row per
-## resource type, so the click handler knows which resource was clicked.
+## The small green "+X" per-round production indicator next to each
+## resource's value (restyle spec 4.1) - EXCEPT wood, which has none (the
+## player decides how much to cut with the harvest slider, there's no
+## automatic per-round income to preview). Computed by
+## `_estimate_resource_production()`, mirroring
+## TurnManager._process_resource_income()'s own logic exactly (season
+## multiplier included), so the preview never drifts out of sync with what
+## actually gets added at round end.
+@onready var resource_production_labels: Dictionary = {
+	HexData.ResourceType.FOOD: $UI/Root/TopBar/HBox/ResourcesRow/ResourceFood/ResourceFoodBox/ResourceFoodProd,
+	HexData.ResourceType.COPPER: $UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper/ResourceCopperBox/ResourceCopperProd,
+	HexData.ResourceType.COAL: $UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal/ResourceCoalBox/ResourceCoalProd,
+	HexData.ResourceType.GAS: $UI/Root/TopBar/HBox/ResourcesRow/ResourceGas/ResourceGasBox/ResourceGasProd,
+	HexData.ResourceType.NICKEL: $UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel/ResourceNickelBox/ResourceNickelProd,
+	HexData.ResourceType.URANIUM: $UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumBox/ResourceUraniumProd,
+}
+
+## Clicking any resource pill opens its market page (autoloads/market_manager.gd,
+## scenes/market_panel.gd) - see `_on_resource_row_gui_input()`. One pill
+## per resource type, so the click handler knows which resource was clicked.
 @onready var resource_rows: Dictionary = {
 	HexData.ResourceType.WOOD: $UI/Root/TopBar/HBox/ResourcesRow/ResourceWood,
 	HexData.ResourceType.FOOD: $UI/Root/TopBar/HBox/ResourcesRow/ResourceFood,
@@ -112,35 +131,42 @@ const PLAYER_SETUP = PlayerSetup.LIST
 
 ## Sidebar (replaces the old ActionPanel).
 @onready var city_name_label: Label = $UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/CityNameLabel
+@onready var city_card_icon_button: Button = $UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/CityCardIconButton
 @onready var skill_tree_button: Button = $UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/SkillTreeButton
-@onready var open_city_card_link: Button = $UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox/BuildingsHeaderRow/OpenCityCardLink
 @onready var buildings_preview_list: VBoxContainer = $UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox/BuildingsScroll/BuildingList
 @onready var repair_button: Button = $UI/Root/Sidebar/SidebarVBox/ActionRowMargin/ActionRow/RepairButton
-@onready var harvest_slider: HSlider = $UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/SliderStack/HarvestSlider
+@onready var harvest_slider: HSlider = $UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/HarvestSlider
 @onready var harvest_value_label: Label = $UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/HTitleRow/HarvestValueLabel
 @onready var harvest_button: Button = $UI/Root/Sidebar/SidebarVBox/HarvestBlockMargin/HarvestBlockVBox/HarvestButton
-@onready var player_selector: OptionButton = $UI/Root/Sidebar/SidebarVBox/SidebarBottom/SidebarBottomHBox/PlayerSelector
-@onready var end_round_button: Button = $UI/Root/Sidebar/SidebarVBox/SidebarBottom/SidebarBottomHBox/EndRoundButton
+@onready var player_selector: OptionButton = $UI/Root/Sidebar/SidebarVBox/SidebarBottom/SidebarBottomMargin/SidebarBottomHBox/PlayerSelector
+@onready var end_round_button: Button = $UI/Root/Sidebar/SidebarVBox/SidebarBottom/SidebarBottomMargin/SidebarBottomHBox/EndRoundButton
 
-## Floating hex-info panel (new - not in the mockup, which doesn't depict a
+## Floating hex-info panel (not in either mockup, which never depicts a
 ## hovered/selected-hex readout at all; added here so that information isn't
-## lost from the pre-restyle UI, styled to match the parchment language used
-## elsewhere for floating cards).
+## lost from the pre-restyle UI, styled to match the tan/parchment language
+## used elsewhere for floating cards).
 @onready var hex_info_label: Label = $UI/Root/HexInfoPanel/HexInfoLabel
 
-## Unit Card (UI restyle - replaces the old docked "Trasa ludzika"
-## RoutePanel with a floating, draggable parchment card over the map - see
-## ui/unit_card.gd). `unit_card` itself only owns positioning/dragging/icons
-## (see there) - which of these fields show what text is still entirely
-## decided here, in `_refresh_route_panel()`, exactly like the old panel.
+## Unit Card (UI restyle - a floating, draggable tan card over the map -
+## see ui/unit_card.gd). `unit_card` itself only owns positioning/dragging/
+## icons AND its own close button (see there, `closed` signal) - which of
+## these fields show what text is still entirely decided here, in
+## `_refresh_route_panel()`, exactly like before. No numeric MP label
+## anymore - only the pips (restyle spec 4.3). Closing the card (X)
+## deselects the unit instead of canceling the route -
+## see `_on_unit_card_closed()`.
 @onready var unit_card: UnitCard = $UI/UnitCard
-@onready var unit_card_cancel_button: Button = $UI/UnitCard/VBox/Head/HeadControls/CancelButton
-@onready var unit_card_mp_label: Label = $UI/UnitCard/VBox/Head/HeadControls/MPLabel
-@onready var unit_card_status_label: Label = $UI/UnitCard/VBox/StatusLabel
-@onready var unit_card_confirm_button: Button = $UI/UnitCard/VBox/ConfirmButton
-@onready var route_annex_button: Button = $UI/UnitCard/VBox/Links/AnnexButton
-@onready var route_takeover_button: Button = $UI/UnitCard/VBox/Links/TakeoverButton
-@onready var auto_annex_toggle: Button = $UI/UnitCard/VBox/Links/AutoAnnexToggle
+@onready var unit_card_status_label: Label = $UI/UnitCard/Background/VBox/StatusLabel
+@onready var unit_card_confirm_button: Button = $UI/UnitCard/Background/VBox/ConfirmButton
+@onready var route_annex_button: Button = $UI/UnitCard/Background/VBox/Links/AnnexButton
+@onready var route_takeover_button: Button = $UI/UnitCard/Background/VBox/Links/TakeoverButton
+## Cancels a CONFIRMED, in-progress route - kept as its own link even
+## though the restyle spec doesn't mention it (only the unconfirmed-preview
+## cancel was explicitly reassigned to the close button); dropping the only
+## way to cancel a route already under way read like an oversight rather
+## than an intentional cut, so it stays - see the README.
+@onready var cancel_route_link: Button = $UI/UnitCard/Background/VBox/Links/CancelRouteLink
+@onready var auto_annex_toggle: Button = $UI/UnitCard/Background/VBox/Links/AutoAnnexToggle
 
 var players: Array[PlayerData] = []
 var player_units: Dictionary = {}  # player_id(int) -> Array[Unit]
@@ -176,7 +202,7 @@ func _ready() -> void:
 	repair_button.pressed.connect(_on_repair_pressed)
 	harvest_button.pressed.connect(_on_harvest_pressed)
 	harvest_slider.value_changed.connect(_on_harvest_slider_changed)
-	open_city_card_link.pressed.connect(_on_city_card_pressed)
+	city_card_icon_button.pressed.connect(_on_city_card_pressed)
 	skill_tree_button.pressed.connect(_on_skill_tree_pressed)
 	player_selector.item_selected.connect(_on_player_selected)
 	end_round_button.pressed.connect(_on_end_round_pressed)
@@ -188,7 +214,8 @@ func _ready() -> void:
 		resource_rows[resource].gui_input.connect(_on_resource_row_gui_input.bind(resource))
 
 	unit_card_confirm_button.pressed.connect(_on_confirm_route_pressed)
-	unit_card_cancel_button.pressed.connect(_on_cancel_route_pressed)
+	unit_card.closed.connect(_on_unit_card_closed)
+	cancel_route_link.pressed.connect(_on_cancel_route_pressed)
 	route_annex_button.pressed.connect(_on_annex_pressed)
 	route_takeover_button.pressed.connect(_on_takeover_pressed)
 	auto_annex_toggle.toggled.connect(_on_auto_annex_toggled)
@@ -205,16 +232,24 @@ func _ready() -> void:
 	_refresh_route_panel()
 	_refresh_buildings_preview()
 
-	# The harvest slider's grabber is a hex, matching the mockup - Godot's
-	# Slider theme only exposes the grabber as an ICON (Texture2D), not a
-	# StyleBox, so it can't be declared in ui_theme.tres/main.tscn directly;
-	# generated once here via HexShape's rasterizer instead. The actual
-	# two-tone TRACK underneath is a separate always-visible Control
-	# (ui/two_tone_track.gd) - see the "SliderStack" node in main.tscn.
-	var grabber_icon = HexShape.make_texture(Vector2i(15, 13), Palette.PARCHMENT)
-	harvest_slider.add_theme_icon_override("grabber", grabber_icon)
-	harvest_slider.add_theme_icon_override("grabber_highlight", grabber_icon)
-	harvest_slider.add_theme_icon_override("grabber_disabled", grabber_icon)
+	# Every HSlider's grabber is a hex, matching the mockup - Godot's Slider
+	# theme only exposes the grabber as an ICON (Texture2D), not a StyleBox,
+	# so it can't be declared in ui_theme.tres/main.tscn directly; generated
+	# once here via HexShape's rasterizer instead (fill only, no border -
+	# the rasterizer doesn't support strokes, a deliberate simplification,
+	# see the README). The harvest slider's track no longer shows a
+	# safe/danger color split (restyle spec 4.2 - the player discovers the
+	# threshold by playing, not by reading the UI), so it's just a plain
+	# StyleBoxFlat background now, no separate overlay Control needed.
+	var harvest_grabber_icon = HexShape.make_texture(Vector2i(15, 13), Palette.TAN_2)
+	harvest_slider.add_theme_icon_override("grabber", harvest_grabber_icon)
+	harvest_slider.add_theme_icon_override("grabber_highlight", harvest_grabber_icon)
+	harvest_slider.add_theme_icon_override("grabber_disabled", harvest_grabber_icon)
+
+	var market_grabber_icon = HexShape.make_texture(Vector2i(17, 15), Palette.GOLD)
+	market_panel.qty_slider.add_theme_icon_override("grabber", market_grabber_icon)
+	market_panel.qty_slider.add_theme_icon_override("grabber_highlight", market_grabber_icon)
+	market_panel.qty_slider.add_theme_icon_override("grabber_disabled", market_grabber_icon)
 
 
 ## Creates the players, their units, and annexes their starting hex. Only
@@ -501,18 +536,32 @@ func _on_confirm_route_pressed() -> void:
 	_refresh_route_panel()
 
 
+## Cancels a CONFIRMED, in-progress route (`cancel_route_link` - only ever
+## visible while one exists, see `_refresh_route_panel()`). Canceling an
+## unconfirmed PREVIEW is a separate concern now, handled by closing the
+## Unit Card entirely (`_on_unit_card_closed()`) - see the comment on
+## `cancel_route_link`'s declaration up top for why the two are split.
 func _on_cancel_route_pressed() -> void:
-	if preview_route_unit == selected_unit and not preview_route.is_empty():
-		preview_route = []
-		preview_route_unit = null
-		preview_target_hex_id = ""
-		hex_map_view.preview_route_hex_ids = []
-	elif selected_unit != null:
-		selected_unit.queued_route = []
-		selected_unit.route_destination = ""
-		info_label.text = "Trasa anulowana."
+	if selected_unit == null:
+		return
+	selected_unit.queued_route = []
+	selected_unit.route_destination = ""
+	info_label.text = "Trasa anulowana."
 
 	_refresh_map_view()
+	_refresh_route_panel()
+
+
+## The Unit Card's close button (X, top-right corner) - closes the card by
+## deselecting the unit, which as an existing side effect of
+## `_set_selected_unit(null)` also clears any unconfirmed route PREVIEW.
+## Does NOT touch a confirmed, in-progress route (`Unit.queued_route`) -
+## that keeps running in the background exactly as before, per the restyle
+## spec: "X zamyka kartę, nie anuluje trasę".
+func _on_unit_card_closed() -> void:
+	_set_selected_unit(null)
+	_refresh_map_view()
+	_refresh_action_panel()
 	_refresh_route_panel()
 
 
@@ -1065,13 +1114,12 @@ func _on_city_building_unlocked() -> void:
 
 
 ## Read-only preview of the active player's City Card buildings, shown
-## directly in the sidebar (UI restyle - matches UI_Gry_Makieta.html's
-## "Budynki z Karty Miasta" list) - unlocking itself still only happens in
-## the full City Card modal (`city_card_panel`, opened via
-## `open_city_card_link`/`_on_city_card_pressed()`), which also shows cost
-## and an unlock button; this preview is deliberately just a glanceable
-## list (icon + name + prestige value), colored by locked/unlocked state,
-## exactly like the mockup's building-item rows.
+## directly in the sidebar ("Budynki z Karty Miasta" list) - unlocking
+## itself still only happens in the full City Card modal (`city_card_panel`,
+## opened via `city_card_icon_button`/`_on_city_card_pressed()`), which also
+## shows cost and an unlock button; this preview is deliberately just a
+## glanceable list (icon + name + prestige value), colored by locked/
+## unlocked state, exactly like the mockup's building-item rows.
 func _refresh_buildings_preview() -> void:
 	for child in buildings_preview_list.get_children():
 		child.queue_free()
@@ -1091,14 +1139,14 @@ func _build_building_preview_row(building: Building) -> Control:
 
 	var icon = HexShape.new()
 	icon.custom_minimum_size = Vector2(20, 18)
-	icon.fill_color = Palette.COPPER if unlocked else Palette.RULE
+	icon.fill_color = Palette.GOLD if unlocked else Color(Palette.GOLD.r, Palette.GOLD.g, Palette.GOLD.b, 0.22)
 	row.add_child(icon)
 
 	var name_label = Label.new()
 	name_label.text = building.building_name
 	name_label.add_theme_font_size_override("font_size", 12)
 	name_label.add_theme_color_override(
-		"font_color", Palette.INK if unlocked else Palette.INK_DIM
+		"font_color", Palette.CREAM if unlocked else Palette.CREAM_DIM
 	)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_label.clip_text = true
@@ -1107,7 +1155,7 @@ func _build_building_preview_row(building: Building) -> Control:
 	var prestige_label = Label.new()
 	prestige_label.text = "+%d" % building.prestige_value
 	prestige_label.add_theme_font_size_override("font_size", 11)
-	prestige_label.add_theme_color_override("font_color", Palette.BRASS)
+	prestige_label.add_theme_color_override("font_color", Palette.GOLD_BRIGHT)
 	row.add_child(prestige_label)
 
 	return row
@@ -1302,8 +1350,11 @@ func _refresh_route_panel() -> void:
 			]
 		)
 		unit_card_confirm_button.visible = true
-		unit_card_cancel_button.visible = true
-		unit_card_cancel_button.tooltip_text = "Anuluj podgląd trasy"
+		# No route to cancel yet (it's still just a preview) - closing the
+		# card (X, top-right corner) already clears an unconfirmed preview
+		# as a side effect of deselecting the unit, so there's nothing extra
+		# to offer here - see the comment on `cancel_route_link` up top.
+		cancel_route_link.visible = false
 	elif not selected_unit.queued_route.is_empty():
 		var remaining_cost = _remaining_route_cost(selected_unit.queued_route, selected_unit)
 		var rounds = _route_rounds_needed(remaining_cost, selected_unit)
@@ -1318,8 +1369,7 @@ func _refresh_route_panel() -> void:
 			true_target, target_note, selected_unit.queued_route.size(), _format_rounds(rounds)
 		]
 		unit_card_confirm_button.visible = false
-		unit_card_cancel_button.visible = true
-		unit_card_cancel_button.tooltip_text = "Anuluj trasę"
+		cancel_route_link.visible = true
 	elif selected_unit.route_destination != "":
 		if selected_unit.route_destination == selected_unit.current_hex_id:
 			# Arrived, but ran out of MP for automatic annexation of this
@@ -1337,8 +1387,7 @@ func _refresh_route_panel() -> void:
 				% selected_unit.route_destination
 			)
 		unit_card_confirm_button.visible = false
-		unit_card_cancel_button.visible = true
-		unit_card_cancel_button.tooltip_text = "Anuluj trasę"
+		cancel_route_link.visible = true
 	elif _current_hex_needs_auto_annex(selected_unit):
 		# No active route (e.g. after Cancel), but still waiting on MP to
 		# automatically annex the hex it's currently standing on - see
@@ -1349,11 +1398,11 @@ func _refresh_route_panel() -> void:
 			% selected_unit.current_hex_id
 		)
 		unit_card_confirm_button.visible = false
-		unit_card_cancel_button.visible = false
+		cancel_route_link.visible = false
 	else:
 		unit_card_status_label.text = "Kliknij pole na mapie, żeby zaplanować trasę."
 		unit_card_confirm_button.visible = false
-		unit_card_cancel_button.visible = false
+		cancel_route_link.visible = false
 
 
 ## Total MP cost of walking `path` (skips index 0 - the starting hex the
@@ -1413,29 +1462,31 @@ static func _format_rounds(n: int) -> String:
 	return "%d %s" % [n, word]
 
 
-## UI restyle: movement points are shown EXCLUSIVELY on the Unit Card (mp
-## text + hex pips) - unlike the old top-bar mp_label, there's no "fall back
-## to the player's primary unit" case, since the card itself is only ever
-## visible with a unit selected (see `_refresh_route_panel()`).
+## UI restyle: movement points are shown EXCLUSIVELY on the Unit Card, as
+## hex pips (no numeric "X/Y" anywhere anymore, restyle spec 4.3) - unlike
+## the old top-bar mp_label, there's no "fall back to the player's primary
+## unit" case, since the card itself is only ever visible with a unit
+## selected (see `_refresh_route_panel()`).
 func _update_mp_label() -> void:
 	if selected_unit == null:
 		return
-	unit_card_mp_label.text = "%d/%d" % [selected_unit.movement_points_current, selected_unit.movement_points_max]
 	unit_card.set_pips(selected_unit.movement_points_current, selected_unit.movement_points_max)
 
 
-## Top bar: round badge + resource dots + prestige (UI restyle). The active
-## player's NAME no longer has its own label - the sidebar's city name
-## already identifies them uniquely, since every player has exactly one,
-## distinct starting city in this hotseat game. Also folds in the current
-## season (GameBalance.Season, round_number % 4) next to the round number -
-## it directly scales agricultural food income
-## (GameBalance.SEASON_FOOD_MULTIPLIER), so the player needs to see it to
-## plan around it (e.g. stockpile before winter).
+## Top bar: round badge + resource pills + prestige/money chips (UI
+## restyle). The active player's NAME no longer has its own label - the
+## sidebar's city name already identifies them uniquely, since every
+## player has exactly one, distinct starting city in this hotseat game.
+## The round chip's "RUNDA" caption is static text (restyle spec 4.1 - no
+## duplicate round number), so the current season (GameBalance.Season,
+## round_number % 4) - which directly scales agricultural food income
+## (GameBalance.SEASON_FOOD_MULTIPLIER) and the player needs to plan
+## around (e.g. stockpile before winter) - is surfaced as a tooltip on the
+## round badge instead of a second visible label.
 func _update_stats_labels() -> void:
 	var season_name = GameBalance.SEASON_DISPLAY_NAMES[TurnManager.get_current_season()]
 	round_hex_label.text = str(TurnManager.round_number)
-	round_big_label.text = "Runda %d · %s" % [TurnManager.round_number, season_name]
+	round_hex_label.tooltip_text = "Runda %d - %s" % [TurnManager.round_number, season_name]
 	money_value_label.text = "%.0f" % active_player.money
 	prestige_value_label.text = str(active_player.prestige)
 
@@ -1448,8 +1499,8 @@ func _update_stats_labels() -> void:
 	resource_gas_value.text = "%.0f" % active_player.get_resource_amount(HexData.ResourceType.GAS)
 
 	# Nickel/Uranium aren't in the mockup (rare, late-game resources) - their
-	# chips stay hidden until the player actually has some, so the common
-	# case still matches the mockup's 5 resource dots exactly.
+	# pills stay hidden until the player actually has some, so the common
+	# case still matches the mockup's 5 resource pills exactly.
 	var nickel_amount = active_player.get_resource_amount(HexData.ResourceType.NICKEL)
 	resource_nickel_row.visible = nickel_amount > 0.0
 	resource_nickel_value.text = "%.0f" % nickel_amount
@@ -1457,3 +1508,32 @@ func _update_stats_labels() -> void:
 	var uranium_amount = active_player.get_resource_amount(HexData.ResourceType.URANIUM)
 	resource_uranium_row.visible = uranium_amount > 0.0
 	resource_uranium_value.text = "%.0f" % uranium_amount
+
+	for resource in resource_production_labels:
+		var label: Label = resource_production_labels[resource]
+		var production = _estimate_resource_production(active_player, resource)
+		label.visible = production > 0.0
+		label.text = "+%.0f" % production
+
+
+## Estimate of how much of `resource` `player` will actually receive at the
+## NEXT round's end - mirrors TurnManager._process_resource_income()'s own
+## logic exactly (including the season multiplier for agricultural hexes),
+## so the top bar's "+X" preview (restyle spec 4.1) never drifts out of
+## sync with what actually gets added. Read-only - unlike the real income
+## processing, this never touches player resources itself.
+func _estimate_resource_production(player: PlayerData, resource: HexData.ResourceType) -> float:
+	var season = TurnManager.get_current_season()
+	var total = 0.0
+	for hex: HexData in MapData.hexes.values():
+		if hex.owner_id != player.player_id or hex.is_forest():
+			continue
+		if hex.building == null or hex.building_damaged:
+			continue
+		if hex.building.produced_resource != resource:
+			continue
+		var amount = hex.building.produced_amount_per_turn
+		if hex.is_agricultural():
+			amount *= GameBalance.SEASON_FOOD_MULTIPLIER[season]
+		total += amount
+	return total

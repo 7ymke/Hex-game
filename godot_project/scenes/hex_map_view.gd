@@ -43,10 +43,16 @@ const TERRAIN_COLORS = {
 const FOG_UNEXPLORED = Palette.FOG_UNEXPLORED
 const FOG_SEEN_OVERLAY = Color(0, 0, 0, 0.4)
 const OUTLINE_COLOR = Color(0, 0, 0, 0.5)
-const SELECTED_OUTLINE_COLOR = Palette.COPPER_BRIGHT
+const SELECTED_OUTLINE_COLOR = Palette.GOLD_BRIGHT
 const OWNER_OUTLINE_WIDTH = 4.0
 
-const PREVIEW_ROUTE_COLOR = Palette.COPPER_BRIGHT
+## How many segments each map hex's rounded corner is tessellated into
+## (ui/hex_shape.gd's HexShape.round_corners()) - fewer than the default
+## used for small UI icons, since there can be hundreds of map hexes
+## redrawn together and the rounding is barely visible at this size anyway.
+const HEX_CORNER_ARC_SEGMENTS = 4
+
+const PREVIEW_ROUTE_COLOR = Palette.GOLD_BRIGHT
 const QUEUED_ROUTE_COLOR = Color(1, 0.5, 0.05, 0.9)
 const ROUTE_LINE_WIDTH = 4.0
 const ROUTE_DOT_RADIUS = 5.0
@@ -63,7 +69,13 @@ func _draw() -> void:
 
 func _draw_hex(hex: HexData) -> void:
 	var center = HexGridUtils.offset_to_pixel(hex.axial_q, hex.axial_r, GameBalance.HEX_SIZE)
-	var corners = HexGridUtils.hex_corners(center, GameBalance.HEX_SIZE * 0.92)
+	var hex_radius = GameBalance.HEX_SIZE * 0.92
+	var sharp_corners = HexGridUtils.hex_corners(center, hex_radius)
+	# Rounded corners (ui/hex_shape.gd) - matches UI_Gry_Makieta_11.html's
+	# shared hex shape, now used everywhere in the UI, map tiles included.
+	var corners = HexShape.round_corners(
+		sharp_corners, hex_radius * HexShape.CORNER_TRIM_RATIO, HEX_CORNER_ARC_SEGMENTS
+	)
 	var fog = hex.get_fog_state(viewing_player_id)
 
 	if fog == HexData.FogState.UNEXPLORED:
