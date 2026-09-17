@@ -414,7 +414,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
 
 [node name="ResourceWoodCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceWood/ResourceWoodBox"]
 theme_override_font_sizes/font_size = 11
-text = "Drw"
+text = "Drewno"
 
 [node name="ResourceWoodValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceWood/ResourceWoodBox"]
 theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
@@ -440,7 +440,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
 
 [node name="ResourceFoodCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceFood/ResourceFoodBox"]
 theme_override_font_sizes/font_size = 11
-text = "Żyw"
+text = "Żywność"
 
 [node name="ResourceFoodValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceFood/ResourceFoodBox"]
 theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
@@ -449,7 +449,6 @@ theme_override_font_sizes/font_size = 11
 text = "0"
 
 [node name="ResourceFoodProd" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceFood/ResourceFoodBox"]
-visible = false
 theme_override_colors/font_color = Color(0.643137, 0.847059, 0.494118, 1)
 theme_override_font_sizes/font_size = 10
 text = "+0"
@@ -472,7 +471,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
 
 [node name="ResourceCopperCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper/ResourceCopperBox"]
 theme_override_font_sizes/font_size = 11
-text = "Mie"
+text = "Miedź"
 
 [node name="ResourceCopperValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper/ResourceCopperBox"]
 theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
@@ -481,7 +480,6 @@ theme_override_font_sizes/font_size = 11
 text = "0"
 
 [node name="ResourceCopperProd" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper/ResourceCopperBox"]
-visible = false
 theme_override_colors/font_color = Color(0.643137, 0.847059, 0.494118, 1)
 theme_override_font_sizes/font_size = 10
 text = "+0"
@@ -504,7 +502,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
 
 [node name="ResourceCoalCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal/ResourceCoalBox"]
 theme_override_font_sizes/font_size = 11
-text = "Węg"
+text = "Węgiel"
 
 [node name="ResourceCoalValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal/ResourceCoalBox"]
 theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
@@ -513,7 +511,6 @@ theme_override_font_sizes/font_size = 11
 text = "0"
 
 [node name="ResourceCoalProd" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal/ResourceCoalBox"]
-visible = false
 theme_override_colors/font_color = Color(0.643137, 0.847059, 0.494118, 1)
 theme_override_font_sizes/font_size = 10
 text = "+0"
@@ -545,13 +542,11 @@ theme_override_font_sizes/font_size = 11
 text = "0"
 
 [node name="ResourceGasProd" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceGas/ResourceGasBox"]
-visible = false
 theme_override_colors/font_color = Color(0.643137, 0.847059, 0.494118, 1)
 theme_override_font_sizes/font_size = 10
 text = "+0"
 
 [node name="ResourceNickel" type="PanelContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
-visible = false
 mouse_filter = 1
 mouse_default_cursor_shape = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_pill_bg")
@@ -569,7 +564,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
 
 [node name="ResourceNickelCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel/ResourceNickelBox"]
 theme_override_font_sizes/font_size = 11
-text = "Nik"
+text = "Nikiel"
 
 [node name="ResourceNickelValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel/ResourceNickelBox"]
 theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
@@ -578,13 +573,11 @@ theme_override_font_sizes/font_size = 11
 text = "0"
 
 [node name="ResourceNickelProd" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel/ResourceNickelBox"]
-visible = false
 theme_override_colors/font_color = Color(0.643137, 0.847059, 0.494118, 1)
 theme_override_font_sizes/font_size = 10
 text = "+0"
 
 [node name="ResourceUranium" type="PanelContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
-visible = false
 mouse_filter = 1
 mouse_default_cursor_shape = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_pill_bg")
@@ -602,7 +595,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
 
 [node name="ResourceUraniumCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumBox"]
 theme_override_font_sizes/font_size = 11
-text = "Ura"
+text = "Uran"
 
 [node name="ResourceUraniumValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumBox"]
 theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
@@ -611,7 +604,6 @@ theme_override_font_sizes/font_size = 11
 text = "0"
 
 [node name="ResourceUraniumProd" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumBox"]
-visible = false
 theme_override_colors/font_color = Color(0.643137, 0.847059, 0.494118, 1)
 theme_override_font_sizes/font_size = 10
 text = "+0"

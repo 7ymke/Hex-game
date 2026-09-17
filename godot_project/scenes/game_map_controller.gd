@@ -86,17 +86,17 @@ const PLAYER_SETUP = PlayerSetup.LIST
 
 ## One value label per resource type, in the same left-to-right order as
 ## the mockup. Nickel/Uranium aren't in the mockup at all (rare, late-game
-## resources) - their whole pill starts hidden and only appears once the
-## player actually has any (see `_update_stats_labels()`), so the common
-## case still matches the mockup exactly (5 visible resource pills).
+## resources), but are always shown anyway ("zrób też aby było widać ile
+## dostaje się Materiałów na rundę... Pamiętaj aby dodać do tego panelu 2
+## brakujące zasoby") rather than only once the player has some - a full,
+## always-visible 7-resource bar reads at a glance, instead of resources
+## quietly appearing/disappearing as stock crosses zero.
 @onready var resource_wood_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceWood/ResourceWoodBox/ResourceWoodValue
 @onready var resource_food_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceFood/ResourceFoodBox/ResourceFoodValue
 @onready var resource_copper_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceCopper/ResourceCopperBox/ResourceCopperValue
 @onready var resource_coal_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal/ResourceCoalBox/ResourceCoalValue
 @onready var resource_gas_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceGas/ResourceGasBox/ResourceGasValue
-@onready var resource_nickel_row: PanelContainer = $UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel
 @onready var resource_nickel_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel/ResourceNickelBox/ResourceNickelValue
-@onready var resource_uranium_row: PanelContainer = $UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium
 @onready var resource_uranium_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumBox/ResourceUraniumValue
 
 ## The small green "+X" per-round production indicator next to each
@@ -1537,23 +1537,12 @@ func _update_stats_labels() -> void:
 	resource_copper_value.text = "%.0f" % active_player.get_resource_amount(HexData.ResourceType.COPPER)
 	resource_coal_value.text = "%.0f" % active_player.get_resource_amount(HexData.ResourceType.COAL)
 	resource_gas_value.text = "%.0f" % active_player.get_resource_amount(HexData.ResourceType.GAS)
-
-	# Nickel/Uranium aren't in the mockup (rare, late-game resources) - their
-	# pills stay hidden until the player actually has some, so the common
-	# case still matches the mockup's 5 resource pills exactly.
-	var nickel_amount = active_player.get_resource_amount(HexData.ResourceType.NICKEL)
-	resource_nickel_row.visible = nickel_amount > 0.0
-	resource_nickel_value.text = "%.0f" % nickel_amount
-
-	var uranium_amount = active_player.get_resource_amount(HexData.ResourceType.URANIUM)
-	resource_uranium_row.visible = uranium_amount > 0.0
-	resource_uranium_value.text = "%.0f" % uranium_amount
+	resource_nickel_value.text = "%.0f" % active_player.get_resource_amount(HexData.ResourceType.NICKEL)
+	resource_uranium_value.text = "%.0f" % active_player.get_resource_amount(HexData.ResourceType.URANIUM)
 
 	for resource in resource_production_labels:
 		var label: Label = resource_production_labels[resource]
-		var production = _estimate_resource_production(active_player, resource)
-		label.visible = production > 0.0
-		label.text = "+%.0f" % production
+		label.text = "+%.0f" % _estimate_resource_production(active_player, resource)
 
 
 ## Estimate of how much of `resource` `player` will actually receive at the

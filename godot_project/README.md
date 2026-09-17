@@ -712,6 +712,56 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **Inny kolor zaznaczenia pola, pełne nazwy surowców, zawsze widoczna
+  produkcja na rundę + 2 brakujące zasoby w pasku górnym** (na życzenie:
+  "Zrób aby selectowanie terenu było innego koloru, oraz Zrób aby nie było
+  skróconych nazw meteriałów, zrób też aby było widać ile dostaje się
+  Materiałów na rundę w panelu na górze ekranu. Pamiętaj aby dodać do tego
+  panelu 2 brakujące zasoby").
+  - **Kolor zaznaczenia**: `SELECTED_OUTLINE_COLOR` w `hex_map_view.gd` był
+    `Palette.GOLD_BRIGHT` - DOKŁADNIE ten sam kolor co `PREVIEW_ROUTE_COLOR`,
+    więc zaznaczone pole leżące na podglądzie trasy było wizualnie
+    nieodróżnialne od zwykłego pola na tej trasie. Nowa stała
+    `Palette.SELECTION` (róż/magenta, `#FF4FB0`) - jedyny odcień w całej
+    palecie, którego nie ma NIGDZIE indziej (każdy `TERRAIN_*`/
+    `RESOURCE_DOT_*` to ciepły brąz/tan/złoto/zieleń/czerwień albo jeden z
+    dwóch istniejących chłodnych niebiesko-zielonych - `TERRAIN_WATER`,
+    `TERRAIN_PROTECTED_AREA`) - zaznaczenie nigdy nie ryzykuje wyglądać jak
+    "ten teren/zasób akurat jest podświetlony", niezależnie od tego, jaki
+    teren akurat zaznaczono.
+  - **Pełne nazwy surowców** w pigułkach paska górnego (`main.tscn`) -
+    `Drw/Żyw/Mie/Węg/Nik/Ura` → `Drewno/Żywność/Miedź/Węgiel/Nikiel/Uran`
+    (Gaz był już pełną nazwą), te same literały co
+    `HexData.RESOURCE_DISPLAY_NAMES` używane już w Panelu Rynku.
+  - **2 brakujące zasoby (Nikiel, Uran) + zawsze widoczna produkcja na
+    rundę**: `ResourceNickel`/`ResourceUranium` miały `visible = false` w
+    `main.tscn`, a `game_map_controller.gd._update_stats_labels()`
+    pokazywało je dopiero, gdy gracz miał już NIEZEROWY zapas
+    (`resource_nickel_row.visible = nickel_amount > 0.0` itd.) - w
+    praktyce, dopóki gracz faktycznie nie zdobył choć trochę niklu/uranu,
+    te dwie pigułki były całkowicie niewidoczne, mimo że węzły od dawna
+    istniały w scenie. To samo dotyczyło "+X" na rundę przy KAŻDYM
+    surowcu (`resource_production_labels`) - `label.visible = production >
+    0.0` chowało tę liczbę, dopóki gracz nie miał już działającego
+    źródła danego surowca. Oba mechanizmy usunięte: wszystkie 7 pigułek i
+    wszystkich 6 etykiet "+X" (bez Drewna - ono nie ma automatycznej
+    produkcji na rundę, tylko ręczne wycinanie lasu suwakiem, więc etykieta
+    zawsze pokazywałaby fałszywe "+0", patrz istniejący komentarz przy
+    `resource_production_labels`) są teraz zawsze widoczne, nawet przy
+    zerowym stanie/produkcji - cały pasek zasobów czyta się jednym
+    rzutem oka, zamiast pigułek/liczb pojawiających się i znikających w
+    trakcie gry. `resource_nickel_row`/`resource_uranium_row` (jedyne
+    miejsca, które w ogóle odczytywały ten warunek) usunięte z
+    `game_map_controller.gd` jako martwy kod - `resource_rows` (słownik
+    używany już wcześniej do obsługi kliknięć/podświetlenia aktywnej
+    pigułki Rynku) i tak trzyma referencję do tych samych węzłów.
+  - Szersze pigułki (pełne nazwy + 2 dodatkowe zasoby) zmieściły się bez
+    zmiany układu `ResourcesRow` - oszacowana szerokość wszystkich 7 pigułek
+    (~850-970px przy foncie Nunito 11px) mieści się wygodnie w dostępnej
+    szerokości paska górnego przy rozdzielczości bazowej 1600px, z dużym
+    zapasem nawet gdyby to oszacowanie (bez żywego podglądu w edytorze
+    Godota) było nieprecyzyjne.
+
 - **Poprawka Panelu Rynku: wykres nie pokazywał ceny + bliższe
   dopasowanie do makiety** (na życzenie: "Zrób aby wykres pokazywał cenę,
   oraz zrób aby to bardziej przypominało ten plk html").

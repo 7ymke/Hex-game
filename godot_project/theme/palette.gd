@@ -62,3 +62,14 @@ const FOG_UNEXPLORED = Color(20.0 / 255.0, 14.0 / 255.0, 8.0 / 255.0, 0.92)
 ## The map viewport's own background (behind/around the hex field) -
 ## project.godot's `rendering/environment/defaults/default_clear_color`.
 const MAP_BACKGROUND = BORDER
+
+## The selected hex's outline (hex_map_view.gd) - deliberately a hue that
+## appears NOWHERE else in this palette (every TERRAIN_*/RESOURCE_DOT_*
+## color is a warm brown/tan/gold/green/red or one of the two existing
+## cool blues/teals - TERRAIN_WATER and TERRAIN_PROTECTED_AREA), so a
+## selected hex never risks reading as "this terrain/resource happens to
+## be highlighted" and is instantly recognizable as a UI marker on top of
+## ANY terrain. Also no longer shared with PREVIEW_ROUTE_COLOR (both used
+## to be GOLD_BRIGHT, so a selected hex sitting on a previewed route looked
+## identical to one that wasn't selected at all).
+const SELECTION = Color(0xFF / 255.0, 0x4F / 255.0, 0xB0 / 255.0)

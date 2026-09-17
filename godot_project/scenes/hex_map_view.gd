@@ -43,7 +43,10 @@ const TERRAIN_COLORS = {
 const FOG_UNEXPLORED = Palette.FOG_UNEXPLORED
 const FOG_SEEN_OVERLAY = Color(0, 0, 0, 0.4)
 const OUTLINE_COLOR = Color(0, 0, 0, 0.5)
-const SELECTED_OUTLINE_COLOR = Palette.GOLD_BRIGHT
+## Distinct from PREVIEW_ROUTE_COLOR below (see Palette.SELECTION) - a
+## selected hex used to be visually indistinguishable from one merely on a
+## previewed route, since both were GOLD_BRIGHT.
+const SELECTED_OUTLINE_COLOR = Palette.SELECTION
 const OWNER_OUTLINE_WIDTH = 4.0
 
 ## How many segments each map hex's rounded corner is tessellated into
