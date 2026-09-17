@@ -85,6 +85,10 @@ func _refresh() -> void:
 	head_dot.self_modulate = _resource_dot_color(_current_resource)
 
 	chart_view.values = MarketManager.get_price_history(_current_resource, CHART_ROUNDS)
+	# The last/rightmost point in `values` is always the CURRENT price - same
+	# round as `round_label` above - so the hover readout can label every
+	# other point by counting backwards from here (see price_chart_view.gd).
+	chart_view.end_round = TurnManager.round_number
 	chart_view.queue_redraw()
 
 	var limit = MarketManager.get_trade_limit(_current_resource)

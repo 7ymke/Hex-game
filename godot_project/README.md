@@ -712,6 +712,35 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **Podpowiedź przy najechaniu na wykres ceny (cena + numer rundy)** (na
+  życzenie: "Make it so when i hover my mouse on the price graph - I see
+  the price and the round number"). `ui/price_chart_view.gd` - nowy
+  `@export var end_round: int` (numer rundy ostatniego/najbardziej
+  wysuniętego na prawo punktu; `market_panel.gd` ustawia go na
+  `TurnManager.round_number`, ten sam numer co w nagłówku panelu), z
+  którego numer rundy KAŻDEGO innego punktu liczy się przez odjęcie od
+  końca (`values` samo w sobie nie wie, z której rundy pochodzi dany
+  punkt). `_gui_input()` (wirtualna metoda `Control`a - nie osobny sygnał,
+  skrypt jest właścicielem tego węzła) namierza najbliższy punkt po X przy
+  każdym ruchu myszy nad wykresem, `mouse_entered`/`mouse_exited`
+  pokazują/chowają całość. Rysowane w `_draw()` (pionowa prowadnica + kropka
+  + mała etykieta "Runda X: Y.YY" przyklejona do kursora w poziomie,
+  automatycznie przełączająca się pod punkt zamiast nad, gdy nie ma miejsca
+  u góry) - celowo NIE przez natywny `tooltip_text` Godota, który
+  odświeża się dopiero po opóźnieniu najechania, a nie przy każdym ruchu
+  myszy.
+  - Po poprzedniej literówce w nazwie metody silnika (`add_theme_style_
+    override` zamiast `add_theme_stylebox_override`, patrz wpis niżej) - a
+    skoro żaden skrypt weryfikujący w tej sesji nie sprawdza istnienia
+    metod silnika Godota - wszystkie nowe wywołania API w tym miejscu
+    (`get_theme_default_font()`, `Font.get_ascent()`, `draw_rect()`,
+    `draw_line()`, `get_string_size()`, `roundi()`/`clampi()`,
+    `_gui_input()`, `mouse_entered`/`mouse_exited`) zostały tym razem
+    jawnie zweryfikowane co do nazwy i sygnatury wprost ze źródła silnika
+    (`raw.githubusercontent.com/godotengine/godot/4.2/...` - te same
+    reguły dostępu sieciowego, co przy pobieraniu czcionek, patrz sekcja
+    "Wygląd UI" wyżej), zamiast polegać wyłącznie na pamięci.
+
 - **Poprawka: `add_theme_style_override()` zamiast `add_theme_stylebox_override()`
   w podświetleniu aktywnej pigułki** (zgłoszenie: "row.add_theme_style_ovveride
   in (1220) causes a bug", po dopytaniu o dokładny komunikat: "Invalid call.
