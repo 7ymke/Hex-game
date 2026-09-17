@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=3 uid="uid://cmapmain0001"]
+[gd_scene load_steps=41 format=3 uid="uid://cmapmain0001"]
 
 [ext_resource type="Script" path="res://scenes/game_map_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scenes/camera_controller.gd" id="2"]
@@ -328,6 +328,8 @@ content_margin_bottom = 14.0
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 14
 shadow_offset = Vector2(0, 8)
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_chart_range"]
 
 [node name="GameMapController" type="Node2D"]
 script = ExtResource("1")
@@ -1021,6 +1023,27 @@ text = "Rynek"
 theme_override_colors/font_color = Color(0.890196, 0.803922, 0.658824, 1)
 theme_override_font_sizes/font_size = 12
 text = "Runda -"
+
+[node name="ChartRangeRow" type="HBoxContainer" parent="MarketPanel/Background/VBox"]
+theme_override_constants/separation = 4
+
+[node name="Range5Button" type="Button" parent="MarketPanel/Background/VBox/ChartRangeRow"]
+toggle_mode = true
+button_group = SubResource("ButtonGroup_chart_range")
+theme_override_font_sizes/font_size = 11
+text = "5"
+
+[node name="Range15Button" type="Button" parent="MarketPanel/Background/VBox/ChartRangeRow"]
+toggle_mode = true
+button_group = SubResource("ButtonGroup_chart_range")
+theme_override_font_sizes/font_size = 11
+text = "15"
+
+[node name="RangeAllButton" type="Button" parent="MarketPanel/Background/VBox/ChartRangeRow"]
+toggle_mode = true
+button_group = SubResource("ButtonGroup_chart_range")
+theme_override_font_sizes/font_size = 11
+text = "Wszystkie"
 
 [node name="ChartArea" type="Control" parent="MarketPanel/Background/VBox"]
 custom_minimum_size = Vector2(400, 72)

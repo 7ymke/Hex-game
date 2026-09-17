@@ -32,16 +32,24 @@ extends CanvasLayer
 signal closed
 signal traded
 
-## How many of the most recent rounds the chart shows - the model itself
-## keeps the FULL history (for momentum math elsewhere), this is purely a
-## display choice so the chart doesn't get unreadably dense in a long game.
-const CHART_ROUNDS = 8
+## How many of the most recent rounds the chart can show - picked by the
+## player via `range_5_button`/`range_15_button`/`range_all_button`
+## ("Chcę aby dało się zmieniać wykres - między ostatnimi 5 rundami, 15 a
+## wszystkimi"). ALL is represented the same way MarketManager.
+## get_price_history() itself represents "no limit" (<= 0), so it can be
+## passed straight through without a special case at the call site.
+const CHART_WINDOW_5 = 5
+const CHART_WINDOW_15 = 15
+const CHART_WINDOW_ALL = -1
 
 @onready var background: PanelContainer = $Background
 @onready var close_button: Button = $CloseButton
 @onready var head_dot: Panel = $Background/VBox/HeaderRow/HeadDot
 @onready var name_label: Label = $Background/VBox/HeaderRow/NameLabel
 @onready var round_label: Label = $Background/VBox/HeaderRow/RoundLabel
+@onready var range_5_button: Button = $Background/VBox/ChartRangeRow/Range5Button
+@onready var range_15_button: Button = $Background/VBox/ChartRangeRow/Range15Button
+@onready var range_all_button: Button = $Background/VBox/ChartRangeRow/RangeAllButton
 @onready var chart_view: PriceChartView = $Background/VBox/ChartArea
 @onready var qty_value_label: Label = $Background/VBox/QtyRow/QtyValueLabel
 @onready var qty_slider: HSlider = $Background/VBox/QtySlider
@@ -53,6 +61,12 @@ const CHART_ROUNDS = 8
 var _current_player: PlayerData
 var _current_resource: HexData.ResourceType = HexData.ResourceType.NONE
 
+## Starts on ALL rather than 5 - unlike the other two, ALL is always a
+## meaningful choice no matter how young the game is (see
+## `_update_chart_range_buttons()`), so it's the one default that never
+## needs a fallback.
+var _chart_window: int = CHART_WINDOW_ALL
+
 
 func _ready() -> void:
 	visible = false
@@ -62,6 +76,11 @@ func _ready() -> void:
 	qty_slider.min_value = 1.0
 	qty_slider.step = 1.0
 	qty_slider.value_changed.connect(_on_qty_changed)
+
+	range_5_button.pressed.connect(_on_chart_range_pressed.bind(CHART_WINDOW_5))
+	range_15_button.pressed.connect(_on_chart_range_pressed.bind(CHART_WINDOW_15))
+	range_all_button.pressed.connect(_on_chart_range_pressed.bind(CHART_WINDOW_ALL))
+	range_all_button.button_pressed = true
 
 
 func open_for_resource(resource: HexData.ResourceType, player: PlayerData) -> void:
@@ -84,7 +103,8 @@ func _refresh() -> void:
 	round_label.text = "Runda %d" % TurnManager.round_number
 	head_dot.self_modulate = _resource_dot_color(_current_resource)
 
-	chart_view.values = MarketManager.get_price_history(_current_resource, CHART_ROUNDS)
+	_update_chart_range_buttons()
+	chart_view.values = MarketManager.get_price_history(_current_resource, _chart_window)
 	# The last/rightmost point in `values` is always the CURRENT price - same
 	# round as `round_label` above - so the hover readout can label every
 	# other point by counting backwards from here (see price_chart_view.gd).
@@ -98,6 +118,25 @@ func _refresh() -> void:
 
 	_update_totals()
 	_fit_height_to_content()
+
+
+## Only offers a shorter window once the game has actually run long enough
+## for it to show something different from "Wszystkie" - a "15" tab that
+## would display the exact same 4 rounds as "Wszystkie" is just confusing,
+## not a real choice ("chyba że rundy są mniejsze od podanych przeze mnie
+## liczb"). Every resource's full history is the same length (MarketManager
+## advances all of them together every round), so this never needs to
+## un-hide-then-hide a tab the player already has selected - once a tab
+## appears, it stays available for the rest of the game.
+func _update_chart_range_buttons() -> void:
+	var full_size = MarketManager.get_price_history(_current_resource).size()
+	range_5_button.visible = full_size > CHART_WINDOW_5
+	range_15_button.visible = full_size > CHART_WINDOW_15
+
+
+func _on_chart_range_pressed(window: int) -> void:
+	_chart_window = window
+	_refresh()
 
 
 ## The makieta's `.market-frame` shrink-wraps its content (no CSS height set)

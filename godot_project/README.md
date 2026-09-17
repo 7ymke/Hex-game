@@ -712,6 +712,42 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **Wybór zakresu wykresu ceny: 5 / 15 / wszystkie rundy** (na życzenie:
+  "Chcę aby dało się zmieniać wykres - między ostatnimi 5 rundami, 15 a
+  wszystkimi. (chyba że rundy są mniejsze od podanych przezmnie liczb)").
+  `scenes/market_panel.gd`: trzy przełączalne przyciski (`range_5_button`/
+  `range_15_button`/`range_all_button`, zwykłe `Button` z `toggle_mode =
+  true` i wspólnym `ButtonGroup` - Godot sam pilnuje, że tylko jeden na raz
+  jest wciśnięty, jak grupa radiowa), nad wykresem. Wybór (`_chart_window`)
+  przekazywany wprost do `MarketManager.get_price_history(resource,
+  last_n)` - "wszystkie" to `-1`, ta sama wartość, którą `get_price_history`
+  już wcześniej rozumiał jako "bez limitu" (`last_n <= 0`), więc zero
+  specjalnych przypadków przy wywołaniu.
+  - **Warunek z nawiasu w życzeniu** ("chyba że rundy są mniejsze od
+    podanych przeze mnie liczb") zrealizowany przez ukrywanie przycisków
+    "5"/"15", gdy pełna historia danego surowca nie jest jeszcze od nich
+    dłuższa (`_update_chart_range_buttons()`, licznik: `MarketManager.
+    get_price_history(resource).size()` bez limitu) - pokazywanie zakładki
+    "15", która akurat pokazałaby te same 4 rundy co "Wszystkie", byłoby
+    mylące, nie prawdziwym wyborem. Domyślny wybór to "Wszystkie" (jedyny
+    zawsze sensowny na starcie gry), nie "5" - unika potrzeby
+    "przełączania z powrotem", gdyby akurat rund było jeszcze mniej niż 5.
+    Ponieważ `MarketManager` przelicza WSZYSTKIE surowce co rundę razem,
+    długość pełnej historii jest identyczna dla każdego z nich - więc
+    zakładka, która raz się pojawiła (np. po przekroczeniu 5 rund), już
+    nigdy potem się nie chowa, nawet przy przełączaniu między surowcami.
+  - `main.tscn`: nowy wiersz `ChartRangeRow` nad `ChartArea`, nowy
+    sub-resource `ButtonGroup_chart_range` - przyciski celowo korzystają
+    wprost z globalnego stylu `Button`u z `ui_theme.tres` (złota obwódka
+    na stanie `pressed`, już zdefiniowana tam dla WSZYSTKICH przycisków w
+    grze), więc "aktywna" zakładka wygląda spójnie z resztą UI bez
+    żadnego nowego StyleBoxa.
+  - **Ostrożność po literówce w nazwie metody silnika** (poprzedni wpis) -
+    każda nowa nazwa API Godota użyta w tej zmianie (`toggle_mode`,
+    `button_pressed`, `button_group`, sygnał `pressed`, typ zasobu
+    `ButtonGroup`) zweryfikowana wprost ze źródła silnika przed użyciem,
+    nie tylko z pamięci.
+
 - **Podpowiedź przy najechaniu na wykres ceny (cena + numer rundy)** (na
   życzenie: "Make it so when i hover my mouse on the price graph - I see
   the price and the round number"). `ui/price_chart_view.gd` - nowy
