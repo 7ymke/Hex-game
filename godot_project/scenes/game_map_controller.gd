@@ -210,7 +210,18 @@ var _resource_pill_active_style: StyleBoxFlat
 
 
 func _ready() -> void:
-	_setup_players()
+	# SaveManager.pending_load_data (ustawione przez scenes/main_menu.gd przed
+	# zmianą sceny, analogicznie do GameSetup.selected_player_ids) - puste,
+	# jeśli gracz wybrał "Nowa gra" (albo main.tscn uruchomiono wprost, z
+	# pominięciem menu). Odczytane i od razu wyczyszczone, żeby ponowne
+	# wejście do tej sceny (bez przejścia przez menu) nie wczytało tego
+	# samego zapisu drugi raz.
+	var save_data: Dictionary = SaveManager.pending_load_data
+	SaveManager.pending_load_data = {}
+	if save_data.is_empty():
+		_setup_players()
+	else:
+		_load_saved_game(save_data)
 	_populate_player_selector()
 	pathfinder.build()
 
@@ -263,6 +274,13 @@ func _ready() -> void:
 	for p in players:
 		player_ids.append(p.player_id)
 	TurnManager.setup_player_order(player_ids)
+
+	# Wczytana gra: setup_player_order() powyżej zawsze aktywuje
+	# player_order[0] (patrz turn_manager.gd) - to przywraca właściwą rundę i
+	# aktywnego gracza z zapisu, NADPISUJĄC ten domyślny wybór.
+	if not save_data.is_empty():
+		TurnManager.round_number = int(save_data.get("round_number", 1))
+		TurnManager.switch_to_player(int(save_data.get("current_player_id", player_ids[0] if not player_ids.is_empty() else -1)))
 
 	_on_harvest_slider_changed(harvest_slider.value)
 	_refresh_route_panel()
@@ -332,6 +350,104 @@ func _setup_players() -> void:
 		MapData.get_hex(start_hex_id).is_capital = true
 		unit.place_on_hex(start_hex_id)
 		_reveal_around(start_hex_id, player.player_id)
+
+
+## Odpowiednik `_setup_players()` dla wczytanej gry (SaveManager -
+## "Chcę abyś dodał... system saveowania gry") - zamiast tworzyć graczy/
+## jednostki od zera, odtwarza je z `data` (autoloads/save_manager.gd,
+## SaveManager.load_game()). Wypełnia te same `players`/`player_units`, więc
+## reszta `_ready()` (populate player selector, setup_player_order...)
+## działa identycznie niezależnie od tego, która z tych dwóch funkcji
+## zadziałała.
+##
+## Tożsamość gracza (imię/miasto/kolor, sprite jednostki) NIE jest w
+## zapisie - odczytywana z powrotem z PLAYER_SETUP po player_id, dokładnie
+## jak w `_setup_players()` (patrz komentarz w save_manager.gd).
+##
+## Liczby z JSON wracają jako float (patrz save_manager.gd) - każde miejsce,
+## które ma być int, jawnie rzutuje int(...).
+func _load_saved_game(data: Dictionary) -> void:
+	var existing_unit: Unit = $Unit
+	var existing_unit_used = false
+
+	var saved_players: Dictionary = data.get("players", {})
+	for player_id_str in saved_players:
+		var player_id = int(player_id_str)
+		var setup = _find_player_setup(player_id)
+		if setup.is_empty():
+			continue
+		var saved_player: Dictionary = saved_players[player_id_str]
+
+		var player = PlayerData.new()
+		player.player_id = player_id
+		player.player_name = setup["name"]
+		player.starting_city = setup["city"]
+		player.color = setup["color"]
+		player.prestige = int(saved_player.get("prestige", 100))
+		player.money = saved_player.get("money", 200.0)
+		for res_type_str in saved_player.get("resources", {}):
+			player.resources[int(res_type_str)] = saved_player["resources"][res_type_str]
+		var unlocked_city_buildings: Array[String] = []
+		for building_name in saved_player.get("unlocked_city_buildings", []):
+			unlocked_city_buildings.append(building_name)
+		player.unlocked_city_buildings = unlocked_city_buildings
+		var unlocked_skills: Array[String] = []
+		for skill_id in saved_player.get("unlocked_skills", []):
+			unlocked_skills.append(skill_id)
+		player.unlocked_skills = unlocked_skills
+		player.movement_points_bonus = int(saved_player.get("movement_points_bonus", 0))
+		player.vision_radius_bonus = int(saved_player.get("vision_radius_bonus", 0))
+		player.forest_safe_threshold_bonus = saved_player.get("forest_safe_threshold_bonus", 0.0)
+		player.annex_cost_reduction = int(saved_player.get("annex_cost_reduction", 0))
+
+		GameManager.register_player(player)
+		players.append(player)
+		player_units[player.player_id] = []
+
+	var saved_hexes: Dictionary = data.get("hexes", {})
+	for hex_id in saved_hexes:
+		var hex = MapData.get_hex(hex_id)
+		if hex == null:
+			continue
+		var saved_hex: Dictionary = saved_hexes[hex_id]
+
+		hex.owner_id = int(saved_hex.get("owner_id", -1))
+		hex.resource_level = saved_hex.get("resource_level", 100.0)
+		hex.generates_prestige = saved_hex.get("generates_prestige", true)
+		hex.building_damaged = saved_hex.get("building_damaged", false)
+		hex.is_capital = saved_hex.get("is_capital", false)
+		hex.is_on_fire = saved_hex.get("is_on_fire", false)
+
+		hex.fog_state.clear()
+		for player_id_str in saved_hex.get("fog_state", {}):
+			hex.fog_state[int(player_id_str)] = int(saved_hex["fog_state"][player_id_str])
+
+	for saved_unit: Dictionary in data.get("units", []):
+		var player_id = int(saved_unit["player_id"])
+		var player = GameManager.get_player(player_id)
+		var setup = _find_player_setup(player_id)
+		if player == null or setup.is_empty():
+			continue
+
+		var unit: Unit
+		if not existing_unit_used:
+			unit = existing_unit  # the scene already has one Unit node ready to go
+			existing_unit_used = true
+		else:
+			unit = Unit.new()
+			add_child(unit)
+		_configure_unit(unit, player, setup)
+		unit.place_on_hex(saved_unit["current_hex_id"])
+		unit.movement_points_max = int(saved_unit.get("movement_points_max", GameBalance.UNIT_MOVEMENT_POINTS_MAX))
+		unit.movement_points_current = int(saved_unit.get("movement_points_current", unit.movement_points_max))
+		unit.auto_annex = saved_unit.get("auto_annex", false)
+
+		if not player_units.has(player_id):
+			player_units[player_id] = []
+		player_units[player_id].append(unit)
+
+	MarketManager.load_save_state(data.get("market", {}))
+	RandomEventManager.load_save_state(data.get("events", {}))
 
 
 ## Sets `unit`'s visual data/owner from the `setup` entry (color, optional
@@ -475,6 +591,11 @@ func _on_round_ended(round_number: int) -> void:
 	_refresh_action_panel()
 	_maybe_popup_notifications()
 	_refresh_route_panel()
+	# Autosave (SaveManager) - tu, a nie w TurnManager.end_round() samym, bo
+	# scenes/main_test.gd (smoke testy) woła end_round() bezpośrednio, bez tej
+	# klasy w ogóle - autosave należy do warstwy rozgrywki (ta scena), nie do
+	# czystej logiki tury.
+	SaveManager.save_game()
 
 
 func _on_hex_clicked(hex_id: String) -> void:

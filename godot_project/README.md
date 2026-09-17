@@ -4,8 +4,10 @@ Godot 4.2.2. Zaimplementowane: **Fazy 0-9** z `Plan_Implementacji_Godot.md`
 (fundament, import mapy, wizualizacja, mgła wojny, ludzik i ruch, akcje na
 polu, pełna struktura tur wielu graczy, prestiż jako centralna waluta, Karta
 Miasta, przejęcie terytorium PvP) **plus dalsze funkcje ponad plan**: ekran
-startowy wyboru miast, trasa wielorundowa z podglądem/potwierdzeniem,
-Drzewko Umiejętności (5 startowych upgrade'ów) i UI skalujące się z oknem.
+główny (Nowa gra/Wczytaj grę/Zakończ grę) z pełnym systemem zapisu/wczytania
+gry (autosave po każdej rundzie), ekran wyboru miast, trasa wielorundowa z
+podglądem/potwierdzeniem, Drzewko Umiejętności (5 startowych upgrade'ów) i UI
+skalujące się z oknem.
 Gra jest w pełni grywalna w trybie jednoosobowym-na-jednym-ekranie
 (**hotseat**, do 6 graczy — pełna skala multiplayer z sekcji 7 GDD) —
 dokładnie to, co plan implementacji zakłada jako cel Faz 0-9, zanim dojdzie
@@ -28,27 +30,33 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
 ## Jak to uruchomić
 
 1. Otwórz folder `godot_project/` w Godot 4.2.2 (Import → wskaż `project.godot`).
-2. Naciśnij **F5** (Run Project) — scena `scenes/start_screen.tscn` jest
+2. Naciśnij **F5** (Run Project) — scena `scenes/main_menu.tscn` jest
    ustawiona jako główna, więc powinna wystartować od razu.
-3. **Ekran startowy**: checkbox per miasto (wszystkie 6 z sekcji 7 GDD:
-   Wrocław `H18`, Szczecin `A7`, Warszawa `R12`, Kraków `O22`, Gdańsk `L3`,
-   Poznań `G12`, lista współdzielona ze scenę grywalną w
+3. **Ekran główny**: "Nowa gra" (przechodzi do ekranu wyboru miast),
+   "Wczytaj grę" (wyszarzony, dopóki nie ma zapisu na dysku) i "Zakończ
+   grę". Zapis powstaje AUTOMATYCZNIE po każdym "Zakończ rundę" (jeden
+   slot, `user://save.json`) - nie ma osobnego przycisku "Zapisz" w
+   rozgrywce, patrz "Decyzje projektowe" niżej.
+4. **Ekran wyboru miast** (po "Nowa gra"): checkbox per miasto (wszystkie 6
+   z sekcji 7 GDD: Wrocław `H18`, Szczecin `A7`, Warszawa `R12`, Kraków
+   `O22`, Gdańsk `L3`, Poznań `G12`, lista współdzielona ze scenę grywalną w
    `scripts/player_setup.gd` -> `PlayerSetup.LIST`), domyślnie wszystkie
    zaznaczone. Odznacz, których miast NIE chcesz w rozgrywce (min. 2 wymagane
    - przycisk "Rozpocznij grę" jest zablokowany przy mniejszej liczbie), potem
    kliknij **Rozpocznij grę** — wybór trafia do autoloadu `GameSetup`
    (`selected_player_ids`), który `game_map_controller._setup_players()`
-   odczytuje przy starcie `scenes/main.tscn`. Uruchomienie `main.tscn`
-   bezpośrednio (np. F6 w edytorze, z pominięciem ekranu startowego) nadal
-   działa i rejestruje wszystkich 6 graczy, tak jak dotąd.
-4. Gra hotseat, każdy wybrany gracz w innym mieście startowym — widzi tylko
+   odczytuje przy starcie `scenes/main.tscn` ("Wstecz" wraca do ekranu
+   głównego bez rozpoczynania gry). Uruchomienie `main.tscn` bezpośrednio
+   (np. F6 w edytorze, z pominięciem menu/ekranu startowego) nadal działa i
+   rejestruje wszystkich 6 graczy, tak jak dotąd.
+5. Gra hotseat, każdy wybrany gracz w innym mieście startowym — widzi tylko
    odkryty przez siebie fragment mapy (osobna mgła wojny per gracz). Siatka
    jest **flat-top** (płaski bok na górze/dole heksa) i pokrywa całą Polskę
    (496 heksów).
-5. **HUD** (lewy górny róg): kto jest kontrolowany, punkty ruchu, prestiż i
+6. **HUD** (lewy górny róg): kto jest kontrolowany, punkty ruchu, prestiż i
    **wszystkie posiadane surowce** (gaz/miedź/węgiel/drewno/żywność/nikiel/
    uran naraz, nie tylko drewno jak wcześniej).
-6. **Sterowanie** (dotyczy aktualnie kontrolowanego gracza — patrz etykieta
+7. **Sterowanie** (dotyczy aktualnie kontrolowanego gracza — patrz etykieta
    "Kontrolujesz" w lewym górnym rogu):
    - **Lewy klik na własnego ludzika** → zaznacza go: lekko się powiększa i
      podświetla pierścieniem (rozmiar/kolor/grubość tweakowalne w
@@ -192,7 +200,7 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
      zmieniając, który gracz jest akurat kontrolowany. Kontrola gracza i
      przeliczenie rundy to dwie całkowicie niezależne rzeczy (sekcja 8 GDD
      dopuszcza "na przemian LUB jednocześnie").
-7. Dla testu niższego poziomu (bez UI/kamery/grafiki) nadal działa
+8. Dla testu niższego poziomu (bez UI/kamery/grafiki) nadal działa
    `scenes/main_test.tscn` (F6 na tej scenie) — smoke test Fazy 0-1 (dane,
    aneksacja, wydobycie lasu, tura) **plus** Faz 6-9 (drugi gracz, blokada
    ruchu przez `HexPathfinder`, przejęcie terytorium, kara za strefę
@@ -203,7 +211,7 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
 
 ```
 godot_project/
-├── project.godot            # main_scene = scenes/start_screen.tscn, autoloady
+├── project.godot            # main_scene = scenes/main_menu.tscn, autoloady
 ├── autoloads/
 │   ├── map_data.gd           # wczytuje data/map_data.json, sąsiedzi, dołącza
 │   │                          # REALNE budynki z pola "building" w JSON
@@ -214,8 +222,10 @@ godot_project/
 │   │                          # (patrz "Rynek surowców" wyżej)
 │   ├── random_event_manager.gd  # losowe wydarzenia (patrz "Wydarzenia
 │   │                              # losowe" niżej)
-│   └── game_setup.gd         # GameSetup: wybór miast z ekranu startowego,
-│                              # przekazany do game_map_controller.gd
+│   ├── game_setup.gd         # GameSetup: wybór miast z ekranu startowego,
+│   │                          # przekazany do game_map_controller.gd
+│   └── save_manager.gd       # SaveManager: zapis/wczytanie gry (JEDEN slot,
+│                              # user://save.json) - patrz "Decyzje projektowe"
 ├── resources/
 │   ├── hex_data.gd              # class_name HexData (Resource)
 │   ├── building.gd               # class_name Building (Resource)
@@ -239,14 +249,18 @@ godot_project/
 │   └── hex_pathfinder.gd        # A* (AStar2D) po heksach, wg kosztu terenu,
 │                                  # z opcjonalną listą heksów wykluczonych (blokada PvP)
 ├── scenes/
-│   ├── start_screen.tscn / start_screen.gd  # ekran startowy - wybór, ile i
-│   │                              # które miasta grają (checkboxy, min. 2)
+│   ├── main_menu.tscn / main_menu.gd  # ekran główny (main_scene) - Nowa
+│   │                              # gra/Wczytaj grę/Zakończ grę
+│   ├── start_screen.tscn / start_screen.gd  # ekran wyboru miast - wybór, ile
+│   │                              # i które miasta grają (checkboxy, min. 2),
+│   │                              # "Wstecz" wraca do main_menu.tscn
 │   ├── main.tscn                # scena grywalna (Fazy 2-9) - kamera, mapa,
 │   │                              # ludzik (+ do 6 tworzonych w kodzie), UI,
 │   │                              # Karta Miasta, Drzewko Umiejętności
 │   ├── game_map_controller.gd   # orchestracja: ruch/trasy, mgła, akcje na
 │   │                              # polu, wybór gracza, PvP, Karta Miasta,
-│   │                              # Drzewko Umiejętności, filtr GameSetup
+│   │                              # Drzewko Umiejętności, filtr GameSetup,
+│   │                              # _load_saved_game() (SaveManager)
 │   ├── hex_map_view.gd          # rysowanie siatki + mgła wojny + klikanie/hover
 │   │                              # + podświetlenie zaznaczonego pola + obwódka
 │   │                              # w kolorze drużyny-właściciela + podgląd/trasa
@@ -257,7 +271,8 @@ godot_project/
 │   │                              # - jeden na gracza na start, ale
 │   │                              # player_units w kontrolerze to już
 │   │                              # Array[Unit] per gracz (skill "Drugi ludzik"
-│   │                              # dodaje kolejnego bez zmian w reszcie logiki)
+│   │                              # dodaje kolejnego bez zmian w reszcie logiki),
+│   │                              # add_to_group("units") - patrz SaveManager
 │   ├── notifications_panel.gd    # UI panelu powiadomień (kropka "i" w pasku
 │   │                              # bocznym) - patrz "Wydarzenia losowe" niżej
 │   ├── skill_tree_panel.gd       # UI Drzewka Umiejętności - radialny graf,
@@ -823,6 +838,88 @@ jako heksy typu `city`: Wrocław (`H18`), Szczecin (`A7`), Warszawa (`R12`),
 Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
+
+- **Ekran główny (menu) + system zapisu/wczytania gry** (na życzenie: "Chcę
+  abyś dodał start screen gdzie będzie opcja - New game, Load game, Exit
+  game. (Zrób też system saveovania gry) Start screen powinien być w
+  podobnym stylu co reszta gry"). Nowy `scenes/main_menu.tscn`/`main_menu.gd`
+  jest teraz `main_scene` w `project.godot` (poprzednio
+  `start_screen.tscn`) - trzy przyciski: "Nowa gra" (przechodzi do
+  istniejącego `start_screen.tscn`, wybór miast bez zmian), "Wczytaj grę"
+  (wyszarzony, gdy `SaveManager.has_save()` zwraca `false`) i "Zakończ
+  grę" (`get_tree().quit()`). `start_screen.tscn` dostał nowy przycisk
+  "Wstecz" (wraca do menu głównego) i - razem z `main_menu.tscn` - `theme
+  = ExtResource(...)` na `theme/ui_theme.tres` (wcześniej w ogóle nie
+  odwoływał się do motywu, rysował się domyślną szarą stylistyką Godota,
+  mimo że reszta gry od dawna używa drewnianej palety) - obie sceny mają
+  teraz tę samą kompozycję (`ColorRect` w kolorze `Palette.MAP_BACKGROUND`
+  jako tło + wyśrodkowany `PanelContainer` w drewnianym stylu z
+  `ui_theme.tres`), więc menu wygląda spójnie z resztą gry.
+
+  **System zapisu** - JEDEN slot na dysku (`user://save.json`), bez
+  nazwanych zapisów - pasuje do prostego, binarnego wyboru z menu (nazwane
+  sloty można by dodać później bez przepisywania API, gdyby były
+  potrzebne, ale życzenie tego nie wymagało). Nowy autoload
+  `autoloads/save_manager.gd` to WYŁĄCZNIE warstwa I/O + serializacji
+  (`JSON.stringify(data, "\t")`/`JSON.parse_string()`) - NIE stosuje
+  wczytanych danych do żywej gry samodzielnie, żeby nie duplikować logiki
+  "stwórz gracza/jednostkę" w dwóch miejscach:
+  - **Zapis** (`SaveManager.save_game()`, wołane z
+    `game_map_controller._on_round_ended()` - autosave po KAŻDYM "Zakończ
+    rundę") czyta stan wprost z istniejących autoloadów/drzewa węzłów, bez
+    potrzeby, żeby scena grywalna cokolwiek mu przekazywała: heksy
+    (`MapData.hexes` - WSZYSTKIE ~496 bezwarunkowo, nie tylko
+    odkryte/zaanektowane - inaczej pamięć mgły wojny, `HexData.fog_state`,
+    niepusta też dla pól tylko WIDZIANYCH, nie zaanektowanych, ginęłaby
+    bezpowrotnie przy wczytaniu), gracze (`GameManager.players`), jednostki
+    (`get_tree().get_nodes_in_group("units")` - nowy tag grupy w
+    `Unit._ready()`, zamiast sięgać do prywatnej listy `player_units`
+    kontrolera sceny) i tura (`TurnManager.round_number`/
+    `get_current_player_id()`).
+  - **Podsystemy z WŁASNYM prywatnym stanem** (`MarketManager` -
+    `price_history`/`_eta_s`/`_eta_d`; `RandomEventManager` -
+    `notifications`/`_last_seen_index`/liczniki czasowych efektów) mają
+    swoją parę `get_save_state()`/`load_save_state()` zamiast pozwalać
+    `SaveManager` grzebać w ich wewnętrznych zmiennych bezpośrednio -
+    `MarketManager` celowo NIE zapisuje bieżącej presji rundowej
+    (`_q_buy_this_round`/`_q_sell_this_round`) ani dziennego limitu handlu
+    (`_player_trade_log`) - to czysto rundowy stan, zerowany i tak co
+    rundę, więc po wczytaniu poprawnie zaczyna się od zera, jak na
+    początku każdej rundy.
+  - **Wczytanie** (`SaveManager.load_game()` zwraca surowy, sparsowany
+    `Dictionary` - zastosowanie do gry robi
+    `game_map_controller._load_saved_game(data)`, nowa funkcja
+    równoległa do istniejącej `_setup_players()`, wołana zamiast niej w
+    `_ready()`, gdy `SaveManager.pending_load_data` (ustawiane przez
+    `main_menu.gd` przed `change_scene_to_file()`, dokładnie jak
+    `GameSetup.selected_player_ids` dla wyboru miast) nie jest puste.
+    Odtwarza graczy/heksy/jednostki z zapisu, potem `TurnManager.round_number`
+    i `TurnManager.switch_to_player(saved_current_player_id)` NADPISują
+    domyślne `player_order[0]`, które `setup_player_order()` i tak
+    ustawia jako pierwsze.
+  - **Tożsamość gracza NIE jest zapisywana** - imię/miasto/kolor/startowy
+    heks to stałe dane z `scripts/player_setup.gd` (`PlayerSetup.LIST`),
+    już współdzielone przez `start_screen.gd` i `game_map_controller.gd` -
+    przy wczytaniu odczytywane z powrotem po `player_id`, zamiast
+    duplikować w zapisie coś, co i tak nigdy się nie zmienia.
+  - **Autosave umieszczony w `game_map_controller._on_round_ended()`, NIE
+    w `TurnManager.end_round()`** - `scenes/main_test.gd` (smoke testy)
+    woła `TurnManager.end_round()` bezpośrednio, bez tej sceny w ogóle, co
+    powodowałoby niechciane zapisy na dysk (i nadpisywanie prawdziwego
+    zapisu gracza) przy automatycznym testowaniu, gdyby autosave siedział
+    w samej logice tury. Trzymanie go w warstwie rozgrywki (UI-owej scenie)
+    zamiast w czystej logice tur jest więc świadomym wyborem, nie
+    przeoczeniem.
+  - **Liczby z `JSON.parse_string()` wracają ZAWSZE jako `float`** - JSON
+    zna tylko typ "number", nie ma osobnego `int` (potwierdzone wprost w
+    dokumentacji silnika) - każde miejsce w `_load_saved_game()`/
+    `load_save_state()`, które ma być `int` (`player_id`, `round_number`,
+    właściciel heksa, klucze zamienione na `String` z powrotem na
+    `HexData.ResourceType`...), jawnie rzutuje `int(...)` przy odczycie,
+    żeby uniknąć cichych błędów typu (np. porównania `player_id ==
+    ALL_PLAYERS`, które inaczej porównywałyby `float` z `int` -
+    w GDScript działa to poprawnie, ale psuje spójność typów w całym
+    kodzie, więc jawne rzutowanie i tak jest właściwym wyborem).
 
 - **Dwuetapowe losowanie wydarzeń** (na życzenie: "Chcę aby system
   losowania eventówy był trochę zmieniony: 1) Najpierw losuje czy będzie

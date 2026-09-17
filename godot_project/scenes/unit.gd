@@ -75,6 +75,10 @@ var auto_annex: bool = false
 
 func _ready() -> void:
 	movement_points_current = movement_points_max
+	# Pozwala autoloads/save_manager.gd zebrać wszystkie żywe jednostki bez
+	# odwoływania się do wewnętrznej listy game_map_controller.gd
+	# (player_units) - patrz SaveManager._gather_units().
+	add_to_group("units")
 
 
 func _draw() -> void:

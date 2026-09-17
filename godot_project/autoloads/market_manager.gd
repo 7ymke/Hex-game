@@ -48,6 +48,44 @@ func _ready() -> void:
 		_q_sell_this_round[resource] = 0.0
 
 
+## Zapis stanu (autoloads/save_manager.gd) - tylko to, co faktycznie
+## definiuje rynek między rundami (historia cen + tło AR(1)). Presja z
+## BIEŻĄCEJ rundy (_q_buy_this_round/_q_sell_this_round) i dzienny limit
+## handlu per gracz (_player_trade_log) celowo NIE są zapisywane - to stan
+## czysto rundowy, zerowany i tak co rundę w process_round_end(), więc po
+## wczytaniu poprawnie zaczyna się od zera, tak jak na początku każdej rundy.
+## Klucze (HexData.ResourceType, int) zamienione na String - JSON nie ma
+## kluczy innych niż String.
+func get_save_state() -> Dictionary:
+	var history_out = {}
+	for resource in price_history:
+		history_out[str(resource)] = price_history[resource]
+	var eta_s_out = {}
+	for resource in _eta_s:
+		eta_s_out[str(resource)] = _eta_s[resource]
+	var eta_d_out = {}
+	for resource in _eta_d:
+		eta_d_out[str(resource)] = _eta_d[resource]
+	return {"price_history": history_out, "eta_s": eta_s_out, "eta_d": eta_d_out}
+
+
+## Wczytanie stanu (autoloads/save_manager.gd) - odwrotność get_save_state().
+## Klucze wracają z JSON jako String (patrz wyżej) - z powrotem na int
+## (HexData.ResourceType). Liczby w price_history wracają z JSON jako float
+## (JSON zna tylko typ "number") - to i tak dokładnie to, czym są w pamięci
+## (Array[float]), więc bez dodatkowego rzutowania.
+func load_save_state(data: Dictionary) -> void:
+	price_history.clear()
+	for resource_str in data.get("price_history", {}):
+		price_history[int(resource_str)] = data["price_history"][resource_str]
+	_eta_s.clear()
+	for resource_str in data.get("eta_s", {}):
+		_eta_s[int(resource_str)] = data["eta_s"][resource_str]
+	_eta_d.clear()
+	for resource_str in data.get("eta_d", {}):
+		_eta_d[int(resource_str)] = data["eta_d"][resource_str]
+
+
 ## The current mid price (P_mid) - the "fair value" the formula computes.
 ## Players never trade AT this price directly - see get_trade_prices().
 func get_current_price(resource: HexData.ResourceType) -> float:

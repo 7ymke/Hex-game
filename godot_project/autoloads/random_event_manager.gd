@@ -107,6 +107,61 @@ var _mining_strike_until_round: Dictionary = {}
 var _mild_winter_pending: bool = false
 
 
+## Zapis stanu (autoloads/save_manager.gd) - powiadomienia (`notifications`,
+## już w pełni JSON-bezpiecznym kształcie - String/int) plus wszystkie
+## czasowe efekty. Klucze int(player_id) zamienione na String - JSON nie ma
+## kluczy innych niż String.
+func get_save_state() -> Dictionary:
+	var last_seen_out = {}
+	for player_id in _last_seen_index:
+		last_seen_out[str(player_id)] = _last_seen_index[player_id]
+	var pest_plague_out = {}
+	for player_id in _pest_plague_until_round:
+		pest_plague_out[str(player_id)] = _pest_plague_until_round[player_id]
+	var record_harvest_out = {}
+	for player_id in _record_harvest_until_round:
+		record_harvest_out[str(player_id)] = _record_harvest_until_round[player_id]
+	var mining_strike_out = {}
+	for player_id in _mining_strike_until_round:
+		mining_strike_out[str(player_id)] = _mining_strike_until_round[player_id]
+	return {
+		"notifications": notifications,
+		"last_seen_index": last_seen_out,
+		"pest_plague_until_round": pest_plague_out,
+		"record_harvest_until_round": record_harvest_out,
+		"mining_strike_until_round": mining_strike_out,
+		"mild_winter_pending": _mild_winter_pending,
+	}
+
+
+## Wczytanie stanu (autoloads/save_manager.gd) - odwrotność get_save_state().
+## Wartości w `notifications` (round/player_id) wracają z JSON jako float
+## (JSON zna tylko typ "number") - jawnie rzutowane z powrotem na int, żeby
+## reszta kodu (np. porównania player_id == ALL_PLAYERS) działała tak samo
+## jak przed zapisem.
+func load_save_state(data: Dictionary) -> void:
+	notifications.clear()
+	for entry in data.get("notifications", []):
+		notifications.append({
+			"round": int(entry["round"]),
+			"message": entry["message"],
+			"player_id": int(entry["player_id"]),
+		})
+	_last_seen_index.clear()
+	for player_id_str in data.get("last_seen_index", {}):
+		_last_seen_index[int(player_id_str)] = int(data["last_seen_index"][player_id_str])
+	_pest_plague_until_round.clear()
+	for player_id_str in data.get("pest_plague_until_round", {}):
+		_pest_plague_until_round[int(player_id_str)] = int(data["pest_plague_until_round"][player_id_str])
+	_record_harvest_until_round.clear()
+	for player_id_str in data.get("record_harvest_until_round", {}):
+		_record_harvest_until_round[int(player_id_str)] = int(data["record_harvest_until_round"][player_id_str])
+	_mining_strike_until_round.clear()
+	for player_id_str in data.get("mining_strike_until_round", {}):
+		_mining_strike_until_round[int(player_id_str)] = int(data["mining_strike_until_round"][player_id_str])
+	_mild_winter_pending = data.get("mild_winter_pending", false)
+
+
 ## Wywoływane raz na rundę z TurnManager.end_round(), PRZED przeliczeniem
 ## dochodu (żeby świeżo wylosowane wydarzenie od razu wpłynęło na wynik tej
 ## samej rundy, nie dopiero następnej) i PRZED regeneracją lasu (żeby

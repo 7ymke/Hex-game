@@ -1,9 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://cstartscreen001"]
+[gd_scene load_steps=3 format=3 uid="uid://cmainmenu0001"]
 
-[ext_resource type="Script" path="res://scenes/start_screen.gd" id="1"]
+[ext_resource type="Script" path="res://scenes/main_menu.gd" id="1"]
 [ext_resource type="Theme" path="res://theme/ui_theme.tres" id="2"]
 
-[node name="StartScreen" type="Control"]
+[node name="MainMenu" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -32,38 +32,35 @@ grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="CenterContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(420, 0)
+custom_minimum_size = Vector2(380, 0)
 
 [node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 14
 
 [node name="TitleLabel" type="Label" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "Heksagonalna Strategia Ekonomiczna - Polska"
+text = "Heksagonalna Strategia Ekonomiczna
+- Polska"
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="SubtitleLabel" type="Label" parent="CenterContainer/Panel/VBox"]
+[node name="ButtonSpacer" type="Control" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
-text = "Wybierz miasta biorące udział w rozgrywce:"
-autowrap_mode = 2
+custom_minimum_size = Vector2(0, 6)
 
-[node name="CityList" type="VBoxContainer" parent="CenterContainer/Panel/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="HintLabel" type="Label" parent="CenterContainer/Panel/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
-text = "Wybierz co najmniej 2 miasta."
-
-[node name="StartButton" type="Button" parent="CenterContainer/Panel/VBox"]
+[node name="NewGameButton" type="Button" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 44)
-text = "Rozpocznij grę"
+text = "Nowa gra"
 
-[node name="BackButton" type="Button" parent="CenterContainer/Panel/VBox"]
+[node name="LoadGameButton" type="Button" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
-text = "Wstecz"
+custom_minimum_size = Vector2(0, 44)
+text = "Wczytaj grę"
+
+[node name="ExitButton" type="Button" parent="CenterContainer/Panel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 44)
+text = "Zakończ grę"

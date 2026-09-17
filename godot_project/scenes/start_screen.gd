@@ -8,10 +8,14 @@ extends Control
 ## Wybór jest przekazywany dalej przez autoload GameSetup
 ## (selected_player_ids), bo zwykłe węzły sceny nie przeżywają
 ## change_scene_to_file().
+##
+## Poprzedzony ekranem głównym (scenes/main_menu.gd - "Nowa gra/Wczytaj grę/
+## Zakończ grę") - "Wstecz" wraca tam bez wybierania żadnych miast.
 
 @onready var city_list: VBoxContainer = $CenterContainer/Panel/VBox/CityList
 @onready var start_button: Button = $CenterContainer/Panel/VBox/StartButton
 @onready var hint_label: Label = $CenterContainer/Panel/VBox/HintLabel
+@onready var back_button: Button = $CenterContainer/Panel/VBox/BackButton
 
 var checkboxes: Dictionary = {}  # player_id(int) -> CheckBox
 
@@ -26,6 +30,7 @@ func _ready() -> void:
 		checkboxes[setup["id"]] = checkbox
 
 	start_button.pressed.connect(_on_start_pressed)
+	back_button.pressed.connect(_on_back_pressed)
 	_update_start_button_state()
 
 
@@ -55,3 +60,7 @@ func _update_start_button_state() -> void:
 func _on_start_pressed() -> void:
 	GameSetup.selected_player_ids = _selected_ids()
 	get_tree().change_scene_to_file("res://scenes/main.tscn")
+
+
+func _on_back_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
