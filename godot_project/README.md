@@ -712,6 +712,58 @@ Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
 
+- **Poprawka Panelu Rynku: wykres nie pokazywał ceny + bliższe
+  dopasowanie do makiety** (na życzenie: "Zrób aby wykres pokazywał cenę,
+  oraz zrób aby to bardziej przypominało ten plk html").
+  - **Prawdziwa przyczyna pustego wykresu**: `ui/price_chart_view.gd`
+    odmawiało rysowania czegokolwiek przy mniej niż 2 punktach danych
+    (`if values.size() < 2: return`), a `MarketManager.price_history`
+    zaczyna grę z DOKŁADNIE jednym punktem (cenę równowagi `p_eq`, ustawioną
+    w `_ready()`) - kolejny punkt pojawia się dopiero po pierwszym
+    `process_round_end()` (koniec Rundy 1). Efekt: otwarcie DOWOLNEJ
+    strony rynku w Rundzie 1 (najbardziej oczywisty moment na sprawdzenie
+    tej funkcji) pokazywało kompletnie pusty wykres - wyglądało jak błąd,
+    a nie "za mało danych jeszcze". Naprawione przepisaniem `_draw()`: przy
+    JEDNYM punkcie rysowana jest pozioma linia na środku wysokości (zamiast
+    nic), a przy PŁASKIEJ historii (min == max, także z wieloma punktami -
+    poprzedni kod przypinał ją wtedy do DOLNEJ krawędzi, co też wyglądało
+    jak błąd/"cena zero") linia też centruje się w pionie zamiast lądować
+    na krawędzi.
+  - **Panel był wyraźnie wyższy niż jego treść** - makieta ma karcianą
+    ramkę BEZ ustalonej wysokości (CSS: dopasowuje się do treści), a
+    `Background` w `main.tscn` miał ręcznie zgadniętą, stałą wysokość
+    (470px), zostawiającą ~150-170px pustego miejsca pod wierszem
+    Sprzedaży. Naprawione NIE drugim zgadywaniem, tylko odczytem
+    faktycznego `background.get_combined_minimum_size()` z Godota (ten sam
+    mechanizm, którego `ui/unit_card.gd` już używa do własnego
+    dopasowania rozmiaru) po każdym `_refresh()` - `market_panel.gd`,
+    funkcja `_fit_height_to_content()`. Szerokość panelu zostaje
+    nietknięta (ustalona przez szerokość wykresu, jak w makiecie), zmienia
+    się tylko wysokość - dzięki temu przycisk zamknięcia (ustalony
+    względem PRAWEJ krawędzi, która się nie rusza) nie wymagał żadnej
+    poprawki pozycji.
+  - Wysokość obszaru wykresu (`ChartArea`) zmieniona z 90 na 72px, dokładnie
+    jak `viewBox="0 0 400 72"` w `#mChart` z makiety.
+  - **Dodane brakujące podświetlenie aktywnej pigułki surowca** - makieta
+    ma `.resource.active { border-color: gold-bright }` (pigułka surowca,
+    którego strona rynku jest akurat otwarta, dostaje złotą obwódkę), czego
+    wcześniejsza implementacja w ogóle nie miała. `game_map_controller.gd`:
+    nowy `_active_market_resource` + `_update_resource_pill_highlight()`,
+    podpięte pod otwarcie strony rynku (`_on_resource_row_gui_input`) i pod
+    nowo podłączony `market_panel.closed` (wcześniej w ogóle niepodłączony
+    do niczego - podświetlenie czyści się dopiero teraz, gdy panel się
+    zamyka). Styl podświetlenia to `StyleBoxFlat_pill_bg` (tej samej,
+    współdzielonej przez wszystkie pigułki) zduplikowany w skrypcie z
+    podmienioną obwódką na `Palette.GOLD_BRIGHT` - nie osobny sub-resource
+    w `main.tscn`, bo to czysta pochodna istniejącego stylu. Cache'owanie
+    ORYGINALNEGO stylu przed zduplikowaniem było konieczne: wyłączanie
+    podświetlenia przez `remove_theme_style_override("panel")` cofnęłoby
+    też ten sam, jedyny override zadeklarowany w `main.tscn` (to nie jest
+    osobna "wartość domyślna" w Godocie - `theme_override_styles/panel` w
+    `.tscn` to DOKŁADNIE ten sam mechanizm co
+    `add_theme_style_override()`), więc zamiast tego wyłączenie jawnie
+    przywraca zapamiętany oryginalny StyleBox.
+
 - **Druga, kompletna restylizacja UI ("drewno/BTD6") wg
   `Instrukcje_Restylizacji_UI_Godot_2.md` + `UI_Gry_Makieta_11.html`** (na
   życzenie: "Zaimplementuj to do gry"). Dokument sam siebie opisuje jako

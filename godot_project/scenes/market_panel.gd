@@ -93,6 +93,19 @@ func _refresh() -> void:
 		qty_slider.value = maxf(1.0, roundf(limit / 2.0))
 
 	_update_totals()
+	_fit_height_to_content()
+
+
+## The makieta's `.market-frame` shrink-wraps its content (no CSS height set)
+## - `Background`'s width stays fixed (340..800 in main.tscn, matching the
+## makieta's 460px `max-width`), but its height was a guessed fixed value
+## that left a large empty gap below the Sell row. Reading Godot's own
+## `get_combined_minimum_size()` after every refresh (rather than a second
+## hand-guessed constant) means this can never under- or over-shoot the
+## actual content, whatever its final text/font metrics turn out to be.
+func _fit_height_to_content() -> void:
+	var content_height = background.get_combined_minimum_size().y
+	background.size = Vector2(background.size.x, content_height)
 
 
 func _resource_dot_color(resource: HexData.ResourceType) -> Color:

@@ -190,6 +190,13 @@ var preview_target_hex_id: String = ""
 
 var pathfinder = HexPathfinder.new()
 
+## Which resource's market page is currently open, if any (NONE = closed) -
+## drives the gold highlight on its pill in the top bar, matching the
+## makieta's `.resource.active` (`border-color: gold-bright`).
+var _active_market_resource: HexData.ResourceType = HexData.ResourceType.NONE
+var _resource_pill_normal_style: StyleBox
+var _resource_pill_active_style: StyleBoxFlat
+
 
 func _ready() -> void:
 	_setup_players()
@@ -209,6 +216,23 @@ func _ready() -> void:
 	city_card_panel.building_unlocked.connect(_on_city_building_unlocked)
 	skill_tree_panel.skill_unlocked.connect(_on_skill_unlocked)
 	market_panel.traded.connect(_on_market_traded)
+	market_panel.closed.connect(_on_market_closed)
+
+	# Active-pill highlight style is the pill's own StyleBoxFlat_pill_bg
+	# (all rows share the same one, cached here so it can be reapplied
+	# explicitly when a pill stops being active - remove_theme_style_override()
+	# would fall through to the theme's generic, unstyled PanelContainer
+	# default instead, since the tscn-declared style IS itself just an
+	# override, not a separate baked-in default) with just the border
+	# swapped to gold-bright - a duplicate() rather than a new main.tscn
+	# sub-resource, since it's a pure derived variant of the existing style.
+	_resource_pill_normal_style = resource_rows[HexData.ResourceType.FOOD].get_theme_stylebox("panel")
+	_resource_pill_active_style = _resource_pill_normal_style.duplicate() as StyleBoxFlat
+	_resource_pill_active_style.border_color = Palette.GOLD_BRIGHT
+	_resource_pill_active_style.border_width_left = 2
+	_resource_pill_active_style.border_width_top = 2
+	_resource_pill_active_style.border_width_right = 2
+	_resource_pill_active_style.border_width_bottom = 2
 
 	for resource in resource_rows:
 		resource_rows[resource].gui_input.connect(_on_resource_row_gui_input.bind(resource))
@@ -1171,6 +1195,15 @@ func _build_building_preview_row(building: Building) -> Control:
 func _on_resource_row_gui_input(event: InputEvent, resource: HexData.ResourceType) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		market_panel.open_for_resource(resource, active_player)
+		_active_market_resource = resource
+		_update_resource_pill_highlight()
+
+
+## Closing the panel (X) clears the highlight - see market_panel.gd's
+## `closed` signal.
+func _on_market_closed() -> void:
+	_active_market_resource = HexData.ResourceType.NONE
+	_update_resource_pill_highlight()
 
 
 ## A trade changes the player's money AND resource stock - both shown
@@ -1178,6 +1211,13 @@ func _on_resource_row_gui_input(event: InputEvent, resource: HexData.ResourceTyp
 ## not just the next time something else happens to refresh them.
 func _on_market_traded() -> void:
 	_update_stats_labels()
+
+
+func _update_resource_pill_highlight() -> void:
+	for resource in resource_rows:
+		var row: PanelContainer = resource_rows[resource]
+		var target = _resource_pill_active_style if resource == _active_market_resource else _resource_pill_normal_style
+		row.add_theme_style_override("panel", target)
 
 
 ## --- Skill Tree (new, see the comment at the top of the file) ---

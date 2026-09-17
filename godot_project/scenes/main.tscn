@@ -1031,7 +1031,7 @@ theme_override_font_sizes/font_size = 12
 text = "Runda -"
 
 [node name="ChartArea" type="Control" parent="MarketPanel/Background/VBox"]
-custom_minimum_size = Vector2(400, 90)
+custom_minimum_size = Vector2(400, 72)
 script = ExtResource("16")
 
 [node name="QtyRow" type="HBoxContainer" parent="MarketPanel/Background/VBox"]
