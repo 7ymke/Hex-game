@@ -18,6 +18,7 @@ enum EffectType {
 	VISION_RADIUS_BONUS,    # +N to vision radius (VISION_RADIUS) for the player
 	FOREST_THRESHOLD_BONUS, # +N percentage points to the safe forest harvesting threshold (FOREST_SAFE_THRESHOLD_PERCENT)
 	ANNEX_COST_REDUCTION,   # -N to the MP cost of annexation (ANNEX_MP_COST), never below 1
+	ROAD_INFRASTRUCTURE,    # boolean unlock (effect_amount unused) - CITY-terrain hexes cost 0 MP to move through instead of 1
 }
 
 @export var skill_id: String = ""

@@ -24,6 +24,7 @@ RandomEventManager="*res://autoloads/random_event_manager.gd"
 TurnManager="*res://autoloads/turn_manager.gd"
 GameSetup="*res://autoloads/game_setup.gd"
 SaveManager="*res://autoloads/save_manager.gd"
+DiplomacyManager="*res://autoloads/diplomacy_manager.gd"
 
 [display]
 

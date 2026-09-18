@@ -6,8 +6,9 @@ polu, pełna struktura tur wielu graczy, prestiż jako centralna waluta, Karta
 Miasta, przejęcie terytorium PvP) **plus dalsze funkcje ponad plan**: ekran
 główny (Nowa gra/Wczytaj grę/Zakończ grę) z pełnym systemem zapisu/wczytania
 gry (autosave po każdej rundzie), ekran wyboru miast, trasa wielorundowa z
-podglądem/potwierdzeniem, Drzewko Umiejętności (5 startowych upgrade'ów) i UI
-skalujące się z oknem.
+podglądem/potwierdzeniem, Drzewko Umiejętności (6 upgrade'ów, w tym
+"Infrastruktura drogowa"), Pakt o nieagresji (dyplomacja), sezonowa szata
+mapy + ambientowa pogoda, i UI skalujące się z oknem.
 Gra jest w pełni grywalna w trybie jednoosobowym-na-jednym-ekranie
 (**hotseat**, do 6 graczy — pełna skala multiplayer z sekcji 7 GDD) —
 dokładnie to, co plan implementacji zakłada jako cel Faz 0-9, zanim dojdzie
@@ -138,8 +139,11 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
        dla miasta aktywnego gracza, każdy z kosztem w zasobach i wartością
        prestiżową po odblokowaniu (sekcja 7 GDD).
      - **Drzewko Umiejętności** (nowość) — osobny ekran, analogiczny do Karty
-       Miasta, ale WSPÓLNY dla wszystkich miast: 5 permanentnych upgrade'ów
+       Miasta, ale WSPÓLNY dla wszystkich miast: 6 permanentnych upgrade'ów
        płatnych surowcami z mapy (patrz sekcja niżej).
+     - **Dyplomacja** (nowość, przycisk 🤝) — osobny ekran: lista pozostałych
+       graczy, "Zawrzyj pakt"/"Zerwij pakt" o nieagresji (patrz "Decyzje
+       projektowe" niżej).
    - **Zaanektuj i Przejmij teren gracza żyją TYLKO w panelu "Trasa ludzika"**
      (update - oba usunięte z panelu akcji po lewej, żeby obie akcje
      wymagające fizycznej obecności ludzika miały miejsce wyłącznie w UI
@@ -227,10 +231,12 @@ godot_project/
 │   │                              # losowe" niżej)
 │   ├── game_setup.gd         # GameSetup: wybór miast z ekranu startowego,
 │   │                          # przekazany do game_map_controller.gd
-│   └── save_manager.gd       # SaveManager: zapis/wczytanie gry - jeden plik
-│                              # PER ROZGRYWKA (user://saves/<id>.json),
-│                              # list_saves() do ekranu wczytywania - patrz
-│                              # "Decyzje projektowe"
+│   ├── save_manager.gd       # SaveManager: zapis/wczytanie gry - jeden plik
+│   │                          # PER ROZGRYWKA (user://saves/<id>.json),
+│   │                          # list_saves() do ekranu wczytywania - patrz
+│   │                          # "Decyzje projektowe"
+│   └── diplomacy_manager.gd  # DiplomacyManager: Pakt o nieagresji (patrz
+│                              # "Decyzje projektowe")
 ├── resources/
 │   ├── hex_data.gd              # class_name HexData (Resource)
 │   ├── building.gd               # class_name Building (Resource)
@@ -246,8 +252,8 @@ godot_project/
 │   ├── player_setup.gd          # PlayerSetup.LIST - lista miast/graczy,
 │   │                              # współdzielona przez start_screen.gd i
 │   │                              # game_map_controller.gd
-│   ├── skill_tree_data.gd       # SkillTreeData.get_skills() - 5 startowych
-│   │                              # upgrade'ów drzewka umiejętności
+│   ├── skill_tree_data.gd       # SkillTreeData.get_skills() - 6 upgrade'ów
+│   │                              # drzewka umiejętności
 │   ├── market_balance.gd        # MarketBalance - parametry symulacji cen
 │   │                              # rynku (P_eq/k/V_R per surowiec + globalne)
 │   ├── hex_grid_utils.gd        # matematyka siatki - offset "even-q", flat-top
@@ -272,6 +278,7 @@ godot_project/
 │   ├── hex_map_view.gd          # rysowanie siatki + mgła wojny + klikanie/hover
 │   │                              # + podświetlenie zaznaczonego pola + obwódka
 │   │                              # w kolorze drużyny-właściciela + podgląd/trasa
+│   │                              # + sezonowa szata mapy (_terrain_color())
 │   ├── camera_controller.gd     # pan (PPM) / zoom (scroll)
 │   ├── unit.gd                   # wizualny pionek gracza: płynny ruch (Tween),
 │   │                              # własne MP, zaznaczenie (skala + podświetlenie),
@@ -292,6 +299,9 @@ godot_project/
 │   │                              # gotowa pod podmianę na obrazek (sprite_texture)
 │   ├── market_panel.gd           # UI strony rynku jednego surowca - wykres,
 │   │                              # kupno/sprzedaż (patrz "Rynek surowców" wyżej)
+│   ├── diplomacy_panel.gd        # UI Paktu o nieagresji - lista pozostałych
+│   │                              # graczy, zawrzyj/zerwij pakt (patrz
+│   │                              # "Decyzje projektowe")
 │   └── main_test.tscn / main_test.gd   # smoke test Fazy 0-1 + Faz 6-9 (bez grafiki)
 ├── theme/
 │   ├── ui_theme.tres           # WYGLĄD całego UI w jednym miejscu (panele,
@@ -305,8 +315,11 @@ godot_project/
 │   │                             # ikon/pipsów UI
 │   ├── unit_card.gd             # class_name UnitCard - pływająca, przeciągalna
 │   │                             # karta ludzika nad mapą
-│   └── price_chart_view.gd      # class_name PriceChartView - ręcznie rysowany
-│                                 # wykres liniowy ceny (Rynek surowców)
+│   ├── price_chart_view.gd      # class_name PriceChartView - ręcznie rysowany
+│   │                             # wykres liniowy ceny (Rynek surowców)
+│   └── ambient_weather_view.gd  # class_name AmbientWeatherView - ręcznie
+│                                 # rysowane cząsteczki (śnieg/żar) - patrz
+│                                 # "Decyzje projektowe"
 ├── assets/fonts/                # Nunito (zmienny font) + licencja OFL -
 │                                 # jedyna rodzina czcionek używana w UI
 ├── data/map_data.json         # wygenerowane przez tools/convert_kml_to_json.py
@@ -541,7 +554,7 @@ wprost `GameManager.unlock_city_building()`.
 Drugi (obok Karty Miasta) trwały cel na nadwyżki surowców - tym razem z
 bezpośrednim wpływem na rozgrywkę zamiast samego prestiżu. Na razie płaskie
 (bez prerequisitów/poziomów) - `scripts/skill_tree_data.gd` (`SkillTreeData.get_skills()`)
-proponuje 5 startowych upgrade'ów, każdy płatny surowcami, które już są w
+proponuje 6 upgrade'ów, każdy płatny surowcami, które już są w
 grze, i odblokowywany permanentnie za jednym kliknięciem w ekranie "Drzewko
 Umiejętności":
 
@@ -552,6 +565,7 @@ Umiejętności":
 | Zrównoważona wycinka | +15 pkt. proc. do bezpiecznego progu wycinki lasu | 30 drewna, 15 węgla |
 | Rozpoznanie terenu | +1 promień widzenia dla wszystkich ludzików gracza | 15 niklu, 20 gazu |
 | Logistyka terytorialna | -1 MP kosztu aneksacji (min. 1) | 20 miedzi, 5 ropy |
+| Infrastruktura drogowa (nowość) | Pole miasta kosztuje 0 MP ruchu zamiast 1 (patrz "Decyzje projektowe") | 25 węgla, 15 miedzi |
 
 Ekran wygląda jak **radialny graf** (nie zwykła lista) — centralny węzeł
 "START" i węzły umiejętności rozstawione promieniście wokół niego, połączone
@@ -843,6 +857,119 @@ jako heksy typu `city`: Wrocław (`H18`), Szczecin (`A7`), Warszawa (`R12`),
 Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
+
+- **Pakt o nieagresji + Infrastruktura drogowa + Sezonowa szata mapy +
+  Ambientowa pogoda** (na życzenie - lista czterech niezależnych funkcji,
+  cytowana przy każdej osobno niżej). Cztery osobne systemy, każdy ze
+  swoim uzasadnieniem projektowym.
+
+  **1. Pakt o nieagresji** (na życzenie: "dwóch graczy zawiera czasową
+  umowę blokującą przejęcie heksów między sobą. Bez kosztu; zerwanie przed
+  czasem to duża kara prestiżu."). Nowy autoload `autoloads/diplomacy_manager.gd`:
+  - **Zawarcie jest NATYCHMIASTOWE**, bez osobnego etapu propozycja/
+    akceptacja - gra jest hotseat (obaj gracze siedzą przy tym samym
+    ekranie), więc "umowa" nie potrzebuje symulowania nieufności/opóźnienia
+    jak przez sieć; aktywny gracz po prostu wybiera drugiego z listy w
+    nowym `scenes/diplomacy_panel.gd` (przycisk 🤝 w pasku bocznym, obok
+    Informacji/Drzewka Umiejętności) i pakt zaczyna działać od razu.
+  - **Stała długość** (`GameBalance.NON_AGGRESSION_PACT_DURATION_ROUNDS`,
+    10 rund) zamiast suwaka w UI do wyboru czasu trwania - życzenie mówi
+    "Bez kosztu", więc prostota wygrywa z dalszą konfigurowalnością, o
+    którą nikt nie prosił.
+  - **Blokuje WYŁĄCZNIE `GameManager.attempt_takeover()`** między stronami
+    paktu ("blokującą przejęcie heksów między sobą") - aneksacja nie jest
+    tym dotknięta, bo działa tylko na heksach NICZYJICH, więc nigdy nie
+    dotyczy "heksów między graczami" w pierwszej kolejności; sprawdzenie
+    (`DiplomacyManager.has_pact()`) jest pierwszym warunkiem w
+    `attempt_takeover()`, przed jakimkolwiek przeliczaniem prestiżu.
+  - **Wygasa samo, bez kary** - `has_pact()` leniwie porównuje
+    `TurnManager.round_number` z zapamiętaną rundą wygaśnięcia (ten sam
+    wzorzec co `RandomEventManager.is_pest_plague_active()` i inne efekty
+    "aktywne do rundy X" - bez osobnego przetwarzania na koniec rundy).
+    **Zerwanie PRZED czasem** (`break_pact()`) to JEDYNA droga do kary -
+    nowa `GameBalance.NON_AGGRESSION_PACT_BREAK_PENALTY` (60 prestiżu,
+    płaska wartość, wyraźnie większa niż inne kary w grze - Inspekcja
+    środowiskowa: 20, Strefa chroniona: 50 - "duża kara").
+  - **Powiadomienia idą do WSPÓLNEGO dziennika** - `RandomEventManager._log()`
+    stał się publicznym `log_notification()` (bez podkreślnika, żeby jasno
+    zaznaczyć, że to teraz też zewnętrzne API), więc panel powiadomień i
+    licznik nieprzeczytanych działają identycznie dla dyplomacji i dla
+    losowych wydarzeń, zamiast duplikować całą infrastrukturę powiadomień
+    dla drugiego systemu. Pakt dotyczy DOKŁADNIE dwóch konkretnych graczy
+    (nie jednego, nie wszystkich - jedyne dwa kształty, jakie zna
+    dotychczasowy system powiadomień) - ta sama wiadomość jest więc
+    logowana DWA razy, raz na gracza.
+  - Nowy zapis stanu (`DiplomacyManager.get_save_state()`/`load_save_state()`,
+    wpięty w `SaveManager`/`_load_saved_game()`) - pakty przetrwają
+    zapis/wczytanie gry, tak jak reszta stanu rozgrywki.
+
+  **2. Infrastruktura drogowa** (na życzenie: "Ulepszenie dróg w mieście,
+  ludzik używa o połowę mniej punktów ruchu w mieście (W skilltree)").
+  Nowy 6. skill w drzewku (`SkillData.EffectType.ROAD_INFRASTRUCTURE`,
+  `PlayerData.road_infrastructure`). Problem projektowy: koszt ruchu terenu
+  CITY (`HexData.MOVEMENT_COST`) już wynosi 1 - to i tak najtańszy możliwy
+  koszt (remis z polem rolniczym/strefą chronioną), a punkty ruchu w tej
+  grze są liczbami CAŁKOWITYMI (`Unit.movement_points_current: int`), więc
+  dosłowne "połowa z 1" (0.5) nie istnieje bez wprowadzania ułamkowych
+  punktów ruchu wszędzie w kodzie. Rozwiązanie: "połowa" zaokrąglona W DÓŁ
+  do 0 - pole miasta z odblokowanym skillem kosztuje 0 MP zamiast 1, czyli
+  faktycznie "o połowę mniej" w duchu życzenia, bez rozszerzania typu MP na
+  ułamki w całej reszcie gry dla jednego efektu. Nowa
+  `game_map_controller._effective_movement_cost_for(hex, player_id)`
+  (dokładnie ten sam wzorzec co istniejąca `_effective_annex_cost_for()`
+  dla skilla "Logistyka terytorialna") zastępuje `hex.get_movement_cost()`
+  w DWÓCH miejscach, które faktycznie liczą/wydają punkty ruchu
+  (`_advance_queued_route()`, `_remaining_route_cost()`) - pathfinder
+  (`scripts/hex_pathfinder.gd`) celowo NIE jest tym dotknięty: skoro pole
+  miasta to i tak zawsze najtańszy koszt terenu, obniżenie go jeszcze
+  bardziej nigdy nie zmienia, KTÓRA trasa jest najtańsza/najkrótsza, tylko
+  ile faktycznie kosztuje jej przejście - przebudowa grafu AStar2D nie była
+  więc potrzebna.
+
+  **3. Sezonowa szata mapy** (na życzenie: "śnieg zimą, złota jesień,
+  zielone lato — czysto wizualna zmiana skórki heksów zgodna z rundą
+  sezonową"). Tylko las i pola uprawne (`HexData.TerrainType.FOREST`/
+  `AGRICULTURAL`) dostały warianty kolorystyczne per pora roku - jedyne dwa
+  typy terenu, których wygląd naturalnie kojarzy się z porą roku (rosnący
+  las/uprawy); góry/miasto/woda/strefa chroniona zostały bez zmian,
+  celowo, żeby nie komplikować palety (`theme/palette.gd`) bez wyraźnej
+  korzyści wizualnej. Wiosna (nie wymieniona wprost w życzeniu) dostała
+  własny, jaśniejszy odcień zieleni/brązu zamiast bycia identyczna z latem
+  - inaczej cykl 4 pór roku wyglądałby na niedokończony (3 z 4 pór mają
+  swój wygląd, jedna nie). `hex_map_view.gd`'s `_terrain_color()` odczytuje
+  `TurnManager.get_current_season()` PRZY KAŻDYM `_draw()`, więc kolor
+  zawsze jest aktualny bez żadnego dodatkowego odświeżania przy zmianie
+  rundy - mapa i tak jest przerysowywana po każdej rundzie
+  (`_refresh_map_view()` w `game_map_controller.gd`).
+
+  **4. Ambientowa pogoda** (na życzenie: "delikatny efekt wizualny na
+  mapie (ogień, śnieg) odpowiadający ostatniemu wydarzeniu losowemu albo
+  aktualnemu sezonowi z Sezonowej szaty mapy — czysto atmosferyczne
+  dopełnienie"). Nowy `ui/ambient_weather_view.gd` (`AmbientWeatherView`) -
+  RĘCZNIE rysowane cząsteczki (`_draw()` + `_process()`), tak jak reszta
+  niestandardowego rysowania w tym projekcie (`hex_shape.gd`/
+  `hex_map_view.gd`/`skill_graph_view.gd`/`price_chart_view.gd`) - żaden z
+  nich nie używa wbudowanego `CPUParticles2D`/`GPUParticles2D`, więc ten
+  plik też nie, dla spójności z resztą kodu. Priorytet trybu (`_pick_mode()`):
+  (1) którykolwiek heks płonie (`HexData.is_on_fire`) -> żar unoszący się w
+  górę - PRAWDZIWY stan gry zamiast dosłownie "ostatniego wydarzenia
+  losowego", bo pożar może trwać przez wiele rund po samym wylosowaniu
+  wydarzenia, więc jest dokładniejszym, bardziej aktualnym sygnałem; (2) w
+  przeciwnym razie zima (ta sama pora roku co punkt 3 wyżej) -> opadający
+  śnieg; (3) inaczej brak efektu - reszta pór roku nie ma swojego
+  odpowiednika w życzeniu ("ogień, śnieg" to jedyne dwa podane przykłady),
+  więc celowo nie wymyślono trzeciego/czwartego efektu bez wyraźnej
+  prośby. Ekran, nie mapa - zwykły `Control` w osobnym `CanvasLayer`
+  (`AmbientWeatherLayer`, `layer = 2` - jednoznacznie NAD mapą i zwykłym
+  UI, POD modalnymi panelami typu Rynek/Drzewko Umiejętności), więc gęstość
+  cząsteczek jest stała niezależnie od aktualnego przybliżenia/przesunięcia
+  kamery, zamiast żyć w świecie gry pod kamerą. `refresh()` (przelicza
+  aktywny tryb, resetuje cząsteczki TYLKO gdy tryb faktycznie się zmienił)
+  jest wołane z `game_map_controller.gd` w tych samych dwóch miejscach co
+  `_refresh_map_view()` po zdarzeniach, które faktycznie mogą zmienić
+  pożar/porę roku (koniec rundy, zmiana aktywnego gracza) - NIE co klatkę,
+  żeby przeszukanie ~496 heksów pod kątem ognia nie działo się bez potrzeby
+  przy każdej animacji.
 
 - **Usunięcie "Łagodnej zimy" + zamiana Uranu na Ropę** (na życzenie: "Usuń
   łagodną zimę i zamień Uran na ropę (zmień statystki na rynku)"). Dwie

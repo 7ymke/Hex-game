@@ -40,6 +40,10 @@ extends Resource
 @export var vision_radius_bonus: int = 0
 @export var forest_safe_threshold_bonus: float = 0.0
 @export var annex_cost_reduction: int = 0
+## "Infrastruktura drogowa" (skill tree) - CITY-terrain hexes cost 0 MP to
+## move through instead of 1 (patrz game_map_controller.gd's
+## _effective_movement_cost_for()).
+@export var road_infrastructure: bool = false
 
 
 func add_resource(res_type: HexData.ResourceType, amount: float) -> void:

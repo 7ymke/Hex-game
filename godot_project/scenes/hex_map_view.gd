@@ -29,7 +29,10 @@ signal hex_hovered(hex_id: String)  # empty string = cursor outside the grid
 @export var queued_route_hex_ids: Array[String] = []
 
 ## UI restyle: matches the map hex colors from UI_Gry_Makieta.html
-## (theme/palette.gd) instead of the old ad hoc placeholder colors.
+## (theme/palette.gd) instead of the old ad hoc placeholder colors. FOREST/
+## AGRICULTURAL entries here are the SUMMER color and the fallback for an
+## unrecognized season - "Sezonowa szata mapy" (see TERRAIN_SEASONAL_COLORS
+## + _terrain_color() below) overrides them for the other three seasons.
 const TERRAIN_COLORS = {
 	HexData.TerrainType.UNKNOWN: Palette.TERRAIN_UNKNOWN,
 	HexData.TerrainType.AGRICULTURAL: Palette.TERRAIN_AGRICULTURAL,
@@ -38,6 +41,24 @@ const TERRAIN_COLORS = {
 	HexData.TerrainType.PROTECTED_AREA: Palette.TERRAIN_PROTECTED_AREA,
 	HexData.TerrainType.CITY: Palette.TERRAIN_CITY,
 	HexData.TerrainType.WATER: Palette.TERRAIN_WATER,
+}
+
+## Sezonowa szata mapy (nowość: "śnieg zimą, złota jesień, zielone lato —
+## czysto wizualna zmiana skórki heksów zgodna z rundą sezonową") - tylko
+## las i pola uprawne (patrz uzasadnienie w theme/palette.gd). SUMMER
+## celowo pominięte tutaj - `_terrain_color()` spada wtedy na TERRAIN_COLORS
+## powyżej, więc nie ma dwóch miejsc definiujących ten sam kolor.
+const TERRAIN_SEASONAL_COLORS = {
+	HexData.TerrainType.FOREST: {
+		GameBalance.Season.SPRING: Palette.TERRAIN_FOREST_SPRING,
+		GameBalance.Season.AUTUMN: Palette.TERRAIN_FOREST_AUTUMN,
+		GameBalance.Season.WINTER: Palette.TERRAIN_FOREST_WINTER,
+	},
+	HexData.TerrainType.AGRICULTURAL: {
+		GameBalance.Season.SPRING: Palette.TERRAIN_AGRICULTURAL_SPRING,
+		GameBalance.Season.AUTUMN: Palette.TERRAIN_AGRICULTURAL_AUTUMN,
+		GameBalance.Season.WINTER: Palette.TERRAIN_AGRICULTURAL_WINTER,
+	},
 }
 
 const FOG_UNEXPLORED = Palette.FOG_UNEXPLORED
@@ -66,6 +87,17 @@ const ROUTE_LINE_WIDTH = 4.0
 const ROUTE_DOT_RADIUS = 5.0
 
 
+## Bieżący kolor terenu, uwzględniający porę roku dla lasu/pól uprawnych
+## (`TERRAIN_SEASONAL_COLORS`) - czytana na nowo przy KAŻDYM `_draw()`, więc
+## kolor zawsze odpowiada aktualnej `TurnManager.get_current_season()` bez
+## żadnego dodatkowego odświeżania przy zmianie rundy (mapa i tak jest
+## przerysowywana po każdej rundzie, patrz `_refresh_map_view()` w
+## game_map_controller.gd).
+func _terrain_color(terrain_type: HexData.TerrainType) -> Color:
+	var seasonal: Dictionary = TERRAIN_SEASONAL_COLORS.get(terrain_type, {})
+	return seasonal.get(TurnManager.get_current_season(), TERRAIN_COLORS.get(terrain_type, Color.WHITE))
+
+
 func _draw() -> void:
 	for hex_id in MapData.hexes:
 		var hex: HexData = MapData.hexes[hex_id]
@@ -89,8 +121,7 @@ func _draw_hex(hex: HexData) -> void:
 	if fog == HexData.FogState.UNEXPLORED:
 		draw_colored_polygon(corners, FOG_UNEXPLORED)
 	else:
-		var base_color: Color = TERRAIN_COLORS.get(hex.terrain_type, Color.WHITE)
-		draw_colored_polygon(corners, base_color)
+		draw_colored_polygon(corners, _terrain_color(hex.terrain_type))
 		if fog == HexData.FogState.SEEN:
 			draw_colored_polygon(corners, FOG_SEEN_OVERLAY)
 		if hex.is_on_fire:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3 uid="uid://cmapmain0001"]
+[gd_scene load_steps=43 format=3 uid="uid://cmapmain0001"]
 
 [ext_resource type="Script" path="res://scenes/game_map_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scenes/camera_controller.gd" id="2"]
@@ -13,6 +13,8 @@
 [ext_resource type="Script" path="res://scenes/market_panel.gd" id="15"]
 [ext_resource type="Script" path="res://ui/price_chart_view.gd" id="16"]
 [ext_resource type="FontFile" path="res://assets/fonts/Nunito-Variable.ttf" id="17"]
+[ext_resource type="Script" path="res://scenes/diplomacy_panel.gd" id="18"]
+[ext_resource type="Script" path="res://ui/ambient_weather_view.gd" id="19"]
 
 [sub_resource type="FontVariation" id="FontVariation_nunito_800"]
 base_font = ExtResource("17")
@@ -361,6 +363,18 @@ script = ExtResource("3")
 
 [node name="Unit" type="Node2D" parent="."]
 script = ExtResource("4")
+
+[node name="AmbientWeatherLayer" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="AmbientWeatherView" type="Control" parent="AmbientWeatherLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("19")
 
 [node name="UI" type="CanvasLayer" parent="."]
 
@@ -769,6 +783,15 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_gold_circle_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_gold_circle_hover")
 text = ""
 
+[node name="DiplomacyButton" type="Button" parent="UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow"]
+custom_minimum_size = Vector2(38, 38)
+tooltip_text = "Dyplomacja"
+theme_override_styles/normal = SubResource("StyleBoxFlat_skill_circle_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_skill_circle_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_skill_circle_hover")
+theme_override_font_sizes/font_size = 16
+text = "🤝"
+
 [node name="DividerCity" type="Panel" parent="UI/Root/Sidebar/SidebarVBox"]
 custom_minimum_size = Vector2(0, 1)
 theme_override_styles/panel = SubResource("StyleBoxFlat_divider")
@@ -1037,6 +1060,48 @@ offset_left = 818.0
 offset_top = 88.0
 custom_minimum_size = Vector2(22, 22)
 tooltip_text = "Zamknij panel powiadomień"
+theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_circle")
+theme_override_styles/hover = SubResource("StyleBoxFlat_cancel_circle_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cancel_circle_hover")
+theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_font_sizes/font_size = 10
+text = "✕"
+
+[node name="DiplomacyPanel" type="CanvasLayer" parent="."]
+layer = 13
+script = ExtResource("18")
+
+[node name="Background" type="PanelContainer" parent="DiplomacyPanel"]
+theme = ExtResource("7")
+offset_left = 350.0
+offset_top = 80.0
+offset_right = 900.0
+offset_bottom = 500.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_market_bg")
+
+[node name="VBox" type="VBoxContainer" parent="DiplomacyPanel/Background"]
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="DiplomacyPanel/Background/VBox"]
+theme_override_colors/font_color = Color(1, 0.952941, 0.866667, 1)
+theme_override_fonts/font = SubResource("FontVariation_nunito_800")
+theme_override_font_sizes/font_size = 20
+text = "Dyplomacja - Pakt o nieagresji"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="DiplomacyPanel/Background/VBox"]
+custom_minimum_size = Vector2(0, 300)
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="PlayerList" type="VBoxContainer" parent="DiplomacyPanel/Background/VBox/ScrollContainer"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="CloseButton" type="Button" parent="DiplomacyPanel"]
+offset_left = 868.0
+offset_top = 88.0
+custom_minimum_size = Vector2(22, 22)
+tooltip_text = "Zamknij panel dyplomacji"
 theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_circle")
 theme_override_styles/hover = SubResource("StyleBoxFlat_cancel_circle_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_cancel_circle_hover")

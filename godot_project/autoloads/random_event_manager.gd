@@ -38,7 +38,7 @@ extends Node
 ## wszystkim jeśli dotyczą wszystkich") - każdy wpis w `notifications` niesie
 ## `player_id` (konkretny gracz dla wydarzeń "tylko dla 1 gracza") albo
 ## `ALL_PLAYERS` (Inspekcja środowiskowa/Market Crash - patrz
-## `_log()`). "Nieprzeczytane" liczy się PER GRACZ (`_last_seen_index`) - nie
+## `log_notification()`). "Nieprzeczytane" liczy się PER GRACZ (`_last_seen_index`) - nie
 ## ma jednego globalnego licznika, więc odczyt przez gracza A nie chowa
 ## powiadomień gracza B ani nie zalicza mu jako przeczytane niczego, co go
 ## nie dotyczy.
@@ -196,7 +196,11 @@ func mark_read_for_player(player_id: int) -> void:
 	_last_seen_index[player_id] = notifications.size()
 
 
-func _log(message: String, player_id: int = ALL_PLAYERS) -> void:
+## Publiczne (nie tylko dla tego pliku) - autoloads/diplomacy_manager.gd
+## (Pakt o nieagresji) też dopisuje do tego samego, wspólnego dziennika
+## zamiast trzymać własny, żeby panel powiadomień/unread badge pozostały
+## JEDNYM źródłem prawdy o wszystkim, co dotyczy gracza.
+func log_notification(message: String, player_id: int = ALL_PLAYERS) -> void:
 	notifications.append({"round": TurnManager.round_number, "message": message, "player_id": player_id})
 	notification_added.emit()
 
@@ -212,7 +216,7 @@ func _process_burning_fires() -> void:
 		hex.resource_level *= (1.0 - GameBalance.FOREST_FIRE_DECAY_RATIO)
 		if hex.resource_level < FIRE_BURNOUT_THRESHOLD:
 			hex.is_on_fire = false
-			_log("🔥 Pożar lasu na polu %s wypalił się doszczętnie." % hex.hex_id, hex.owner_id)
+			log_notification("🔥 Pożar lasu na polu %s wypalił się doszczętnie." % hex.hex_id, hex.owner_id)
 			continue
 
 		if randf() < GameBalance.FOREST_FIRE_SPREAD_CHANCE:
@@ -222,7 +226,7 @@ func _process_burning_fires() -> void:
 				# Dotyczy właściciela ŹRÓDŁA (heksa, który już płonął) - jeśli
 				# ogień akurat przeskoczył na teren innego gracza, ten drugi
 				# i tak dowie się, gdy ten heks sam zacznie tracić zasób.
-				_log("🔥 Pożar rozprzestrzenił się z pola %s na %s!" % [hex.hex_id, spread_target.hex_id], hex.owner_id)
+				log_notification("🔥 Pożar rozprzestrzenił się z pola %s na %s!" % [hex.hex_id, spread_target.hex_id], hex.owner_id)
 
 	# Zapalane DOPIERO po pętli, żeby nowo zapalony heks nie dostał od razu
 	# tej samej rundy dodatkowego, "darmowego" tiku spadku (kolejność
@@ -356,7 +360,7 @@ func _apply_all_players_event(event_id: EventId) -> void:
 func _apply_forest_fire(player: PlayerData) -> void:
 	var hex = _pick_unburning_forest_hex(player.player_id)
 	hex.is_on_fire = true
-	_log(
+	log_notification(
 		"🔥 Pożar lasu wybuchł na polu %s gracza %s! Las traci %.0f%% drzew z każdą rundą, dopóki się nie wypali albo nie zostanie ugaszony (przycisk w pasku bocznym, koszt %.0f pieniędzy, %.0f%% szansy powodzenia)." % [
 			hex.hex_id, player.player_name, GameBalance.FOREST_FIRE_DECAY_RATIO * 100.0,
 			GameBalance.FOREST_FIRE_EXTINGUISH_COST, GameBalance.FOREST_FIRE_EXTINGUISH_CHANCE * 100.0,
@@ -368,7 +372,7 @@ func _apply_forest_fire(player: PlayerData) -> void:
 func _apply_mining_damage(player: PlayerData) -> void:
 	var hex = _pick_undamaged_mining_hex(player.player_id)
 	hex.building_damaged = true
-	_log(
+	log_notification(
 		"⛏️ Szkody górnicze uszkodziły budynek \"%s\" (%s) gracza %s - przestał produkować. Napraw go przyciskiem w pasku bocznym." % [
 			hex.building.building_name, hex.hex_id, player.player_name,
 		],
@@ -379,7 +383,7 @@ func _apply_mining_damage(player: PlayerData) -> void:
 func _apply_pest_plague(player: PlayerData) -> void:
 	var until_round = TurnManager.round_number + GameBalance.PEST_PLAGUE_ROUNDS - 1
 	_pest_plague_until_round[player.player_id] = until_round
-	_log(
+	log_notification(
 		"🐛 Plaga szkodników uderzyła w pola gracza %s - żywność nie urośnie przez %d rundy (do rundy %d włącznie)." % [
 			player.player_name, GameBalance.PEST_PLAGUE_ROUNDS, until_round,
 		],
@@ -390,13 +394,13 @@ func _apply_pest_plague(player: PlayerData) -> void:
 func _apply_grant(player: PlayerData) -> void:
 	var amount = randf_range(GameBalance.GRANT_MONEY_MIN, GameBalance.GRANT_MONEY_MAX)
 	player.add_money(amount)
-	_log("💶 Dotacja unijna! Gracz %s otrzymał %.0f pieniędzy." % [player.player_name, amount], player.player_id)
+	log_notification("💶 Dotacja unijna! Gracz %s otrzymał %.0f pieniędzy." % [player.player_name, amount], player.player_id)
 
 
 func _apply_mining_strike(player: PlayerData) -> void:
 	var until_round = TurnManager.round_number + GameBalance.MINING_STRIKE_ROUNDS - 1
 	_mining_strike_until_round[player.player_id] = until_round
-	_log(
+	log_notification(
 		"⚒️ Strajk górniczy u gracza %s - kopalnie i gazoporty nie produkują przez %d rundy (do rundy %d włącznie)." % [
 			player.player_name, GameBalance.MINING_STRIKE_ROUNDS, until_round,
 		],
@@ -407,7 +411,7 @@ func _apply_mining_strike(player: PlayerData) -> void:
 func _apply_record_harvest(player: PlayerData) -> void:
 	var until_round = TurnManager.round_number + GameBalance.RECORD_HARVEST_ROUNDS - 1
 	_record_harvest_until_round[player.player_id] = until_round
-	_log(
+	log_notification(
 		"🌾 Rekordowe żniwa stulecia u gracza %s - produkcja żywności x%.0f przez %d rund (do rundy %d włącznie)." % [
 			player.player_name, GameBalance.RECORD_HARVEST_MULTIPLIER, GameBalance.RECORD_HARVEST_ROUNDS, until_round,
 		],
@@ -426,9 +430,9 @@ func _apply_environmental_inspection() -> void:
 			affected.append(player.player_name)
 
 	if affected.is_empty():
-		_log("🔍 Inspekcja środowiskowa nie znalazła żadnych naruszeń.")
+		log_notification("🔍 Inspekcja środowiskowa nie znalazła żadnych naruszeń.")
 	else:
-		_log(
+		log_notification(
 			"🔍 Inspekcja środowiskowa ukarała graczy: %s (-%d prestiżu, -%.0f pieniędzy każdy)." % [
 				", ".join(affected), GameBalance.ENVIRONMENTAL_INSPECTION_PRESTIGE_PENALTY,
 				GameBalance.ENVIRONMENTAL_INSPECTION_MONEY_PENALTY,
@@ -444,7 +448,7 @@ func _apply_tourism_boom(player: PlayerData) -> void:
 	var prestige = randi_range(GameBalance.TOURISM_BOOM_PRESTIGE_MIN, GameBalance.TOURISM_BOOM_PRESTIGE_MAX)
 	player.add_money(money)
 	GameManager.change_prestige(player.player_id, prestige)
-	_log(
+	log_notification(
 		"🏰 Turystyczny boom u gracza %s - +%.0f pieniędzy, +%d prestiżu." % [
 			player.player_name, money, prestige,
 		],
@@ -462,7 +466,7 @@ func _apply_market_crash() -> void:
 		else randf_range(GameBalance.MARKET_CRASH_MULTIPLIER_DOWN_MIN, GameBalance.MARKET_CRASH_MULTIPLIER_DOWN_MAX)
 	)
 	MarketManager.trigger_price_shock(resource, multiplier)
-	_log(
+	log_notification(
 		"📉 Market Crash! Cena surowca %s gwałtownie %s." % [
 			HexData.RESOURCE_DISPLAY_NAMES.get(resource, "?"), "wzrosła" if crashes_up else "spadła",
 		]

@@ -70,6 +70,17 @@ static func get_skills() -> Array[SkillData]:
 			SkillData.EffectType.ANNEX_COST_REDUCTION,
 			1.0
 		),
+		_make(
+			"road_infrastructure",
+			"Infrastruktura drogowa",
+			"Ulepszone drogi w mieście - ludzik zużywa o połowę mniej punktów ruchu, przechodząc przez pole miasta.",
+			{
+				HexData.ResourceType.COAL: 25.0,
+				HexData.ResourceType.COPPER: 15.0,
+			},
+			SkillData.EffectType.ROAD_INFRASTRUCTURE,
+			1.0
+		),
 	]
 	return list
 

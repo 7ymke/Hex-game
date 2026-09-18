@@ -52,7 +52,10 @@ const MONEY_DOT = Color(0xFF / 255.0, 0xE9 / 255.0, 0xA8 / 255.0)
 
 ## Map terrain colors (`.hex.*` in the mockup) - used by hex_map_view.gd
 ## instead of its previous ad hoc colors, so the map matches the rest of
-## the UI.
+## the UI. AGRICULTURAL/FOREST below double as the SUMMER variant of
+## "Sezonowa szata mapy" (patrz niżej) - kept as their own named constants
+## since hex_map_view.gd's base (season-less) TERRAIN_COLORS still needs an
+## entry for every terrain type, forest/agricultural included, as a fallback.
 const TERRAIN_AGRICULTURAL = Color(0xB0 / 255.0, 0x8D / 255.0, 0x4F / 255.0)
 const TERRAIN_FOREST = Color(0x5C / 255.0, 0x8A / 255.0, 0x2C / 255.0)
 const TERRAIN_MOUNTAIN = Color(0x7A / 255.0, 0x6E / 255.0, 0x5E / 255.0)
@@ -61,6 +64,21 @@ const TERRAIN_PROTECTED_AREA = Color(0.18, 0.55, 0.5)
 const TERRAIN_WATER = Color(0.2, 0.4, 0.75)
 const TERRAIN_UNKNOWN = Color(0.6, 0.6, 0.6)
 const FOG_UNEXPLORED = Color(20.0 / 255.0, 14.0 / 255.0, 8.0 / 255.0, 0.92)
+
+## Sezonowa szata mapy (nowość: "śnieg zimą, złota jesień, zielone lato —
+## czysto wizualna zmiana skórki heksów zgodna z rundą sezonową") - tylko
+## las i pola uprawne dostają warianty kolorystyczne (jedyne dwa typy
+## terenu, których wygląd naturalnie kojarzy się z porą roku - rosnący las/
+## uprawy); góry/miasto/woda/strefa chroniona zostają bez zmian, żeby nie
+## komplikować palety bez wyraźnej korzyści wizualnej. SUMMER celowo NIE ma
+## własnej stałej tutaj - to po prostu TERRAIN_FOREST/TERRAIN_AGRICULTURAL
+## powyżej (bazowy, już istniejący kolor gry), patrz hex_map_view.gd.
+const TERRAIN_FOREST_SPRING = Color(0x74 / 255.0, 0xA8 / 255.0, 0x3E / 255.0)
+const TERRAIN_FOREST_AUTUMN = Color(0xC1 / 255.0, 0x7A / 255.0, 0x2E / 255.0)
+const TERRAIN_FOREST_WINTER = Color(0xD8 / 255.0, 0xDE / 255.0, 0xE2 / 255.0)
+const TERRAIN_AGRICULTURAL_SPRING = Color(0x9C / 255.0, 0xAE / 255.0, 0x5C / 255.0)
+const TERRAIN_AGRICULTURAL_AUTUMN = Color(0xD4 / 255.0, 0xA8 / 255.0, 0x3C / 255.0)
+const TERRAIN_AGRICULTURAL_WINTER = Color(0xE4 / 255.0, 0xE8 / 255.0, 0xEC / 255.0)
 
 ## The map viewport's own background (behind/around the hex field) -
 ## project.godot's `rendering/environment/defaults/default_clear_color`.

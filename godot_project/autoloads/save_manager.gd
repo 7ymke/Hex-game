@@ -14,10 +14,11 @@ extends Node
 ## PlayerData/Unit i wypełniają się `players`/`player_units`, bo to lokalny
 ## stan tamtej sceny.
 ##
-## Podsystemy z WŁASNYM prywatnym stanem (MarketManager, RandomEventManager)
-## mają swoją parę get_save_state()/load_save_state() - SaveManager tylko je
-## woła, nie sięga do ich wewnętrznych zmiennych bezpośrednio. Heksy/gracze/
-## jednostki/tura nie mają (i nie potrzebują) własnych odpowiedników -
+## Podsystemy z WŁASNYM prywatnym stanem (MarketManager, RandomEventManager,
+## DiplomacyManager) mają swoją parę get_save_state()/load_save_state() -
+## SaveManager tylko je woła, nie sięga do ich wewnętrznych zmiennych
+## bezpośrednio. Heksy/gracze/jednostki/tura nie mają (i nie potrzebują)
+## własnych odpowiedników -
 ## save_game() czyta je wprost z MapData.hexes, GameManager.players,
 ## get_tree().get_nodes_in_group("units") i TurnManager.
 ##
@@ -134,6 +135,7 @@ func save_game() -> bool:
 		"units": _gather_units(),
 		"market": MarketManager.get_save_state(),
 		"events": RandomEventManager.get_save_state(),
+		"diplomacy": DiplomacyManager.get_save_state(),
 	}
 
 	var file = FileAccess.open(_save_path(current_save_id), FileAccess.WRITE)
@@ -209,6 +211,7 @@ func _gather_players() -> Dictionary:
 			"vision_radius_bonus": player.vision_radius_bonus,
 			"forest_safe_threshold_bonus": player.forest_safe_threshold_bonus,
 			"annex_cost_reduction": player.annex_cost_reduction,
+			"road_infrastructure": player.road_infrastructure,
 		}
 	return out
 

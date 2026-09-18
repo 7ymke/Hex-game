@@ -179,3 +179,15 @@ const MARKET_CRASH_MULTIPLIER_UP_MIN = 1.5
 const MARKET_CRASH_MULTIPLIER_UP_MAX = 2.5
 const MARKET_CRASH_MULTIPLIER_DOWN_MIN = 0.4
 const MARKET_CRASH_MULTIPLIER_DOWN_MAX = 0.6
+
+## Dyplomacja - pakt o nieagresji (nowość, autoloads/diplomacy_manager.gd) ---
+## Ile rund trwa pakt od zawarcia - stała długość zamiast osobnego suwaka w
+## UI, dla prostoty ("Bez kosztu" - życzenie nie prosiło o dalsze parametry
+## do ustawiania).
+const NON_AGGRESSION_PACT_DURATION_ROUNDS = 10
+## Kara prestiżowa za zerwanie paktu PRZED czasem, płacona przez gracza, który
+## zrywa ("zerwanie przed czasem to duża kara prestiżu") - płaska wartość,
+## wyraźnie większa niż inne kary w grze (Inspekcja środowiskowa: 20,
+## Strefa chroniona: 50), żeby zerwanie paktu było naprawdę kosztowną
+## decyzją, nie kosmetyczną.
+const NON_AGGRESSION_PACT_BREAK_PENALTY = 60

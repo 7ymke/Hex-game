@@ -161,6 +161,11 @@ func damage_protected_area(hex_id: String, player_id: int, damage_scale: float) 
 ## here" is no longer needed (the attacker's mere physical presence already
 ## rules that out).
 ##
+## Blocked outright (before anything else is checked) if the attacker and
+## defender currently have an active Pakt o nieagresji
+## (`DiplomacyManager.has_pact()`) - "blokującą przejęcie heksów między
+## sobą".
+##
 ## An attempt can always be MADE - unlike the previous version, where
 ## insufficient prestige was a hard block with no effect at all. Now:
 ## - Attacker's prestige STRICTLY greater than the defender's -> success: the
@@ -180,6 +185,8 @@ func attempt_takeover(hex_id: String, attacker_id: int) -> Dictionary:
 		return {"success": false, "reason": "already_owner"}
 	if hex.is_capital:
 		return {"success": false, "reason": "capital_protected"}
+	if DiplomacyManager.has_pact(attacker_id, hex.owner_id):
+		return {"success": false, "reason": "pact_active"}
 
 	var attacker = get_player(attacker_id)
 	var defender = get_player(hex.owner_id)
@@ -253,6 +260,8 @@ func unlock_skill(player_id: int, skill: SkillData) -> Dictionary:
 			player.annex_cost_reduction += int(skill.effect_amount)
 		SkillData.EffectType.MOVEMENT_POINTS_BONUS:
 			player.movement_points_bonus += int(skill.effect_amount)
+		SkillData.EffectType.ROAD_INFRASTRUCTURE:
+			player.road_infrastructure = true
 		SkillData.EffectType.EXTRA_UNIT:
 			pass  # entirely handled by game_map_controller.gd
 

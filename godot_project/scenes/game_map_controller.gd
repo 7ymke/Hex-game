@@ -69,9 +69,11 @@ const VISION_RADIUS = GameBalance.VISION_RADIUS
 const PLAYER_SETUP = PlayerSetup.LIST
 
 @onready var hex_map_view: HexMapView = $HexMapView
+@onready var ambient_weather_view: AmbientWeatherView = $AmbientWeatherLayer/AmbientWeatherView
 @onready var notifications_panel: NotificationsPanel = $NotificationsPanel
 @onready var skill_tree_panel: SkillTreePanel = $SkillTreePanel
 @onready var market_panel: MarketPanel = $MarketPanel
+@onready var diplomacy_panel: DiplomacyPanel = $DiplomacyPanel
 
 ## UI restyle (UI_Gry_Makieta_11.html, "wood/BTD6" visual language) - top
 ## bar: round badge, resource pills, prestige/money chips. No movement
@@ -140,6 +142,7 @@ const PLAYER_SETUP = PlayerSetup.LIST
 @onready var info_unread_badge: PanelContainer = $UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/InfoIconButton/UnreadBadge
 @onready var info_unread_badge_label: Label = $UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/InfoIconButton/UnreadBadge/UnreadBadgeLabel
 @onready var skill_tree_button: Button = $UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/SkillTreeButton
+@onready var diplomacy_button: Button = $UI/Root/Sidebar/SidebarVBox/CityBlockMargin/CityBlockVBox/CityNameRow/DiplomacyButton
 @onready var buildings_preview_list: VBoxContainer = $UI/Root/Sidebar/SidebarVBox/BuildingsBlockMargin/BuildingsBlockVBox/BuildingsScroll/BuildingList
 @onready var repair_button: Button = $UI/Root/Sidebar/SidebarVBox/ActionRowMargin/ActionRow/RepairButton
 ## Random event "Pożar lasu" - only the affected player can extinguish it,
@@ -234,6 +237,7 @@ func _ready() -> void:
 	harvest_slider.value_changed.connect(_on_harvest_slider_changed)
 	info_button.pressed.connect(_on_info_button_pressed)
 	skill_tree_button.pressed.connect(_on_skill_tree_pressed)
+	diplomacy_button.pressed.connect(_on_diplomacy_button_pressed)
 	player_selector.item_selected.connect(_on_player_selected)
 	end_round_button.pressed.connect(_on_end_round_pressed)
 	skill_tree_panel.skill_unlocked.connect(_on_skill_unlocked)
@@ -406,6 +410,7 @@ func _load_saved_game(data: Dictionary) -> void:
 		player.vision_radius_bonus = int(saved_player.get("vision_radius_bonus", 0))
 		player.forest_safe_threshold_bonus = saved_player.get("forest_safe_threshold_bonus", 0.0)
 		player.annex_cost_reduction = int(saved_player.get("annex_cost_reduction", 0))
+		player.road_infrastructure = saved_player.get("road_infrastructure", false)
 
 		GameManager.register_player(player)
 		players.append(player)
@@ -455,6 +460,7 @@ func _load_saved_game(data: Dictionary) -> void:
 
 	MarketManager.load_save_state(data.get("market", {}))
 	RandomEventManager.load_save_state(data.get("events", {}))
+	DiplomacyManager.load_save_state(data.get("diplomacy", {}))
 
 
 ## Sets `unit`'s visual data/owner from the `setup` entry (color, optional
@@ -569,6 +575,7 @@ func _on_player_turn_started(player_id: int) -> void:
 	info_label.text = "Kliknij ludzika, żeby go zaznaczyć/odznaczyć, potem kliknij pole, żeby go tam przesunąć."
 
 	_refresh_map_view()
+	ambient_weather_view.refresh()
 	_update_mp_label()
 	_update_stats_labels()
 	_refresh_action_panel()
@@ -595,6 +602,7 @@ func _on_round_ended(round_number: int) -> void:
 	info_label.text = "Runda zakończona. Rozpoczyna się runda %d (%s)." % [round_number, season_name]
 	await _continue_all_queued_routes()
 	_refresh_map_view()
+	ambient_weather_view.refresh()
 	_refresh_action_panel()
 	_maybe_popup_notifications()
 	_refresh_route_panel()
@@ -867,7 +875,7 @@ func _advance_queued_route(unit: Unit) -> void:
 			info_label.text = "Trasa wstrzymana: pole %s jest bronione przez ludzika innego gracza." % next_hex_id
 			break  # queued_route stays - will try again next round
 
-		var move_cost = next_hex.get_movement_cost()
+		var move_cost = _effective_movement_cost_for(next_hex, unit.player_id)
 		if unit.movement_points_current < move_cost:
 			info_label.text = "Brak punktów ruchu - trasa będzie kontynuowana w kolejnej rundzie."
 			break
@@ -1168,6 +1176,24 @@ func _effective_annex_cost_for(player_id: int) -> int:
 	return maxi(1, GameBalance.ANNEX_MP_COST - reduction)
 
 
+## Movement cost of `hex` for `player_id`, same base cost
+## (`hex.get_movement_cost()`) for everyone EXCEPT a player with the
+## "road_infrastructure" skill unlocked ("Infrastruktura drogowa"), for whom
+## CITY-terrain hexes cost 0 MP instead of 1 - the base cost is already the
+## cheapest (1, tied with agricultural/protected terrain), so "half" rounds
+## down to 0 rather than needing fractional movement points. Only the two
+## places that actually SPEND/ESTIMATE movement points during a route
+## (`_advance_queued_route()`, `_remaining_route_cost()`) use this - the
+## pathfinder itself (scripts/hex_pathfinder.gd) keeps using the base cost,
+## since a single city hex per player never changes which route is
+## cheapest/shortest, only how much it costs to walk through it.
+func _effective_movement_cost_for(hex: HexData, player_id: int) -> int:
+	var player = GameManager.get_player(player_id)
+	if player != null and player.road_infrastructure and hex.terrain_type == HexData.TerrainType.CITY:
+		return 0
+	return hex.get_movement_cost()
+
+
 ## Territory takeover (PvP) - GDD section 5 / Phase 9 (update): like
 ## annexation, now requires physical presence of a unit on the hex - hence
 ## "Przejmij teren gracza" (take over territory) lives in the "Trasa
@@ -1218,6 +1244,7 @@ func _on_takeover_pressed() -> void:
 			"no_owner": "pole nie ma właściciela - użyj Aneksacji.",
 			"already_owner": "to już twoje pole.",
 			"capital_protected": "stolica miasta jest chroniona przed przejęciem.",
+			"pact_active": "obowiązuje pakt o nieagresji z tym graczem.",
 		}.get(result["reason"], result["reason"])
 		info_label.text = "Nie udało się przejąć %s (%s)." % [hex_id, reason_text]
 
@@ -1438,6 +1465,10 @@ func _update_resource_pill_highlight() -> void:
 
 func _on_skill_tree_pressed() -> void:
 	skill_tree_panel.open_for_player(active_player)
+
+
+func _on_diplomacy_button_pressed() -> void:
+	diplomacy_panel.open_for_player(active_player.player_id)
 
 
 ## Reacts to a skill being unlocked in SkillTreePanel. "Pure data" effects
@@ -1685,7 +1716,7 @@ func _remaining_route_cost(remaining: Array[String], unit: Unit) -> int:
 		var hex = MapData.get_hex(hex_id)
 		if hex == null:
 			continue
-		total += hex.get_movement_cost()
+		total += _effective_movement_cost_for(hex, unit.player_id)
 		if unit.auto_annex and hex.owner_id == -1:
 			total += annex_cost
 	return total
