@@ -102,19 +102,14 @@ func _process_forest_regeneration() -> void:
 ## being resolved.
 ##
 ## Random events (RandomEventManager) can override this per-player, on top
-## of the season: Łagodna zima replaces a WINTER multiplier of 0.0 with
-## GameBalance.MILD_WINTER_FOOD_MULTIPLIER (computed ONCE here, not per hex -
-## consume_mild_winter() is one-shot, so calling it inside the loop would
-## only ever apply to the FIRST agricultural hex it happened to visit).
-## Plaga szkodników zeruje food income outright (checked first - a plague
-## ruins the crop regardless of how good the harvest would otherwise have
-## been), Rekordowe żniwa multiplies it, and Strajk górniczy zeroes mining
-## income (MINING_RESOURCE_TYPES - anything that isn't food or wood).
+## of the season: Plaga szkodników zeruje food income outright (checked
+## first - a plague ruins the crop regardless of how good the harvest would
+## otherwise have been), Rekordowe żniwa multiplies it, and Strajk górniczy
+## zeroes mining income (MINING_RESOURCE_TYPES - anything that isn't food or
+## wood).
 func _process_resource_income() -> void:
 	var season = get_current_season()
 	var food_multiplier = GameBalance.SEASON_FOOD_MULTIPLIER[season]
-	if season == GameBalance.Season.WINTER and RandomEventManager.consume_mild_winter():
-		food_multiplier = GameBalance.MILD_WINTER_FOOD_MULTIPLIER
 
 	for hex: HexData in MapData.hexes.values():
 		if hex.owner_id == -1 or hex.is_forest():

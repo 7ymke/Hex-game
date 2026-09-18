@@ -12,8 +12,8 @@ extends Node
 ## trochę zmieniony"): (1) najpierw losuje KATEGORIĘ -
 ## `GameBalance.RANDOM_EVENT_SINGLE_PLAYER_CHANCE` szansy, że to będzie
 ## wydarzenie "dla 1 gracza", inaczej "dla wszystkich". (2a) "dla
-## wszystkich" -> losuje JEDNO z trzech takich wydarzeń (Łagodna zima/
-## Inspekcja środowiskowa/Market Crash) i stosuje raz. (2b) "dla 1 gracza"
+## wszystkich" -> losuje JEDNO z dwóch takich wydarzeń (Inspekcja
+## środowiskowa/Market Crash) i stosuje raz. (2b) "dla 1 gracza"
 ## -> losuje ILU graczy (1 do liczby graczy w grze) dostanie w tej samej
 ## turze WŁASNE wydarzenie, wybiera tylu różnych graczy, i dla KAŻDEGO z
 ## osobna losuje NIEZALEŻNIE jego konkretne wydarzenie (spośród tych, na
@@ -32,16 +32,12 @@ extends Node
 ## malejący licznik) - odczyt (`is_mining_disabled()` itd.) po prostu
 ## porównuje `TurnManager.round_number` z zapisaną wartością, więc nie ma
 ## ryzyka rozjazdu przy dekrementowaniu w złym miejscu/kolejności.
-## "Łagodna zima" jest inna - nie ma ustalonego czasu trwania, tylko CZEKA na
-## najbliższą rundę zimową (nawet jeśli wypadnie latem) i wtedy się zużywa
-## raz (`consume_mild_winter()`), więc zawsze coś realnie zmienia, niezależnie
-## od tego, w której rundzie akurat wypadnie.
 ##
 ## Powiadomienia są SKOPOWANE do gracza, którego dotyczy dane wydarzenie
 ## ("Informacje powinny pokazywać się tylko graczowi którego dotyczą - lub
 ## wszystkim jeśli dotyczą wszystkich") - każdy wpis w `notifications` niesie
 ## `player_id` (konkretny gracz dla wydarzeń "tylko dla 1 gracza") albo
-## `ALL_PLAYERS` (Łagodna zima/Inspekcja środowiskowa/Market Crash - patrz
+## `ALL_PLAYERS` (Inspekcja środowiskowa/Market Crash - patrz
 ## `_log()`). "Nieprzeczytane" liczy się PER GRACZ (`_last_seen_index`) - nie
 ## ma jednego globalnego licznika, więc odczyt przez gracza A nie chowa
 ## powiadomień gracza B ani nie zalicza mu jako przeczytane niczego, co go
@@ -50,7 +46,7 @@ extends Node
 signal notification_added
 
 ## Sentinel dla `notifications[i]["player_id"]` - wydarzenie dotyczące
-## WSZYSTKICH graczy (Łagodna zima, Inspekcja środowiskowa, Market Crash),
+## WSZYSTKICH graczy (Inspekcja środowiskowa, Market Crash),
 ## w odróżnieniu od wydarzeń "tylko dla 1 gracza" (reszta listy), które
 ## zapisują konkretne `player_id`. ("Informacje powinny pokazywać się tylko
 ## graczowi którego dotyczą - lub wszystkim jeśli dotyczą wszystkich.")
@@ -61,7 +57,6 @@ const ALL_PLAYERS = -1
 enum EventId {
 	FOREST_FIRE,
 	MINING_DAMAGE,
-	MILD_WINTER,
 	PEST_PLAGUE,
 	GRANT,
 	MINING_STRIKE,
@@ -76,7 +71,7 @@ enum EventId {
 ## drewna (w ogóle nie pochodzi z budynku, tylko z ręcznego wycinania lasu).
 const MINING_RESOURCE_TYPES = [
 	HexData.ResourceType.COAL, HexData.ResourceType.COPPER, HexData.ResourceType.GAS,
-	HexData.ResourceType.NICKEL, HexData.ResourceType.URANIUM,
+	HexData.ResourceType.NICKEL, HexData.ResourceType.OIL,
 ]
 
 ## Poniżej tego poziomu zasobu płonący las uznajemy za doszczętnie
@@ -103,9 +98,6 @@ var _pest_plague_until_round: Dictionary = {}
 var _record_harvest_until_round: Dictionary = {}
 var _mining_strike_until_round: Dictionary = {}
 
-## Czeka na najbliższą rundę zimową - patrz komentarz u góry pliku.
-var _mild_winter_pending: bool = false
-
 
 ## Zapis stanu (autoloads/save_manager.gd) - powiadomienia (`notifications`,
 ## już w pełni JSON-bezpiecznym kształcie - String/int) plus wszystkie
@@ -130,7 +122,6 @@ func get_save_state() -> Dictionary:
 		"pest_plague_until_round": pest_plague_out,
 		"record_harvest_until_round": record_harvest_out,
 		"mining_strike_until_round": mining_strike_out,
-		"mild_winter_pending": _mild_winter_pending,
 	}
 
 
@@ -159,7 +150,6 @@ func load_save_state(data: Dictionary) -> void:
 	_mining_strike_until_round.clear()
 	for player_id_str in data.get("mining_strike_until_round", {}):
 		_mining_strike_until_round[int(player_id_str)] = int(data["mining_strike_until_round"][player_id_str])
-	_mild_winter_pending = data.get("mild_winter_pending", false)
 
 
 ## Wywoływane raz na rundę z TurnManager.end_round(), PRZED przeliczeniem
@@ -271,13 +261,6 @@ func extinguish_fire(hex_id: String, player_id: int) -> Dictionary:
 
 ## --- Zapytania dla TurnManager._process_resource_income() ------------------
 
-func consume_mild_winter() -> bool:
-	if _mild_winter_pending:
-		_mild_winter_pending = false
-		return true
-	return false
-
-
 func is_pest_plague_active(player_id: int) -> bool:
 	return TurnManager.round_number <= _pest_plague_until_round.get(player_id, -1)
 
@@ -297,7 +280,7 @@ func is_mining_disabled(player_id: int) -> bool:
 ## z nich są dostępne zależy od KAŻDEGO wylosowanego gracza z osobna, patrz
 ## `_eligible_single_player_events()`.)
 const ALL_PLAYERS_EVENTS: Array[EventId] = [
-	EventId.MILD_WINTER, EventId.ENVIRONMENTAL_INSPECTION, EventId.MARKET_CRASH,
+	EventId.ENVIRONMENTAL_INSPECTION, EventId.MARKET_CRASH,
 ]
 
 
@@ -364,8 +347,6 @@ func _apply_single_player_event(event_id: EventId, player: PlayerData) -> void:
 
 func _apply_all_players_event(event_id: EventId) -> void:
 	match event_id:
-		EventId.MILD_WINTER:
-			_apply_mild_winter()
 		EventId.ENVIRONMENTAL_INSPECTION:
 			_apply_environmental_inspection()
 		EventId.MARKET_CRASH:
@@ -393,11 +374,6 @@ func _apply_mining_damage(player: PlayerData) -> void:
 		],
 		player.player_id
 	)
-
-
-func _apply_mild_winter() -> void:
-	_mild_winter_pending = true
-	_log("❄️ Łagodna zima! Plony będą rosnąć normalnie mimo zimy - premia zadziała przy najbliższej zimowej rundzie.")
 
 
 func _apply_pest_plague(player: PlayerData) -> void:

@@ -65,7 +65,7 @@ static func get_skills() -> Array[SkillData]:
 			"Zmniejsza koszt aneksacji o 1 punkt ruchu (minimum 1).",
 			{
 				HexData.ResourceType.COPPER: 20.0,
-				HexData.ResourceType.URANIUM: 5.0,
+				HexData.ResourceType.OIL: 5.0,
 			},
 			SkillData.EffectType.ANNEX_COST_REDUCTION,
 			1.0

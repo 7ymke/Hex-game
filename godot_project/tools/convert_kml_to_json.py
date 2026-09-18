@@ -52,7 +52,7 @@ RESOURCE_KEYWORDS = [
     ("gas", ["gazoport"]),
     ("copper", ["miedz", "miedź", "miedzi"]),
     ("coal", ["węgl", "wegl"]),
-    ("uranium", ["uran"]),
+    ("oil", ["ropa", "ropy", "naftow"]),
     ("nickel", ["nikl"]),
     ("food", ["obszar rolniczy", "rolnicz"]),
 ]

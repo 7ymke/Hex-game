@@ -20,7 +20,7 @@ enum ResourceType {
 	WOOD,
 	FOOD,
 	NICKEL,
-	URANIUM,
+	OIL,
 }
 
 ## Trójpoziomowa mgła wojny, per gracz (sekcja 2.2 GDD): UNEXPLORED = całkiem
@@ -50,7 +50,7 @@ const RESOURCE_FROM_STRING = {
 	"wood": ResourceType.WOOD,
 	"food": ResourceType.FOOD,
 	"nickel": ResourceType.NICKEL,
-	"uranium": ResourceType.URANIUM,
+	"oil": ResourceType.OIL,
 }
 
 ## Polskie nazwy zasobów do UI (panel surowców gracza, koszty budynków w
@@ -63,7 +63,7 @@ const RESOURCE_DISPLAY_NAMES = {
 	ResourceType.WOOD: "Drewno",
 	ResourceType.FOOD: "Żywność",
 	ResourceType.NICKEL: "Nikiel",
-	ResourceType.URANIUM: "Uran",
+	ResourceType.OIL: "Ropa",
 }
 
 

@@ -124,7 +124,7 @@ const RANDOM_EVENT_EXTRA_CHANCE = 0.05
 ## Za każdym razem, gdy wydarzenie akurat ma wypaść, ta szansa decyduje, czy
 ## będzie to KATEGORIA "dla 1 gracza" (i wtedy osobno losuje się, ilu graczy
 ## dostanie po własnym wydarzeniu - patrz RandomEventManager._roll_event())
-## czy "dla wszystkich" (wtedy losuje się jedno z trzech takich wydarzeń).
+## czy "dla wszystkich" (wtedy losuje się jedno z dwóch takich wydarzeń).
 const RANDOM_EVENT_SINGLE_PLAYER_CHANCE = 0.5
 
 ## Pożar lasu - ile % SWOJEGO AKTUALNEGO poziomu zasobu (nie 100%) płonący
@@ -144,7 +144,7 @@ const GRANT_MONEY_MAX = 800.0
 
 ## Strajk górniczy - ile rund kopalnie/gazoporty dotkniętego gracza nie
 ## produkują nic (patrz RandomEventManager - "kopalnia" = budynek
-## produkujący GAS/COPPER/COAL/NICKEL/URANIUM, w odróżnieniu od rolnictwa).
+## produkujący GAS/COPPER/COAL/NICKEL/OIL, w odróżnieniu od rolnictwa).
 const MINING_STRIKE_ROUNDS = 3
 
 ## Rekordowe żniwa stulecia - mnożnik produkcji żywności dotkniętego gracza
@@ -155,11 +155,6 @@ const RECORD_HARVEST_ROUNDS = 5
 ## Plaga szkodników - ile rund produkcja żywności dotkniętego gracza wynosi
 ## zero, niezależnie od pory roku.
 const PEST_PLAGUE_ROUNDS = 2
-
-## Łagodna zima - mnożnik produkcji żywności zastępujący
-## SEASON_FOOD_MULTIPLIER[WINTER] (normalnie 0.0) przy NAJBLIŻSZEJ zimie po
-## wystąpieniu wydarzenia, dla WSZYSTKICH graczy.
-const MILD_WINTER_FOOD_MULTIPLIER = 1.0
 
 ## Inspekcja środowiskowa - kara dla KAŻDEGO gracza, który w danym momencie
 ## ma choć jeden nadmiernie wyeksploatowany las lub zabudowaną strefę

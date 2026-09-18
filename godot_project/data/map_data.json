@@ -343,12 +343,12 @@
       "lat": 50.25973486948958,
       "lon": 16.86794837812884,
       "terrain": "agricultural",
-      "resource": "uranium",
+      "resource": "oil",
       "resource_level": 100.0,
-      "label_raw": "Kopalnia uranu w Kletnie (nieczynna)",
+      "label_raw": "Dawna kopalnia w Kletnie (nieczynna)",
       "building": {
-        "name": "Kopalnia uranu w Kletnie (nieczynna)",
-        "produces_resource": "uranium"
+        "name": "Dawna kopalnia w Kletnie (nieczynna)",
+        "produces_resource": "oil"
       }
     },
     {

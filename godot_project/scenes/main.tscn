@@ -595,33 +595,33 @@ theme_override_colors/font_color = Color(0.643137, 0.847059, 0.494118, 1)
 theme_override_font_sizes/font_size = 10
 text = "+0"
 
-[node name="ResourceUranium" type="PanelContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
+[node name="ResourceOil" type="PanelContainer" parent="UI/Root/TopBar/HBox/ResourcesRow"]
 mouse_filter = 1
 mouse_default_cursor_shape = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_pill_bg")
 
-[node name="ResourceUraniumBox" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium"]
+[node name="ResourceOilBox" type="HBoxContainer" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceOil"]
 mouse_filter = 2
 theme_override_constants/separation = 4
 
-[node name="DotUranium" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumBox"]
+[node name="DotOil" type="Panel" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceOil/ResourceOilBox"]
 mouse_filter = 2
 custom_minimum_size = Vector2(11, 11)
 size_flags_vertical = 4
-self_modulate = Color(0.780392, 0.878431, 0.298039, 1)
+self_modulate = Color(0.207843, 0.219608, 0.25098, 1)
 theme_override_styles/panel = SubResource("StyleBoxFlat_round_dot")
 
-[node name="ResourceUraniumCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumBox"]
+[node name="ResourceOilCaption" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceOil/ResourceOilBox"]
 theme_override_font_sizes/font_size = 11
-text = "Uran"
+text = "Ropa"
 
-[node name="ResourceUraniumValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumBox"]
+[node name="ResourceOilValue" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceOil/ResourceOilBox"]
 theme_override_colors/font_color = Color(1, 0.839216, 0.360784, 1)
 theme_override_fonts/font = SubResource("FontVariation_nunito_800")
 theme_override_font_sizes/font_size = 11
 text = "0"
 
-[node name="ResourceUraniumProd" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumBox"]
+[node name="ResourceOilProd" type="Label" parent="UI/Root/TopBar/HBox/ResourcesRow/ResourceOil/ResourceOilBox"]
 theme_override_colors/font_color = Color(0.643137, 0.847059, 0.494118, 1)
 theme_override_font_sizes/font_size = 10
 text = "+0"

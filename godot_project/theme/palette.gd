@@ -40,7 +40,10 @@ const RESOURCE_DOT_GAS = Color(0x6F / 255.0, 0xC1 / 255.0, 0xE8 / 255.0)
 ## the same palette, so the two rarer late-game resources still get a
 ## distinct dot instead of being silently dropped from the top bar.
 const RESOURCE_DOT_NICKEL = Color(0xA9 / 255.0, 0xB7 / 255.0, 0xAC / 255.0)
-const RESOURCE_DOT_URANIUM = Color(0xC7 / 255.0, 0xE0 / 255.0, 0x4C / 255.0)
+## Ciemna, chłodna szarość z lekkim niebieskim odcieniem - "czarne złoto",
+## odróżnia się od cieplejszej, brązowawej szarości węgla (RESOURCE_DOT_COAL)
+## mimo że oba są ciemnymi surowcami wydobywanymi z ziemi.
+const RESOURCE_DOT_OIL = Color(0x35 / 255.0, 0x38 / 255.0, 0x40 / 255.0)
 
 ## Prestige dot/star and Money dot - distinct from the resource dots above
 ## (a different kind of "currency").

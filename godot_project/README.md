@@ -58,7 +58,7 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
    (496 heksów).
 6. **HUD** (lewy górny róg): kto jest kontrolowany, punkty ruchu, prestiż i
    **wszystkie posiadane surowce** (gaz/miedź/węgiel/drewno/żywność/nikiel/
-   uran naraz, nie tylko drewno jak wcześniej).
+   ropa naraz, nie tylko drewno jak wcześniej).
 7. **Sterowanie** (dotyczy aktualnie kontrolowanego gracza — patrz etykieta
    "Kontrolujesz" w lewym górnym rogu):
    - **Lewy klik na własnego ludzika** → zaznacza go: lekko się powiększa i
@@ -434,8 +434,10 @@ Kluczowe pliki:
 
 Na życzenie: "Chcę abyś dodał random event który wydaża się napewno co
 5 rund. Oraz jest szansa 5% w każdej rundzie na dodatkowy event", z listą
-10 konkretnych wydarzeń pogrupowanych w 4 kategorie (żywioł/pogoda,
-gospodarka, kontrola, rzadkie/specjalne). Nowy autoload
+9 konkretnych wydarzeń pogrupowanych w 4 kategorie (żywioł/pogoda,
+gospodarka, kontrola, rzadkie/specjalne - "Łagodna zima" była w pierwszej
+wersji listy, usunięta na późniejsze życzenie: "Usuń łagodną zimę", patrz
+"Decyzje projektowe" niżej). Nowy autoload
 `autoloads/random_event_manager.gd`, wołany z `TurnManager.end_round()`
 JAKO PIERWSZY (przed regeneracją lasu i naliczeniem dochodu - patrz
 komentarz tam), więc świeżo wylosowane wydarzenie wpływa od razu na WYNIK
@@ -455,7 +457,7 @@ BIEŻĄCEJ rundy, nie dopiero następnej.
   niżej po pełny opis): (1) najpierw KATEGORIA -
   `GameBalance.RANDOM_EVENT_SINGLE_PLAYER_CHANCE` (50%) szansy na "dla 1
   gracza", inaczej "dla wszystkich"; (2a) "dla wszystkich" - losuje JEDNO
-  z trzech takich wydarzeń; (2b) "dla 1 gracza" - osobno losuje, ILU
+  z dwóch takich wydarzeń; (2b) "dla 1 gracza" - osobno losuje, ILU
   graczy (1 do liczby graczy w grze) dostanie w tej samej turze WŁASNE
   wydarzenie, i dla KAŻDEGO z osobna losuje NIEZALEŻNIE jego konkretne
   wydarzenie - może więc naraz wypaść kilku różnych graczy z różnymi
@@ -469,11 +471,7 @@ BIEŻĄCEJ rundy, nie dopiero następnej.
   Rekordowe żniwa) są przechowywane jako "aktywne DO rundy X" (nie jako
   malejący licznik dekrementowany co rundę) - odczyt po prostu porównuje
   `TurnManager.round_number` z zapisaną wartością, więc nie ma ryzyka
-  rozjazdu przy dekrementowaniu w złym miejscu kodu. "Łagodna zima" działa
-  inaczej - nie ma ustalonego czasu trwania, tylko CZEKA na najbliższą
-  rundę zimową (nawet jeśli wylosowana latem) i zużywa się przy niej raz,
-  więc zawsze realnie coś zmienia, niezależnie od tego, kiedy akurat
-  wypadnie.
+  rozjazdu przy dekrementowaniu w złym miejscu kodu.
 
 Poszczególne wydarzenia (pełne uzasadnienia decyzji projektowych, które
 wymagały własnej interpretacji, są w sekcji "Decyzje projektowe" niżej):
@@ -492,12 +490,11 @@ wymagały własnej interpretacji, są w sekcji "Decyzje projektowe" niżej):
 - **Szkody górnicze** (tylko 1 gracz) - uszkadza jeden budynek górniczy
   gracza (`hex.building_damaged = true`) - naprawia się istniejącym
   przyciskiem "Napraw budynek", bez nowej mechaniki.
-- **Łagodna zima** (wszyscy gracze) - patrz wyżej.
 - **Plaga szkodników** (tylko 1 gracz) - żywność gracza nie rośnie przez
   2 rundy, niezależnie od pory roku.
 - **Dotacja** (tylko 1 gracz) - losowa kwota 400-800 pieniędzy.
 - **Strajk górniczy** (tylko 1 gracz) - kopalnie/gazoporty gracza (budynek
-  produkujący GAS/COPPER/COAL/NICKEL/URANIUM -
+  produkujący GAS/COPPER/COAL/NICKEL/OIL -
   `RandomEventManager.MINING_RESOURCE_TYPES`, w odróżnieniu od rolnictwa i
   drewna) nie produkują nic przez 3 rundy.
 - **Rekordowe żniwa stulecia** (tylko 1 gracz) - produkcja żywności x5
@@ -554,7 +551,7 @@ Umiejętności":
 | Wytrzymałość marszowa | +2 punkty ruchu dla każdego ludzika (obecnego i przyszłego) | 25 żywności, 15 drewna |
 | Zrównoważona wycinka | +15 pkt. proc. do bezpiecznego progu wycinki lasu | 30 drewna, 15 węgla |
 | Rozpoznanie terenu | +1 promień widzenia dla wszystkich ludzików gracza | 15 niklu, 20 gazu |
-| Logistyka terytorialna | -1 MP kosztu aneksacji (min. 1) | 20 miedzi, 5 uranu |
+| Logistyka terytorialna | -1 MP kosztu aneksacji (min. 1) | 20 miedzi, 5 ropy |
 
 Ekran wygląda jak **radialny graf** (nie zwykła lista) — centralny węzeł
 "START" i węzły umiejętności rozstawione promieniście wokół niego, połączone
@@ -846,6 +843,59 @@ jako heksy typu `city`: Wrocław (`H18`), Szczecin (`A7`), Warszawa (`R12`),
 Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
+
+- **Usunięcie "Łagodnej zimy" + zamiana Uranu na Ropę** (na życzenie: "Usuń
+  łagodną zimę i zamień Uran na ropę (zmień statystki na rynku)"). Dwie
+  niezależne zmiany:
+
+  **Usunięcie "Łagodnej zimy"** - jedyne wydarzenie losowe bez ustalonego
+  czasu trwania (czekało na najbliższą rundę zimową zamiast działać od
+  razu jak reszta) usunięte w całości z `autoloads/random_event_manager.gd`
+  (`EventId.MILD_WINTER`, `_apply_mild_winter()`, `consume_mild_winter()`,
+  `_mild_winter_pending` - łącznie ze swoim wpisem w
+  `get_save_state()`/`load_save_state()`) i z listy `ALL_PLAYERS_EVENTS`
+  (teraz dwa wydarzenia "dla wszystkich" zamiast trzech: Inspekcja
+  środowiskowa/Market Crash). `autoloads/turn_manager.gd`'s
+  `_process_resource_income()` stracił gałąź podmieniającą
+  `SEASON_FOOD_MULTIPLIER[WINTER]` - `scripts/game_balance.gd`'s
+  `MILD_WINTER_FOOD_MULTIPLIER` usunięty jako martwa stała. Lista wydarzeń
+  losowych: 10 → 9 (patrz "Wydarzenia losowe" wyżej).
+
+  **Uran → Ropa, z nowymi statystykami rynku** - `HexData.ResourceType.URANIUM`
+  zamieniony WPROST na `OIL` (ta sama pozycja w enumie - stary numer
+  porządkowy dalej oznacza "ten sam surowiec", więc już zapisane gry z
+  poprzedniej wersji nie tracą sensu, tylko czytają go teraz jako Ropę),
+  `RESOURCE_FROM_STRING`/`RESOURCE_DISPLAY_NAMES` ("uran" → "oil"/"Ropa").
+  `scripts/market_balance.gd`'s `RESOURCE_PARAMS` dostał NOWE liczby zamiast
+  gołego przepisania starych ("zmień statystki na rynku") - uran był
+  najrzadszym, najbardziej zmiennym surowcem w grze (`p_eq=100, k=0.20,
+  v_r=15`, rynek "cienki" - jeden gracz łatwo rusza cenę), a ropa w realnym
+  świecie to odwrotność: głęboki, płynny rynek globalny, więc `v_r=70`
+  (dużo trudniej ruszyć cenę samemu) i `k=0.12` (mniejsza wrażliwość na
+  pojedynczą transakcję) niż miał uran, ale wciąż drożej niż metale
+  przemysłowe (miedź/nikiel) - `p_eq=75`, w okolicach realnej ceny baryłki
+  ropy. `theme/palette.gd`'s `RESOURCE_DOT_URANIUM` (żółto-zielony,
+  skojarzenie z "yellowcake") zamieniony na `RESOURCE_DOT_OIL` - ciemna,
+  chłodna szarość ("czarne złoto"), odróżniona od cieplejszej szarości węgla.
+  Węzły paska górnego w `main.tscn` (`ResourceUranium`/`DotUranium`/...)
+  przemianowane na `ResourceOil`/`DotOil`/... razem z odpowiadającymi
+  `$`-ścieżkami w `game_map_controller.gd`. Koszty w `scripts/skill_tree_data.gd`
+  ("Logistyka terytorialna") i `resources/city_buildings_data.gd` (Zamek
+  Królewski na Wawelu, Poznańskie Koziołki) przepisane z Uranu na Ropę
+  (ta sama ilość - 5.0 - tylko inny surowiec).
+
+  **Dane mapy** - w całych 496 heksach tylko JEDEN używał zasobu uran (`G21`,
+  realna lokalizacja - dawna kopalnia uranu w Kletnie, Sudety). Zamiast
+  zostawić etykietę "Kopalnia uranu w Kletnie" przy heksie, który teraz
+  mechanicznie produkuje ropę (fałszywa sprzeczność - to jest realne
+  miejsce z prawdziwą historią, nie fikcyjna nazwa), `label_raw`/nazwa
+  budynku zmieniona na neutralne "Dawna kopalnia w Kletnie (nieczynna)" -
+  wciąż geograficznie prawdziwe (to był kiedyś czynny szyb), bez
+  fabrykowania fałszywego "tu wydobywano ropę". `tools/convert_kml_to_json.py`'s
+  klasyfikator zasobów (`RESOURCE_KEYWORDS`) też zaktualizowany
+  (`"uran"` → `"ropa"/"ropy"/"naftow"`), żeby ponowna konwersja z KML w
+  przyszłości rozpoznawała ropę, a nie uran - nie wpływa retroaktywnie na
+  już wygenerowany `map_data.json`, stąd osobna, ręczna edycja tego pliku.
 
 - **Lista zapisanych gier + stylizacja rozwijanej listy graczy** (na
   życzenie: "Chcę aby opcja wczytaj grę wyświetlała listę wszystkich gier

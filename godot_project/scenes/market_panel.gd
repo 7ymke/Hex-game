@@ -163,8 +163,8 @@ func _resource_dot_color(resource: HexData.ResourceType) -> Color:
 			return Palette.RESOURCE_DOT_GAS
 		HexData.ResourceType.NICKEL:
 			return Palette.RESOURCE_DOT_NICKEL
-		HexData.ResourceType.URANIUM:
-			return Palette.RESOURCE_DOT_URANIUM
+		HexData.ResourceType.OIL:
+			return Palette.RESOURCE_DOT_OIL
 		_:
 			return Palette.GOLD
 

@@ -98,7 +98,7 @@ const CITY_BUILDINGS: Dictionary = {
 			"costs": {
 				HexData.ResourceType.COPPER: 20.0,
 				HexData.ResourceType.NICKEL: 10.0,
-				HexData.ResourceType.URANIUM: 5.0,
+				HexData.ResourceType.OIL: 5.0,
 			},
 			"prestige": 35,
 		},
@@ -142,7 +142,7 @@ const CITY_BUILDINGS: Dictionary = {
 			"costs": {
 				HexData.ResourceType.COPPER: 10.0,
 				HexData.ResourceType.NICKEL: 10.0,
-				HexData.ResourceType.URANIUM: 5.0,
+				HexData.ResourceType.OIL: 5.0,
 			},
 			"prestige": 35,
 		},

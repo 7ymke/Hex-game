@@ -85,7 +85,7 @@ const PLAYER_SETUP = PlayerSetup.LIST
 @onready var prestige_value_label: Label = $UI/Root/TopBar/HBox/PrestigeChip/PrestigeChipBg/PrestigeChipBox/PrestigeValueLabel
 
 ## One value label per resource type, in the same left-to-right order as
-## the mockup. Nickel/Uranium aren't in the mockup at all (rare, late-game
+## the mockup. Nickel/Ropa aren't in the mockup at all (rare, late-game
 ## resources), but are always shown anyway ("zrób też aby było widać ile
 ## dostaje się Materiałów na rundę... Pamiętaj aby dodać do tego panelu 2
 ## brakujące zasoby") rather than only once the player has some - a full,
@@ -97,7 +97,7 @@ const PLAYER_SETUP = PlayerSetup.LIST
 @onready var resource_coal_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal/ResourceCoalBox/ResourceCoalValue
 @onready var resource_gas_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceGas/ResourceGasBox/ResourceGasValue
 @onready var resource_nickel_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel/ResourceNickelBox/ResourceNickelValue
-@onready var resource_uranium_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumBox/ResourceUraniumValue
+@onready var resource_oil_value: Label = $UI/Root/TopBar/HBox/ResourcesRow/ResourceOil/ResourceOilBox/ResourceOilValue
 
 ## The small green "+X" per-round production indicator next to each
 ## resource's value (restyle spec 4.1) - EXCEPT wood, which has none (the
@@ -113,7 +113,7 @@ const PLAYER_SETUP = PlayerSetup.LIST
 	HexData.ResourceType.COAL: $UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal/ResourceCoalBox/ResourceCoalProd,
 	HexData.ResourceType.GAS: $UI/Root/TopBar/HBox/ResourcesRow/ResourceGas/ResourceGasBox/ResourceGasProd,
 	HexData.ResourceType.NICKEL: $UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel/ResourceNickelBox/ResourceNickelProd,
-	HexData.ResourceType.URANIUM: $UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium/ResourceUraniumBox/ResourceUraniumProd,
+	HexData.ResourceType.OIL: $UI/Root/TopBar/HBox/ResourcesRow/ResourceOil/ResourceOilBox/ResourceOilProd,
 }
 
 ## Clicking any resource pill opens its market page (autoloads/market_manager.gd,
@@ -126,7 +126,7 @@ const PLAYER_SETUP = PlayerSetup.LIST
 	HexData.ResourceType.COAL: $UI/Root/TopBar/HBox/ResourcesRow/ResourceCoal,
 	HexData.ResourceType.GAS: $UI/Root/TopBar/HBox/ResourcesRow/ResourceGas,
 	HexData.ResourceType.NICKEL: $UI/Root/TopBar/HBox/ResourcesRow/ResourceNickel,
-	HexData.ResourceType.URANIUM: $UI/Root/TopBar/HBox/ResourcesRow/ResourceUranium,
+	HexData.ResourceType.OIL: $UI/Root/TopBar/HBox/ResourcesRow/ResourceOil,
 }
 
 ## Sidebar (replaces the old ActionPanel). City landmark buildings are now
@@ -1755,7 +1755,7 @@ func _update_stats_labels() -> void:
 	resource_coal_value.text = "%.0f" % active_player.get_resource_amount(HexData.ResourceType.COAL)
 	resource_gas_value.text = "%.0f" % active_player.get_resource_amount(HexData.ResourceType.GAS)
 	resource_nickel_value.text = "%.0f" % active_player.get_resource_amount(HexData.ResourceType.NICKEL)
-	resource_uranium_value.text = "%.0f" % active_player.get_resource_amount(HexData.ResourceType.URANIUM)
+	resource_oil_value.text = "%.0f" % active_player.get_resource_amount(HexData.ResourceType.OIL)
 
 	for resource in resource_production_labels:
 		var label: Label = resource_production_labels[resource]

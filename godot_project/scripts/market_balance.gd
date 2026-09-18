@@ -34,7 +34,13 @@ const RESOURCE_PARAMS = {
 	HexData.ResourceType.COPPER: {"p_eq": 40.0, "k": 0.10, "v_r": 50.0},
 	HexData.ResourceType.GAS: {"p_eq": 35.0, "k": 0.10, "v_r": 50.0},
 	HexData.ResourceType.NICKEL: {"p_eq": 60.0, "k": 0.15, "v_r": 25.0},
-	HexData.ResourceType.URANIUM: {"p_eq": 100.0, "k": 0.20, "v_r": 15.0},
+	## Ropa zastąpiła Uran (życzenie: "zamień Uran na ropę (zmień statystki
+	## na rynku)") - inny profil niż uranu (rzadki, cienki, bardzo zmienny
+	## rynek): ropa to głęboki, płynny rynek globalny, więc wyższe V_R (trudniej
+	## jednemu graczowi ruszyć cenę) i niższe K (mniejsza wrażliwość na
+	## pojedynczą transakcję) niż miał uran, ale wciąż drożej niż metale
+	## przemysłowe (miedź/nikiel) - P_EQ w okolicach realnej ceny baryłki ropy.
+	HexData.ResourceType.OIL: {"p_eq": 75.0, "k": 0.12, "v_r": 70.0},
 }
 
 
