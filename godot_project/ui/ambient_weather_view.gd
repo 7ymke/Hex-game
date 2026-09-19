@@ -60,6 +60,14 @@ func refresh() -> void:
 		return
 	_mode = new_mode
 	_reset_particles()
+	# Bez tego: gdy tryb zmienia się na NONE, _process() od razu wraca (patrz
+	# niżej) i nigdy więcej nie woła queue_redraw() - ostatnia narysowana
+	# klatka (z cząsteczkami) zostawałaby na ekranie NA STAŁE, bo nic by już
+	# nie powiedziało silnikowi, żeby przerysować (i tym samym wyczyścić)
+	# tę warstwę. Jedno jawne wywołanie tutaj gwarantuje, że _draw() odpali
+	# się jeszcze raz zaraz po zmianie trybu, niezależnie od tego, czy
+	# _process() w ogóle je zawoła.
+	queue_redraw()
 
 
 func _pick_mode() -> Mode:

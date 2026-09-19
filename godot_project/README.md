@@ -139,10 +139,13 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
        dla miasta aktywnego gracza, każdy z kosztem w zasobach i wartością
        prestiżową po odblokowaniu (sekcja 7 GDD).
      - **Drzewko Umiejętności** (nowość) — osobny ekran, analogiczny do Karty
-       Miasta, ale WSPÓLNY dla wszystkich miast: 6 permanentnych upgrade'ów
+       Miasta, ale WSPÓLNY dla wszystkich miast: 9 permanentnych upgrade'ów
        płatnych surowcami z mapy (patrz sekcja niżej).
      - **Dyplomacja** (nowość, przycisk 🤝) — osobny ekran: lista pozostałych
-       graczy, "Zawrzyj pakt"/"Zerwij pakt" o nieagresji (patrz "Decyzje
+       graczy, DWUETAPOWY pakt o nieagresji - "Zaproponuj pakt" (samo wysłanie
+       niczego nie kosztuje i niczego jeszcze nie blokuje) → drugi gracz musi
+       "Akceptuj" (dopiero WTEDY pakt zaczyna obowiązywać) albo "Odrzuć" -
+       "Zerwij pakt" działa tylko na już zaakceptowanym pakcie (patrz "Decyzje
        projektowe" niżej).
    - **Zaanektuj i Przejmij teren gracza żyją TYLKO w panelu "Trasa ludzika"**
      (update - oba usunięte z panelu akcji po lewej, żeby obie akcje
@@ -863,6 +866,72 @@ jako heksy typu `city`: Wrocław (`H18`), Szczecin (`A7`), Warszawa (`R12`),
 Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
+
+- **3 poprawki błędów: znikające cząsteczki pogody, pakt o nieagresji jako
+  prośba/akceptacja, licznik prestiżu** (na życzenie: "Particles nie znikają
+  gdy zmienia się runda, pakt o nieagresji powinien polegać na tym że - 1
+  gracz wysyła prośbę a drugi akceptuje, dopiero wtedy można stracić -
+  (licznik prestiżu się nie updateuje)"). Trzy niezależne poprawki.
+
+  **1. Cząsteczki ambientowej pogody nie znikały.** Prawdziwa przyczyna:
+  `AmbientWeatherView._process()` od razu wraca (`return`), gdy
+  `_mode == Mode.NONE`, WŁĄCZNIE z pominięciem `queue_redraw()` na końcu
+  funkcji. Skoro Godot nie przerysowuje `CanvasItem` samoistnie - tylko w
+  reakcji na `queue_redraw()` - to gdy tryb zmieniał się np. z zimowego
+  śniegu na "brak efektu" (koniec zimy), OSTATNIA narysowana klatka (z
+  cząsteczkami śniegu w jakichś pozycjach) zostawała na ekranie NA STAŁE,
+  bo już nic nigdy nie kazało `_draw()` odpalić się ponownie i narysować
+  "nic" (`_draw()` też ma wczesny `return` przy `Mode.NONE`, ale samo to nie
+  wystarczy - trzeba jeszcze faktycznie wywołać ten przerysowanie). Poprawka:
+  `refresh()` woła `queue_redraw()` WPROST, zaraz po zmianie trybu -
+  niezależnie od tego, czy `_process()` kiedykolwiek jeszcze zawoła je samo.
+
+  **2. Pakt o nieagresji - prośba i akceptacja, nie natychmiastowe
+  zawarcie.** Poprzednia wersja (patrz wpis "Pakt o nieagresji..." niżej)
+  świadomie zawierała pakt NATYCHMIAST po kliknięciu przez jednego gracza,
+  uzasadnione hotseatem ("obaj gracze siedzą przy tym samym ekranie").
+  Użytkownik chce jednak prawdziwej zgody drugiej strony, więc
+  `autoloads/diplomacy_manager.gd` przepisany na dwuetapowy przepływ:
+  - `propose_pact()` zastąpione przez `send_proposal(proposer_id, target_id)`
+    - zapisuje PROŚBĘ (`_pending_proposals`, osobny słownik od `_pacts`),
+    ale NIE zawiera paktu i NICZEGO nie blokuje - powiadomienie idzie
+    TYLKO do adresata ("X proponuje Ci pakt - zaakceptuj albo odrzuć").
+  - `accept_proposal(accepter_id, proposer_id)` - DOPIERO TERAZ pakt
+    faktycznie zaczyna obowiązywać (`_pacts`, z datą wygaśnięcia liczoną OD
+    MOMENTU AKCEPTACJI, nie od wysłania prośby - prośba może czekać
+    dowolnie długo, np. aż adresat znów będzie aktywnym graczem). Sprawdza
+    (`pending_proposer() != proposer_id`), że `accepter_id` jest faktycznym
+    ADRESATEM zapamiętanej prośby - nie da się "zaakceptować" prośby,
+    której się samemu nie dostało.
+  - `cancel_proposal(canceller_id, other_id)` - usuwa nierozpatrzoną prośbę
+    bez żadnych konsekwencji; woła to zarówno adresat (Odrzuć), jak i sam
+    proponujący (Anuluj) - `_pact_key()` jest symetryczny względem
+    kolejności, więc to jedna funkcja dla obu przycisków.
+  - `break_pact()` (zrywanie z karą prestiżową) działa BEZ ZMIAN, ale teraz
+    faktycznie spełnia życzenie "dopiero wtedy można stracić [prestiż]" -
+    skoro pakt istnieje TYLKO po akceptacji, kara za zerwanie jest już z
+    definicji możliwa wyłącznie po prawdziwej zgodzie obu stron.
+  - Nowa `get_relationship(viewer_id, other_id)` scala te trzy stany
+    (aktywny/wysłana prośba/otrzymana prośba/brak) w jedno zapytanie, żeby
+    `scenes/diplomacy_panel.gd` nie musiało powtarzać tej samej logiki -
+    panel pokazuje teraz cztery różne układy przycisków zależnie od stanu
+    ("Zaproponuj pakt" / "Anuluj prośbę" / "Akceptuj"+"Odrzuć" / "Zerwij
+    pakt"). Zapis stanu (`get_save_state()`/`load_save_state()`) rozszerzony
+    o `pending_proposals` obok `pacts`.
+
+  **3. Licznik prestiżu w pasku górnym nie odświeżał się po zerwaniu
+  paktu.** `DiplomacyPanel` woła `DiplomacyManager.break_pact()` (który
+  realnie zmienia `player.prestige`) i odświeża TYLKO samą siebie
+  (`_refresh()` przebudowuje listę graczy w panelu), ale nic nie mówiło
+  `game_map_controller.gd`, żeby przeliczyć etykietę prestiżu w pasku
+  górnym - dokładnie ten sam rodzaj błędu, przed którym chronią już
+  `MarketPanel.traded`/`SkillTreePanel.skill_unlocked` (oba wywołują
+  `_update_stats_labels()` w `game_map_controller.gd` zaraz po akcji, która
+  zmienia widoczne liczby). `DiplomacyPanel` dostał więc analogiczny sygnał
+  `pact_broken`, emitowany WYŁĄCZNIE przy zrywaniu paktu (jedyna akcja w tym
+  panelu, która faktycznie rusza jakąkolwiek liczbę - prośba/akceptacja/
+  odrzucenie/anulowanie są "Bez kosztu"), podłączony w `game_map_controller.gd`
+  do nowego `_on_pact_broken()` → `_update_stats_labels()`.
 
 - **Przejęcie terenu karze TYLKO napastnika + 3 nowe skille + heksagonalne
   checkboxy** (na życzenie: "Zrób też że traci się prestiż wtedy kiedy ty

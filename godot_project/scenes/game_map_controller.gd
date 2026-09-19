@@ -243,6 +243,7 @@ func _ready() -> void:
 	skill_tree_panel.skill_unlocked.connect(_on_skill_unlocked)
 	market_panel.traded.connect(_on_market_traded)
 	market_panel.closed.connect(_on_market_closed)
+	diplomacy_panel.pact_broken.connect(_on_pact_broken)
 	RandomEventManager.notification_added.connect(_update_info_badge)
 
 	# Active-pill highlight style is the pill's own StyleBoxFlat_pill_bg
@@ -1454,6 +1455,13 @@ func _on_market_closed() -> void:
 ## elsewhere in the UI (top bar), so they need to catch up immediately,
 ## not just the next time something else happens to refresh them.
 func _on_market_traded() -> void:
+	_update_stats_labels()
+
+
+## Breaking a pact (DiplomacyPanel) docks the breaker's prestige - same
+## reason as _on_market_traded() above, the top-bar prestige chip needs to
+## catch up immediately instead of only at the next unrelated refresh.
+func _on_pact_broken() -> void:
 	_update_stats_labels()
 
 
