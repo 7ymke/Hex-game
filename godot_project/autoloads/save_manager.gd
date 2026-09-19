@@ -212,6 +212,9 @@ func _gather_players() -> Dictionary:
 			"forest_safe_threshold_bonus": player.forest_safe_threshold_bonus,
 			"annex_cost_reduction": player.annex_cost_reduction,
 			"road_infrastructure": player.road_infrastructure,
+			"fortifications": player.fortifications,
+			"industrial_income_bonus": player.industrial_income_bonus,
+			"crisis_management": player.crisis_management,
 		}
 	return out
 

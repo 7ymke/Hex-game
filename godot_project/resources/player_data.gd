@@ -44,6 +44,16 @@ extends Resource
 ## move through instead of 1 (patrz game_map_controller.gd's
 ## _effective_movement_cost_for()).
 @export var road_infrastructure: bool = false
+## "Umocnienia" (skill tree) - multiplies an ATTACKER's prestige cost when
+## taking over one of THIS player's hexes (GameManager.attempt_takeover()).
+@export var fortifications: bool = false
+## "Rozwój gospodarczy" (skill tree) - % bonus applied to all building-derived
+## resource income (TurnManager._process_resource_income()), e.g. 20.0 = +20%.
+@export var industrial_income_bonus: float = 0.0
+## "Zarządzanie kryzysowe" (skill tree) - shortens Pest Plague/Mining Strike
+## duration by GameBalance.CRISIS_MANAGEMENT_ROUND_REDUCTION rounds (min 1),
+## patrz autoloads/random_event_manager.gd.
+@export var crisis_management: bool = false
 
 
 func add_resource(res_type: HexData.ResourceType, amount: float) -> void:

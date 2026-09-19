@@ -167,13 +167,16 @@ sypać błędami parsera. Trzymaj się tej konwencji w nowym kodzie.
      ujawnia w UI. Zawsze da się spróbować, nawet z niewystarczającym
      prestiżem:
      - **Wystarczający prestiż** (ściśle większy niż obrońcy) → sukces:
-       przejmujesz pole, płacisz część prestiżu obrońcy (jak dotąd), a
-       DODATKOWO obrońca traci część WŁASNEGO prestiżu (koszt bycia
-       podbitym) - patrz "Decyzje projektowe" niżej po dokładny wzór.
+       przejmujesz pole, TY płacisz prestiż (kwota liczona jako % prestiżu
+       obrońcy, ale zdejmowana z TWOJEGO konta) - obrońca nie traci NIC
+       (update: patrz "Decyzje projektowe" niżej).
      - **Niewystarczający prestiż** → nieudana próba: obrońca NIE TRACI NIC,
        ale ty tracisz prestiż proporcjonalnie do przewagi obrońcy (im
        bardziej nierówna próba, tym droższa porażka) - MP i tak zostaje
        wydane, bo próba faktycznie zaszła.
+     - Gracz z odblokowanym skillem "Umocnienia" jest droższy do zaatakowania
+       - napastnik płaci o 50% więcej prestiżu za udane przejęcie jego pola
+       (patrz "Drzewko Umiejętności" niżej).
      Panel ma też przełącznik **Anektuj napotkane pola** - gdy włączony na
      danym ludziku, automatycznie aneksuje KAŻDE niczyje pole (i sąsiadujące
      z już posiadanym - powyższy warunek dotyczy też auto-aneksacji), przez
@@ -554,7 +557,7 @@ wprost `GameManager.unlock_city_building()`.
 Drugi (obok Karty Miasta) trwały cel na nadwyżki surowców - tym razem z
 bezpośrednim wpływem na rozgrywkę zamiast samego prestiżu. Na razie płaskie
 (bez prerequisitów/poziomów) - `scripts/skill_tree_data.gd` (`SkillTreeData.get_skills()`)
-proponuje 6 upgrade'ów, każdy płatny surowcami, które już są w
+proponuje 9 upgrade'ów, każdy płatny surowcami, które już są w
 grze, i odblokowywany permanentnie za jednym kliknięciem w ekranie "Drzewko
 Umiejętności":
 
@@ -565,7 +568,10 @@ Umiejętności":
 | Zrównoważona wycinka | +15 pkt. proc. do bezpiecznego progu wycinki lasu | 30 drewna, 15 węgla |
 | Rozpoznanie terenu | +1 promień widzenia dla wszystkich ludzików gracza | 15 niklu, 20 gazu |
 | Logistyka terytorialna | -1 MP kosztu aneksacji (min. 1) | 20 miedzi, 5 ropy |
-| Infrastruktura drogowa (nowość) | Pole miasta kosztuje 0 MP ruchu zamiast 1 (patrz "Decyzje projektowe") | 25 węgla, 15 miedzi |
+| Infrastruktura drogowa | Pole miasta kosztuje 0 MP ruchu zamiast 1 | 25 węgla, 15 miedzi |
+| Umocnienia (nowość) | Przejęcie TWOJEGO terenu kosztuje napastnika +50% prestiżu | 30 węgla, 20 miedzi |
+| Rozwój gospodarczy (nowość) | +20% dochodu ze WSZYSTKICH budynków (żywność i wydobycie razem) | 25 gazu, 10 niklu |
+| Zarządzanie kryzysowe (nowość) | Plaga szkodników i Strajk górniczy trwają o 1 rundę krócej (min. 1) | 30 żywności, 20 węgla |
 
 Ekran wygląda jak **radialny graf** (nie zwykła lista) — centralny węzeł
 "START" i węzły umiejętności rozstawione promieniście wokół niego, połączone
@@ -857,6 +863,79 @@ jako heksy typu `city`: Wrocław (`H18`), Szczecin (`A7`), Warszawa (`R12`),
 Kraków (`O22`), Gdańsk (`L3`), Poznań (`G12`).
 
 ## Decyzje projektowe podjęte przy domykaniu Faz 6-9
+
+- **Przejęcie terenu karze TYLKO napastnika + 3 nowe skille + heksagonalne
+  checkboxy** (na życzenie: "Zrób też że traci się prestiż wtedy kiedy ty
+  zabierasz przejmujesz teren komuś a nie ktoś tobie. Oraz postaraj się aby
+  gra była jak najbardziej polished i przyjemna w wyglądzie oraz rozbuduj
+  skilltree z funkcjami które rzeczywiście będą mieć znaczenie. Rób co
+  uważasz za najlepsze dla gry"). Trzy części, ostatnie dwie zostawione
+  całkowicie do własnej oceny ("Rób co uważasz za najlepsze").
+
+  **1. Przejęcie terenu - tylko napastnik traci prestiż.** Wcześniej
+  udane przejęcie kosztowało prestiż OBIE strony - napastnik płacił
+  `TAKEOVER_COST_RATIO` (50%) prestiżu obrońcy, a DODATKOWO sam obrońca
+  tracił `TAKEOVER_DEFENDER_LOSS_RATIO` (25%) WŁASNEGO prestiżu ("koszt
+  bycia podbitym"). Życzenie odwraca tę logikę: reputacyjny koszt ponosi
+  wyłącznie strona, która AKTYWNIE zabiera teren, nie ta, której go
+  zabrano - bycie ofiarą ataku samo w sobie nie jest już stratą reputacji.
+  `GameManager.attempt_takeover()` stracił więc całą gałąź
+  `change_prestige(hex.owner_id, -defender_loss)` -
+  `TAKEOVER_DEFENDER_LOSS_RATIO` usunięta z `game_balance.gd` jako martwa
+  stała. Nieudana próba i tak już wcześniej NIE karała obrońcy (tylko
+  napastnika, proporcjonalnie do przewagi przeciwnika) - ta reguła się nie
+  zmieniła, teraz jest po prostu spójna z regułą sukcesu (zawsze tylko
+  napastnik płaci, niezależnie od wyniku).
+
+  **2. Trzy nowe skille "które rzeczywiście będą mieć znaczenie"** - dotychczasowe
+  6 skilli już pokrywało ruch/zwiad/aneksację; te trzy celowo otwierają
+  NOWE osie strategii, których wcześniej brakowało:
+  - **Umocnienia** (`SkillData.EffectType.FORTIFICATIONS`,
+    `PlayerData.fortifications`) - CZYSTA OBRONA: mnoży koszt napastnika
+    (patrz punkt 1 wyżej) o `GameBalance.FORTIFICATIONS_TAKEOVER_COST_MULTIPLIER`
+    (×1.5), gdy atakuje TWÓJ heks - pierwszy skill, który utrudnia bycie
+    zaatakowanym, zamiast ułatwiać własny ruch/ekspansję (Logistyka
+    terytorialna/Infrastruktura drogowa - te dwa są o TWOIM RUCHU, nie o
+    obronie). Naturalnie łączy się z punktem 1: skoro cała gra teraz nagradza
+    "bycie napadniętym" zerową stratą, Umocnienia dają defensywnemu graczowi
+    narzędzie, żeby to jeszcze wzmocnić.
+  - **Rozwój gospodarczy** (`SkillData.EffectType.INDUSTRIAL_DEVELOPMENT`,
+    `PlayerData.industrial_income_bonus`) - SKALOWANIE EKONOMII: +20% do
+    KAŻDEGO dochodu z budynków (żywność i wydobycie razem,
+    `TurnManager._process_resource_income()`, mnożnik aplikowany na samym
+    końcu, więc bezpiecznie mnoży też wyzerowany dochód z Plagi/Strajku
+    przez zero). W odróżnieniu od jednorazowych bonusów (np. Dotacja z
+    wydarzeń losowych) to procentowy mnożnik, który się composuje z każdą
+    kolejną rundą - im dłużej gra trwa, tym więcej faktycznie daje.
+  - **Zarządzanie kryzysowe** (`SkillData.EffectType.CRISIS_MANAGEMENT`,
+    `PlayerData.crisis_management`) - ODPORNOŚĆ NA WYDARZENIA: skraca Plagę
+    szkodników i Strajk górniczy o `GameBalance.CRISIS_MANAGEMENT_ROUND_REDUCTION`
+    (1) rundę (minimum 1 runda pozostaje zawsze, żeby wydarzenie nigdy nie
+    stało się całkowicie bez znaczenia) - pierwszy skill w grze, który
+    ŁAGODZI NEGATYWNE wydarzenie losowe, zamiast ulepszać coś, co gracz już
+    i tak kontroluje wprost.
+  - Wszystkie trzy zapisywane/wczytywane przez `SaveManager` (nowe pola
+    `PlayerData`, dopisane do `_gather_players()`/`_load_saved_game()`,
+    dokładnie tym samym wzorcem co reszta akumulatorów skilli).
+    `scenes/skill_tree_panel.gd`'s promień węzłów już wcześniej liczył się
+    DYNAMICZNIE z `skills.size()` (`radius = ... / 2.0 * RADIUS_SAFETY_MARGIN`,
+    kąt = `TAU * i / count`), więc rozrost z 6 do 9 węzłów na okręgu nie
+    wymagał żadnej zmiany w samym layoucie - graf sam się dostosował.
+
+  **3. "Jak najbardziej polished i przyjemna w wyglądzie" - heksagonalne
+  checkboxy.** Jedyne miejsce w całej grze, które wciąż pokazywało
+  domyślny, kwadratowy checkbox silnika Godota (`scenes/start_screen.gd`,
+  wybór miast) - reszta UI od dawna konsekwentnie używa własnego,
+  drewnianego motywu. Zamiast zostawiać ten jeden wyjątek, checkboxy
+  dostały ikony wygenerowane tym samym rasteryzatorem co uchwyty suwaków
+  (`HexShape.make_texture()`, już używane w `game_map_controller.gd`) -
+  mały, ale spójny z motywem "wszystko jest heksagonem" szczegół zamiast
+  generycznej ikony, bez potrzeby dodawania żadnych plików graficznych.
+  Zaznaczony = pełny złoty heksagon (`Palette.GOLD_BRIGHT`), niezaznaczony
+  = przytłumiony, półprzezroczysty heksagon w tym samym odcieniu drewna co
+  reszta UI (`Palette.WOOD_MID`, alpha 0.35) - czytelne rozróżnienie stanu
+  bez potrzeby osobnej ikony "pusty kwadrat" (rasteryzator rysuje tylko
+  wypełnione kształty, bez samej obwódki).
 
 - **Pakt o nieagresji + Infrastruktura drogowa + Sezonowa szata mapy +
   Ambientowa pogoda** (na życzenie - lista czterech niezależnych funkcji,

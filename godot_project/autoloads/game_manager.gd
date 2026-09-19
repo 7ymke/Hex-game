@@ -169,9 +169,11 @@ func damage_protected_area(hex_id: String, player_id: int, damage_scale: float) 
 ## An attempt can always be MADE - unlike the previous version, where
 ## insufficient prestige was a hard block with no effect at all. Now:
 ## - Attacker's prestige STRICTLY greater than the defender's -> success: the
-##   defender loses `TAKEOVER_DEFENDER_LOSS_RATIO` of their OWN prestige (the
-##   cost of being conquered), the attacker pays `TAKEOVER_COST_RATIO` of the
-##   defender's prestige (as before).
+##   attacker pays `TAKEOVER_COST_RATIO` of the defender's prestige (times
+##   `FORTIFICATIONS_TAKEOVER_COST_MULTIPLIER` if the defender has that
+##   skill unlocked) - the DEFENDER loses nothing ("traci się prestiż wtedy
+##   kiedy ty zabierasz teren komuś, a nie ktoś tobie" - being taken from is
+##   not itself a reputational loss; taking FROM someone is).
 ## - Otherwise -> failed attempt: the defender LOSES NOTHING, but the
 ##   attacker pays a penalty proportional to the defender's advantage (the
 ##   more lopsided the fight, the more expensive the failure) - a "good
@@ -199,14 +201,14 @@ func attempt_takeover(hex_id: String, attacker_id: int) -> Dictionary:
 		return {"success": false, "reason": "insufficient_prestige", "attacker_penalty": penalty}
 
 	var cost = roundi(defender.prestige * GameBalance.TAKEOVER_COST_RATIO)
-	var defender_loss = roundi(defender.prestige * GameBalance.TAKEOVER_DEFENDER_LOSS_RATIO)
+	if defender.fortifications:
+		cost = roundi(cost * GameBalance.FORTIFICATIONS_TAKEOVER_COST_MULTIPLIER)
 	change_prestige(attacker_id, -cost)
-	change_prestige(hex.owner_id, -defender_loss)
 
 	var previous_owner = hex.owner_id
 	hex.owner_id = attacker_id
 
-	return {"success": true, "cost": cost, "defender_loss": defender_loss, "previous_owner": previous_owner}
+	return {"success": true, "cost": cost, "previous_owner": previous_owner}
 
 
 ## Unlocking a City Card landmark building - GDD section 7. Centralized here
@@ -262,6 +264,12 @@ func unlock_skill(player_id: int, skill: SkillData) -> Dictionary:
 			player.movement_points_bonus += int(skill.effect_amount)
 		SkillData.EffectType.ROAD_INFRASTRUCTURE:
 			player.road_infrastructure = true
+		SkillData.EffectType.FORTIFICATIONS:
+			player.fortifications = true
+		SkillData.EffectType.INDUSTRIAL_DEVELOPMENT:
+			player.industrial_income_bonus += skill.effect_amount
+		SkillData.EffectType.CRISIS_MANAGEMENT:
+			player.crisis_management = true
 		SkillData.EffectType.EXTRA_UNIT:
 			pass  # entirely handled by game_map_controller.gd
 

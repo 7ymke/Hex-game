@@ -19,6 +19,9 @@ enum EffectType {
 	FOREST_THRESHOLD_BONUS, # +N percentage points to the safe forest harvesting threshold (FOREST_SAFE_THRESHOLD_PERCENT)
 	ANNEX_COST_REDUCTION,   # -N to the MP cost of annexation (ANNEX_MP_COST), never below 1
 	ROAD_INFRASTRUCTURE,    # boolean unlock (effect_amount unused) - CITY-terrain hexes cost 0 MP to move through instead of 1
+	FORTIFICATIONS,         # boolean unlock (effect_amount unused) - multiplies an ATTACKER's cost when taking over one of this player's hexes
+	INDUSTRIAL_DEVELOPMENT, # +N% to all building-derived resource income (food and mining resources alike)
+	CRISIS_MANAGEMENT,      # boolean unlock (effect_amount unused) - shortens Pest Plague/Mining Strike duration by 1 round (min 1)
 }
 
 @export var skill_id: String = ""

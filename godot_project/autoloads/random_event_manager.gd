@@ -380,12 +380,18 @@ func _apply_mining_damage(player: PlayerData) -> void:
 	)
 
 
+## "Zarządzanie kryzysowe" (skill tree) skraca czas trwania o
+## GameBalance.CRISIS_MANAGEMENT_ROUND_REDUCTION rund (minimum 1 runda) -
+## patrz też _apply_mining_strike() niżej.
 func _apply_pest_plague(player: PlayerData) -> void:
-	var until_round = TurnManager.round_number + GameBalance.PEST_PLAGUE_ROUNDS - 1
+	var rounds = GameBalance.PEST_PLAGUE_ROUNDS
+	if player.crisis_management:
+		rounds = maxi(1, rounds - GameBalance.CRISIS_MANAGEMENT_ROUND_REDUCTION)
+	var until_round = TurnManager.round_number + rounds - 1
 	_pest_plague_until_round[player.player_id] = until_round
 	log_notification(
 		"🐛 Plaga szkodników uderzyła w pola gracza %s - żywność nie urośnie przez %d rundy (do rundy %d włącznie)." % [
-			player.player_name, GameBalance.PEST_PLAGUE_ROUNDS, until_round,
+			player.player_name, rounds, until_round,
 		],
 		player.player_id
 	)
@@ -398,11 +404,14 @@ func _apply_grant(player: PlayerData) -> void:
 
 
 func _apply_mining_strike(player: PlayerData) -> void:
-	var until_round = TurnManager.round_number + GameBalance.MINING_STRIKE_ROUNDS - 1
+	var rounds = GameBalance.MINING_STRIKE_ROUNDS
+	if player.crisis_management:
+		rounds = maxi(1, rounds - GameBalance.CRISIS_MANAGEMENT_ROUND_REDUCTION)
+	var until_round = TurnManager.round_number + rounds - 1
 	_mining_strike_until_round[player.player_id] = until_round
 	log_notification(
 		"⚒️ Strajk górniczy u gracza %s - kopalnie i gazoporty nie produkują przez %d rundy (do rundy %d włącznie)." % [
-			player.player_name, GameBalance.MINING_STRIKE_ROUNDS, until_round,
+			player.player_name, rounds, until_round,
 		],
 		player.player_id
 	)

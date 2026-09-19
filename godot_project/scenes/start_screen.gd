@@ -21,11 +21,21 @@ var checkboxes: Dictionary = {}  # player_id(int) -> CheckBox
 
 
 func _ready() -> void:
+	# Heksagonalne ikony zamiast domyślnego kwadratowego checkboksa silnika
+	# (ten sam rasteryzator co ikony uchwytów suwaków w game_map_controller.gd
+	# - HexShape.make_texture()) - drobny, ale spójny z motywem "wszystko
+	# jest heksagonem" szczegół, zamiast jedynego miejsca w grze, które wciąż
+	# pokazywało domyślny wygląd Godota.
+	var checked_icon = HexShape.make_texture(Vector2i(16, 14), Palette.GOLD_BRIGHT)
+	var unchecked_icon = HexShape.make_texture(Vector2i(16, 14), Color(Palette.WOOD_MID.r, Palette.WOOD_MID.g, Palette.WOOD_MID.b, 0.35))
+
 	for setup in PlayerSetup.LIST:
 		var checkbox = CheckBox.new()
 		checkbox.text = "%s (%s)" % [setup["name"], setup["city"]]
 		checkbox.button_pressed = true
 		checkbox.toggled.connect(_on_city_toggled)
+		checkbox.add_theme_icon_override("checked", checked_icon)
+		checkbox.add_theme_icon_override("unchecked", unchecked_icon)
 		city_list.add_child(checkbox)
 		checkboxes[setup["id"]] = checkbox
 

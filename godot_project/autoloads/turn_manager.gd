@@ -106,7 +106,10 @@ func _process_forest_regeneration() -> void:
 ## first - a plague ruins the crop regardless of how good the harvest would
 ## otherwise have been), Rekordowe żniwa multiplies it, and Strajk górniczy
 ## zeroes mining income (MINING_RESOURCE_TYPES - anything that isn't food or
-## wood).
+## wood). "Rozwój gospodarczy" (skill tree, player.industrial_income_bonus)
+## is applied LAST, as a flat % bonus on top of whatever the amount already
+## is - safe to apply unconditionally (multiplying a zeroed-out amount by
+## anything is still zero, so a plague/strike isn't accidentally undone).
 func _process_resource_income() -> void:
 	var season = get_current_season()
 	var food_multiplier = GameBalance.SEASON_FOOD_MULTIPLIER[season]
@@ -136,4 +139,5 @@ func _process_resource_income() -> void:
 		):
 			amount = 0.0
 
+		amount *= 1.0 + player.industrial_income_bonus / 100.0
 		player.add_resource(resource, amount)

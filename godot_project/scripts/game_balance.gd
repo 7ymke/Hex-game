@@ -51,9 +51,13 @@ const FOREST_REGEN_EXPONENT = 2.0
 ## Update: a takeover now requires physical presence (like annexation) and an
 ## attempt can always be MADE, even with insufficient prestige - see
 ## game_manager.gd (attempt_takeover) for the full logic of both branches.
+## Only the ATTACKER ever loses prestige (success or failure) - taking
+## territory costs reputation, being taken from does not.
 const TAKEOVER_COST_RATIO = 0.5  # what % of the defender's prestige the attacker pays ON A SUCCESSFUL takeover
-const TAKEOVER_DEFENDER_LOSS_RATIO = 0.25  # what % of their OWN prestige the defender loses on a successful takeover
 const FAILED_TAKEOVER_PENALTY_RATIO = 0.3  # fraction of the (defender - attacker) prestige difference the attacker loses on a failed attempt
+## "Umocnienia" (skill tree) - multiplies the attacker's cost (above) when
+## taking over a hex owned by a player who has this skill unlocked.
+const FORTIFICATIONS_TAKEOVER_COST_MULTIPLIER = 1.5
 
 ## Protected areas (GDD section 4) -------------------------------------------
 ## The penalty only applies once someone actually "develops" (builds/repairs
@@ -155,6 +159,11 @@ const RECORD_HARVEST_ROUNDS = 5
 ## Plaga szkodników - ile rund produkcja żywności dotkniętego gracza wynosi
 ## zero, niezależnie od pory roku.
 const PEST_PLAGUE_ROUNDS = 2
+
+## "Zarządzanie kryzysowe" (skill tree) - o ile rund krócej trwają Plaga
+## szkodników i Strajk górniczy dla gracza, który ma ten skill (minimum
+## 1 runda - patrz RandomEventManager._apply_pest_plague()/_apply_mining_strike()).
+const CRISIS_MANAGEMENT_ROUND_REDUCTION = 1
 
 ## Inspekcja środowiskowa - kara dla KAŻDEGO gracza, który w danym momencie
 ## ma choć jeden nadmiernie wyeksploatowany las lub zabudowaną strefę

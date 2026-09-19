@@ -411,6 +411,9 @@ func _load_saved_game(data: Dictionary) -> void:
 		player.forest_safe_threshold_bonus = saved_player.get("forest_safe_threshold_bonus", 0.0)
 		player.annex_cost_reduction = int(saved_player.get("annex_cost_reduction", 0))
 		player.road_infrastructure = saved_player.get("road_infrastructure", false)
+		player.fortifications = saved_player.get("fortifications", false)
+		player.industrial_income_bonus = saved_player.get("industrial_income_bonus", 0.0)
+		player.crisis_management = saved_player.get("crisis_management", false)
 
 		GameManager.register_player(player)
 		players.append(player)
@@ -1227,8 +1230,8 @@ func _on_takeover_pressed() -> void:
 	var result = GameManager.attempt_takeover(hex_id, active_player.player_id)
 	if result["success"]:
 		_reveal_around(hex_id, active_player.player_id)
-		info_label.text = "Przejęto %s (koszt: %d MP, -%d prestiżu; obrońca stracił %d prestiżu)." % [
-			hex_id, cost, result["cost"], result["defender_loss"]
+		info_label.text = "Przejęto %s (koszt: %d MP, -%d prestiżu)." % [
+			hex_id, cost, result["cost"]
 		]
 		_refresh_map_view()
 		_update_stats_labels()
